@@ -19,12 +19,11 @@ function SalonMap({ salons, loading, error }) {
   const [mapInitialized, setMapInitialized] = useState(false);
   const [userLocationSet, setUserLocationSet] = useState(false);
   const rootsRef = useRef([]);
-
+ 
   // Initialize map when component mounts
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
     
-    console.log("Initializing map");
     mapboxgl.accessToken = 'pk.eyJ1IjoicWlmeSIsImEiOiJjbTc2OGlvZ2IwNjNnMm5wejhybXNhbXd3In0.oiEiHV6rkY5IlL6qGJwkRA';
     
     try {
@@ -50,12 +49,10 @@ function SalonMap({ salons, loading, error }) {
   
       // When map loads, zoom to user location
       map.on('load', () => {
-        console.log("Map loaded, mapRef exists:", !!mapRef.current);
         setMapInitialized(true);
         
         // If we already have user location from context, use it
         if (latitude && longitude && !userLocationSet) {
-          console.log("Using context location:", latitude, longitude);
           map.flyTo({
             center: [longitude, latitude],
             zoom: 15
@@ -64,8 +61,6 @@ function SalonMap({ salons, loading, error }) {
           
           // We've removed the user location marker code from here
         } else {
-          // Otherwise try to get location from browser
-          console.log("Triggering geolocation");
           geolocate.trigger();
         }
         
@@ -77,7 +72,6 @@ function SalonMap({ salons, loading, error }) {
       geolocate.on('geolocate', (e) => {
         const lon = e.coords.longitude;
         const lat = e.coords.latitude;
-        console.log("User location found:", lat, lon);
         
         // We've removed the user location marker code from here
         
@@ -130,15 +124,9 @@ function SalonMap({ salons, loading, error }) {
 
   const addSalonMarkers = () => {
     if (!mapRef.current || !salons || !salons.length) {
-      console.log("Cannot add markers:", { 
-        mapExists: !!mapRef.current, 
-        salonsExist: !!salons, 
-        salonCount: salons?.length || 0 
-      });
       return;
     }
 
-    console.log("Adding markers for", salons.length, "salons");
 
     // Remove existing markers and clean up React roots
     markers.forEach(marker => {
@@ -173,7 +161,7 @@ function SalonMap({ salons, loading, error }) {
       }
       
       validSalonsCount.valid++;
-      console.log("Creating marker for:", salon.name, "at", coordinates.lat, coordinates.lng);
+
       
       try {
         // Create a DOM element
@@ -215,8 +203,6 @@ function SalonMap({ salons, loading, error }) {
     });
 
     setMarkers(newMarkers);
-    console.log(`Added ${newMarkers.length} markers. Valid salons: ${validSalonsCount.valid}/${validSalonsCount.total}`);
-
     // Center the view to include all markers and user location
     if (newMarkers.length > 0) {
       try {
@@ -254,7 +240,6 @@ function SalonMap({ salons, loading, error }) {
     if (!mapRef.current || !latitude || !longitude) return;
     
     if (!userLocationSet) {
-      console.log("Location context updated, flying to:", latitude, longitude);
       mapRef.current.flyTo({
         center: [longitude, latitude],
         zoom: 15
@@ -291,7 +276,6 @@ function SalonMap({ salons, loading, error }) {
   // Add salon markers when salon data is loaded or changes
   useEffect(() => {
     if (mapRef.current && mapInitialized && salons?.length > 0) {
-      console.log("Salons data updated, adding markers");
       addSalonMarkers();
     }
   }, [salons, mapInitialized]);

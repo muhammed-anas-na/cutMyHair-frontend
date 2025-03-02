@@ -9,6 +9,8 @@ export const UPDATE_USER_LOCATION_API = `${USER_BASE_URL}/update-user-location`;
 export const GET_LOCATION_NAME_BY_COORDINATES_API = `${USER_BASE_URL}/get-location-name-by-coordinates`
 export const GET_LOCATION_FROM_TEXT_API = `${USER_BASE_URL}/get-location-from-text`
 export const CONFIRM_BOOKING_API = `${USER_BASE_URL}/confirm-booking`
+export const GET_USER_BOOKINGS_BY_ID_API = `${USER_BASE_URL}/get-user-bookings`
+export const GET_BOOKING_DETAIL_BY_ID_API = `${USER_BASE_URL}/get-booking-details`
 
 // Salon-related endpoints for Users
 export const GET_SALON_FEEDBACKS_API = `${USER_BASE_URL}/get-salon-feedbacks`;

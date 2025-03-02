@@ -4,10 +4,11 @@ import { useLocation } from '@/context/LocationContext';
 import SalonCard from "../SalonCard/page";
 import SalonFeedback from '../SalonReview/page';
 import { useState } from 'react';
-
+import { useRouter } from "next/navigation";
 export default function ListOfSalon({ salons, loading, error }) {
   const { latitude, longitude, locationText } = useLocation();
   const [selectedSalon, setSelectedSalon] = useState()
+  const router = useRouter();
   if (loading) {
     return (
       <div className="flex justify-center items-center p-10">
@@ -50,7 +51,7 @@ export default function ListOfSalon({ salons, loading, error }) {
     setSelectedSalon(value)
   }
   const handleViewServices = ()=>{
-    console.log("Push to service")
+    router.push(`/services/${selectedSalon.salon_id}`)
   }
   const handleClose=()=>{
     setSelectedSalon()

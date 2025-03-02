@@ -58,22 +58,7 @@ export default function Register() {
     setLongitude(selectedLocation.longitude);
     setLocationText(selectedLocation.text);
     setLocationName(selectedLocation.name);
-    
-    // For debugging
-    console.log('Selected location:', selectedLocation);
   };
-  // useEffect(() => {
-  //   console.log("Fetching locaiton input..")
-  //   if (locationInput.trim()) {
-  //     const fetchLocations = async () => {
-  //       const response = await GET_LOCATION_FROM_TEXT_FN(locationInput);
-  //       setSuggestedLocations(response.data.locations || []);
-  //     };
-  //     fetchLocations();
-  //   } else {
-  //     setSuggestedLocations([]);
-  //   }
-  // }, [locationInput]);
 
   const handleImageUpload = (e) => {
     const newImages = [...images];
@@ -110,7 +95,6 @@ export default function Register() {
         longitude
       );
       
-      console.log(response);
       if(response.status == 201){
         setSalonId(response.data.data.salon_id);
         router.replace(`/owner/success?message=${salonName}%20Registration%20Successful&redirect=/owner/numberofseats`);

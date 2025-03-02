@@ -66,7 +66,6 @@ const WorkingHours = () => {
   const handleSubmit = async () => {
     try {
       const response = await UPDATE_WORKING_HOUR_FN(salon_id, timeSlots);
-      console.log(response);
       if (response.status === 200) {
         router.replace(`/owner/success?message=Completed%20Successfully&redirect=/owner/dashboard`);
       }

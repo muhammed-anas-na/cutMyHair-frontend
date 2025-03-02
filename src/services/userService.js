@@ -9,7 +9,9 @@ import {
   GET_LOCATION_FROM_TEXT_API,
   GET_NEAREST_SALON_API,
   CREATE_ORDER_API,
-  CONFIRM_BOOKING_API
+  CONFIRM_BOOKING_API,
+  GET_USER_BOOKINGS_BY_ID_API,
+  GET_BOOKING_DETAIL_BY_ID_API
 } from '@/endpoints/index.js';
 
 // Send OTP Function
@@ -92,8 +94,23 @@ export const CREATE_ORDER_FN = async(amount)=>{
 
 export const CONFIRM_BOOKING_FN = async(bookingData)=>{
   try{
-    console.log(bookingData);
     return await axiosInstance.post(CONFIRM_BOOKING_API, bookingData)
+  }catch(err){
+    return err
+  }
+}
+
+export const GET_USER_BOOKINGS_BY_ID_FN = async(user_id)=>{
+  try{
+    return await axiosInstance.post(GET_USER_BOOKINGS_BY_ID_API, {user_id})
+  }catch(err){
+    return err
+  }
+}
+
+export const GET_BOOKING_DETAIL_BY_ID_FN = async(booking_id)=>{
+  try{
+    return await axiosInstance.post(GET_BOOKING_DETAIL_BY_ID_API, {booking_id})
   }catch(err){
     return err
   }

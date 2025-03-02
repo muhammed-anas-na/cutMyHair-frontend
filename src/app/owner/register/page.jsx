@@ -120,7 +120,6 @@ export default function OwnerRegister() {
                 setIsLoading(true);
                 try {
                     const response = await OWNER_VERIFY_OTP_FN(name, otp.join(""), 'register');
-                    console.log("Response==>", response);
                     if (response.status === 200) {
                         login({
                             user_id:response.data.data.owner_id,
@@ -144,7 +143,7 @@ export default function OwnerRegister() {
                 setIsLoading(true);
                 try {
                     const response = await OWNER_SEND_OTP_FN(phoneNumber, 'register');
-                    console.log(response);
+          
                     if (response.status === 200) {
                         setIsOtpView(true);
                         setResendDisabled(true);
@@ -181,7 +180,6 @@ export default function OwnerRegister() {
     const handleResendOtp = () => {
         if (!resendDisabled) {
             // Implement OTP resend logic here
-            console.log("Resending OTP to:", phoneNumber);
             setResendDisabled(true);
             setTimer(30);
             // Reset OTP fields

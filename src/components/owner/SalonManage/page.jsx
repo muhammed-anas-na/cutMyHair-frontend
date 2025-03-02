@@ -13,19 +13,10 @@ const SalonManagement = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!user_id) {
-      console.log("No user_id available yet");
-      return;
-    }
-
-    console.log("Fetching salons for user_id:", user_id);
-
     const fetchSalons = async () => {
       setLoading(true);
       try {
         const response = await GET_OWNER_SALON_FN(user_id);
-        console.log("Salon API response:", response);
-        // Assuming the response structure is { data: { data: [salons] } }
         if (response?.data?.data) {
           setSalons(response.data.data);
         } else {

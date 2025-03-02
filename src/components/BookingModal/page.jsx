@@ -114,7 +114,6 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
       
       // Create an order in Razorpay
       const response = await CREATE_ORDER_FN(totalPrice);
-      console.log("Order created:", response);
       
       if (!response.data || !response.data.orderId) {
         throw new Error("Failed to create order");
@@ -129,7 +128,6 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
         description: `Booking for ${selectedServices.length} services`,
         order_id: response.data.orderId,
         handler: function(paymentResponse) {
-          console.log("Payment Successful", paymentResponse);
           confirmBooking(paymentResponse);
         },
         prefill: {
@@ -182,9 +180,7 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
       
       // Send booking details to server
       const response = await CONFIRM_BOOKING_FN(bookingData);
-      console.log(response);
       if (response.status === 200) {
-        console.log("Booking confirmed:", response.data);
         setBookingSuccess(true);
         setBookingDetails(response.data.data || bookingData);
       } else {

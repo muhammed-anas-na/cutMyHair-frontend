@@ -26,12 +26,10 @@ const Home = () => {
       
       try {
         if (latitude && longitude) {
-          console.log("Finding nearest salons from Home component");
+       
           const response = await GET_NEAREST_SALON_FN(latitude, longitude);
-          console.log("API Response:", response);
           
           if (response?.data?.data?.salons && Array.isArray(response.data.data.salons)) {
-            console.log("Salons found:", response.data.data.salons.length);
             setSalons(response.data.data.salons);
           } else {
             console.error("Unexpected API response structure:", response);

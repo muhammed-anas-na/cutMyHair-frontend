@@ -68,7 +68,6 @@ const SalonDetails = ({ salon_id }) => {
       setIsLoading(true);
       try {
         const response = await FETCH_SALON_DETAILS_BY_ID_FN(salon_id);
-        console.log(response);
         if (response?.data?.data) {
           // Format the data correctly
           const salon = response.data.data;
@@ -150,16 +149,6 @@ const SalonDetails = ({ salon_id }) => {
   };
 
   const handleDeleteConfirm = async () => {
-    // Here you would implement an API call to delete the salon
-    // For example:
-    // try {
-    //   await DELETE_SALON_FN(salon_id);
-    //   // Redirect to salons list page
-    //   window.location.href = '/owner/salons';
-    // } catch (err) {
-    //   console.error(err);
-    //   // Show error notification
-    // }
 
     setShowDeleteConfirm(false);
   };

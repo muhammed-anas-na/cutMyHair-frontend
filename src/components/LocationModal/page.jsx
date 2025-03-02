@@ -15,7 +15,6 @@ export default function LocationModal() {
     if (locationInput.trim()) {
       const fetchLocations = async () => {
         const response = await GET_LOCATION_FROM_TEXT_FN(locationInput);
-        console.log(response.data.locations);
         setSuggestedLocations(response.data.locations || []);
       };
       fetchLocations();

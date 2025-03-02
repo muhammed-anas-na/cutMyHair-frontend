@@ -3,6 +3,7 @@ import React, { use, useEffect, useState } from 'react';
 import { ChevronUp, ChevronDown, Plus, Check, Bell, Search, MoreVertical, Phone, ArrowLeft } from 'lucide-react';
 import BookingModal from '@/components/BookingModal/page';
 import { FETCH_SALON_DETAILS_BY_ID_FN } from '@/services/ownerService';
+import Link from 'next/link';
 
 const SalonServices = ({ params }) => {
   const unwrappedParams = use(params);
@@ -132,7 +133,7 @@ const SalonServices = ({ params }) => {
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-4">
-            <ArrowLeft className="w-6 h-6 text-gray-600" />
+            <Link href={'/home'}><ArrowLeft className="w-6 h-6 text-gray-600" /></Link>
             <div>
               <h1 className="text-xl font-semibold">{salonData.name}</h1>
               <p className="text-gray-600 text-sm">{salonData.location_text}</p>

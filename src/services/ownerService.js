@@ -90,7 +90,6 @@ export const UPDATE_WORKING_HOUR_FN = async(salon_id, workingHour)=>{
 
 export const GET_OWNER_SALON_FN = async(user_id)=>{
   try {
-    console.log("ID=>",user_id)
     return await axiosInstance.post(OWNER_GET_SALON_BY_ID_API, {owner_id: user_id});
   } catch (err) {
     return err

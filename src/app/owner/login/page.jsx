@@ -133,7 +133,6 @@ export default function Login() {
                 setIsLoading(true);
                 try {
                     const response = await OWNER_SEND_OTP_FN(phoneNumber , 'login');
-                    console.log(response);
                     if (response.status === 200) {
                         setIsOtpView(true);
                         setResendDisabled(true);

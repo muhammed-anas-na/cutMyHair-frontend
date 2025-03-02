@@ -9,8 +9,6 @@ function Header() {
     if (!text) return "";
     return text.length > 15 ? `${text.substring(0, 15)}...` : text;
   };
-  // Determine what to display
-  console.log(locationText);
   const displayLocationText = locationText ? truncateText(locationText) : "Find My Location";
   const displayLocationName = locationName ? truncateText(locationName) : "Set your location";
  

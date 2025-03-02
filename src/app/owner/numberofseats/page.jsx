@@ -19,7 +19,6 @@ const SeatsInput = () => {
   const handleSubmit = async()=>{
     try{
       const response = await UPDATE_NUMBER_OF_SEATS_FN(salon_id, seats)
-      console.log(response);
       if(response.status == 200){
         router.replace('/owner/salontime')
       }
