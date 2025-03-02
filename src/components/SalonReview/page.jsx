@@ -1,5 +1,6 @@
 import React from 'react';
 import { Phone, X } from 'lucide-react';
+import Link from 'next/link';
 
 const SalonFeedback = ({ salon, onClose, onViewServices }) => {
   // Sample images if salon.images is empty (for development/testing)
@@ -67,7 +68,9 @@ const SalonFeedback = ({ salon, onClose, onViewServices }) => {
             <span className="text-gray-800">{renderRating(salon.rating)}</span>
             <span className="ml-1 text-gray-700">{salon.rating || "New"}</span>
           </div>
-          <button className="text-pink-600 font-medium">Get Directions</button>
+          <button className="text-pink-600 font-medium">
+            <Link href={`/directions?latitude=${salon.location.coordinates[1]}&&longitude=${salon.location.coordinates[0]}&&name=${salon.name}&&locationText=${salon.location_text}&&rating=${salon.rating}`}>Get Directions</Link>
+          </button>
         </div>
       </div>
 
