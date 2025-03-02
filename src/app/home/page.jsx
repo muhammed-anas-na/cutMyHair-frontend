@@ -10,9 +10,45 @@ import ListOfSalon from "@/components/ListofSalon/page";
 import SalonMap from "@/components/SalonMap/page";
 import { useLocation } from '@/context/LocationContext';
 import LocationModal from '@/components/LocationModal/page';
+import { GET_NEAREST_SALON_FN } from '@/services/userService';
 
 const Home = () => {
   const [isMapView, setIsMapView] = useState(false);
+  const [salons, setSalons] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const { latitude, longitude, locationText } = useLocation();
+
+  useEffect(() => {
+    const fetchSalons = async () => {
+      setLoading(true);
+      setError('');
+      
+      try {
+        if (latitude && longitude) {
+          console.log("Finding nearest salons from Home component");
+          const response = await GET_NEAREST_SALON_FN(latitude, longitude);
+          console.log("API Response:", response);
+          
+          if (response?.data?.data?.salons && Array.isArray(response.data.data.salons)) {
+            console.log("Salons found:", response.data.data.salons.length);
+            setSalons(response.data.data.salons);
+          } else {
+            console.error("Unexpected API response structure:", response);
+            setError('Invalid data format received from server.');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch salons:', err);
+        setError('Failed to load salons. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchSalons();
+  }, [latitude, longitude]);
+
   return (
     <>
     <div>
@@ -27,12 +63,18 @@ const Home = () => {
         </div>
       </div>
       
-      {/* Pass location data to child components */}
+      {/* Pass shared data to child components */}
       {isMapView ? (
         <SalonMap 
+          salons={salons}
+          loading={loading}
+          error={error}
         />
       ) : (
         <ListOfSalon 
+          salons={salons}
+          loading={loading}
+          error={error}
         />
       )}
       

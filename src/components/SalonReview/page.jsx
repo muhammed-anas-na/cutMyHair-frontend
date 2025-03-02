@@ -2,95 +2,46 @@ import React from 'react';
 import { Phone, X } from 'lucide-react';
 
 const SalonFeedback = ({ salon, onClose, onViewServices }) => {
-  // Mock reviews data - replace with actual data
-  const reviews = [
+  // Sample images if salon.images is empty (for development/testing)
+  const sampleImages = [
     {
         id: 1,
-        user: "Emily Chen",
-        rating: 5,
-        comment: "Absolutely loved my haircut! The stylist really understood what I wanted and the atmosphere was so welcoming.",
-        image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-        date: "2 days ago"
+        url: "https://images.unsplash.com/photo-1560066984-138dadb4c035",
+        alt: "Modern salon interior with styling stations"
     },
     {
         id: 2,
-        user: "Michael Rodriguez",
-        rating: 4,
-        comment: "Great beard trim, very precise work. The hot towel service was an unexpected bonus.",
-        image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-        date: "1 week ago"
+        url: "https://images.unsplash.com/photo-1600948836101-f9ffda59d250",
+        alt: "Salon washing area"
     },
     {
         id: 3,
-        user: "Sophia Patel",
-        rating: 5,
-        comment: "Best salon experience in months! The head massage during hair wash was so relaxing.",
-        image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80",
-        date: "2 weeks ago"
+        url: "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f",
+        alt: "Elegant salon mirrors and chairs"
     },
     {
         id: 4,
-        user: "David Kim",
-        rating: 3,
-        comment: "Decent haircut, but had to wait a bit despite having an appointment. Good final result though.",
-        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-        date: "3 weeks ago"
-    },
-    {
-        id: 5,
-        user: "Aisha Thompson",
-        rating: 5,
-        comment: "The stylist gave me exactly what I wanted! Love how they took time to understand my hair texture.",
-        image: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce",
-        date: "1 month ago"
-    },
-    {
-        id: 6,
-        user: "James Wilson",
-        rating: 4,
-        comment: "Very professional service. Clean space and great attention to detail with the styling.",
-        image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
-        date: "1 month ago"
-    },
-    {
-        id: 7,
-        user: "Nina Martinez",
-        rating: 5,
-        comment: "Amazing color work! They really know how to handle highlights and the price was reasonable.",
-        image: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb",
-        date: "2 months ago"
-    },
-    {
-        id: 8,
-        user: "Tom Anderson",
-        rating: 4,
-        comment: "Solid haircut and beard trim combo. The place has a great vibe and friendly staff.",
-        image: "https://images.unsplash.com/photo-1463453091185-61582044d556",
-        date: "2 months ago"
+        url: "https://images.unsplash.com/photo-1633681926035-ec1ac984418a",
+        alt: "Salon product display"
     }
-];
-const salonImages = [
-  {
-      id: 1,
-      url: "https://images.unsplash.com/photo-1560066984-138dadb4c035",
-      alt: "Modern salon interior with styling stations"
-  },
-  {
-      id: 2,
-      url: "https://images.unsplash.com/photo-1600948836101-f9ffda59d250",
-      alt: "Salon washing area"
-  },
-  {
-      id: 3,
-      url: "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f",
-      alt: "Elegant salon mirrors and chairs"
-  },
-  {
-      id: 4,
-      url: "https://images.unsplash.com/photo-1633681926035-ec1ac984418a",
-      alt: "Salon product display"
-  }
-];
+  ];
+
+  // Format rating stars based on salon's actual rating
+  const renderRating = (rating) => {
+    const fullStars = Math.floor(rating || 0);
+    const emptyStars = 5 - fullStars;
+    return (
+      <>
+        {"★".repeat(fullStars)}
+        {"☆".repeat(emptyStars)}
+      </>
+    );
+  };
+
+  // Use salon.images if available, otherwise use sample images
+  const imagesToDisplay = salon.images && salon.images.length > 0 
+    ? salon.images 
+    : sampleImages;
 
   return (
     <div className="bg-white w-full max-w-md mx-auto h-[80vh] flex flex-col rounded-t-lg overflow-hidden mb-16">
@@ -99,7 +50,7 @@ const salonImages = [
         <div className="flex justify-between items-start mb-2">
           <div className="flex-1">
             <h1 className="text-xl font-semibold">{salon.name}</h1>
-            <p className="text-gray-500 text-sm">{salon.location || "Fort Kochi, Kochi"}</p>
+            <p className="text-gray-500 text-sm">{salon.location_text || salon.address || "Unknown Location"}</p>
           </div>
           <div className="flex gap-4">
             <button className="p-2">
@@ -113,10 +64,8 @@ const salonImages = [
         
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
-            {"★★★★☆".split('').map((star, i) => (
-              <span key={i} className="text-gray-800">{star}</span>
-            ))}
-            <span className="ml-1 text-gray-700">4.3</span>
+            <span className="text-gray-800">{renderRating(salon.rating)}</span>
+            <span className="ml-1 text-gray-700">{salon.rating || "New"}</span>
           </div>
           <button className="text-pink-600 font-medium">Get Directions</button>
         </div>
@@ -127,44 +76,83 @@ const salonImages = [
         {/* Salon Images */}
         <div className="p-4">
           <div className="flex gap-2 overflow-x-auto">
-          {salonImages.map((image) => (
-          <div key={image.id} className="flex-none w-40 h-32 bg-gray-200 rounded-lg overflow-hidden">
-            <img
-              src={image.url}
-              alt={image.alt}
-              className="w-full h-full object-cover"
-            />
+            {imagesToDisplay.map((image, index) => (
+              <div 
+                key={image.id || index} 
+                className="flex-none w-40 h-32 bg-gray-200 rounded-lg overflow-hidden"
+              >
+                <img
+                  src={image.url || image}
+                  alt={image.alt || `${salon.name} image ${index + 1}`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/api/placeholder/160/128";
+                  }}
+                />
+              </div>
+            ))}
           </div>
-        ))}
-          </div>
+        </div>
+
+        {/* Salon Information */}
+        <div className="p-4 border-b">
+          <h2 className="text-lg font-semibold mb-2">Salon Information</h2>
+          <p className="text-gray-700"><strong>Address:</strong> {salon.address}</p>
+          <p className="text-gray-700"><strong>Contact:</strong> {salon.contact_phone}</p>
+          <p className="text-gray-700"><strong>Distance:</strong> {salon.distanceInKm ? `${salon.distanceInKm.toFixed(1)} km` : 'Not available'}</p>
+        </div>
+        
+        {/* Working Hours */}
+        <div className="p-4 border-b">
+          <h2 className="text-lg font-semibold mb-2">Working Hours</h2>
+          {salon.working_hours ? (
+            <div className="grid grid-cols-2 gap-2">
+              {Object.entries(salon.working_hours).map(([day, hours]) => (
+                <div key={day} className="flex justify-between">
+                  <p className="capitalize text-gray-700">{day}</p>
+                  <p className="text-gray-700">
+                    {hours.isOpen ? 
+                      `${new Date(hours.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(hours.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` 
+                      : 'Closed'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">Working hours not available</p>
+          )}
         </div>
 
         {/* Reviews Section */}
         <div className="p-4">
           <h2 className="text-lg font-semibold mb-4">Customer Reviews</h2>
-          <div className="space-y-4">
-            {reviews.map((review) => (
-              <div key={review.id} className="border-b pb-4">
-                <div className="flex items-start gap-3">
-                  <img
-                    src={review.image}
-                    alt={review.user}
-                    className="w-12 h-12 rounded-full"
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{review.user}</span>
-                      <div className="flex">
-                        {"★".repeat(review.rating)}
-                        {"☆".repeat(5 - review.rating)}
-                      </div>
+          {salon.reviews && salon.reviews.length > 0 ? (
+            <div className="space-y-4">
+              {salon.reviews.map((review, index) => (
+                <div key={index} className="border-b pb-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-600 font-medium">
+                        {review.user_name ? review.user_name.charAt(0) : 'U'}
+                      </span>
                     </div>
-                    <p className="text-gray-600 mt-1">{review.comment}</p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{review.user_name || "Anonymous"}</span>
+                        <div className="flex">
+                          {renderRating(review.rating)}
+                        </div>
+                      </div>
+                      <p className="text-gray-600 mt-1">{review.comment || "No comment provided"}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">No reviews yet. Be the first to review!</p>
+          )}
         </div>
       </div>
 

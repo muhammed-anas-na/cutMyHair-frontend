@@ -8,101 +8,250 @@ import CustomMarker from '../CustomMarker/page';
 import SalonFeedback from '../SalonReview/page';
 import { useRouter } from "next/navigation";
 import { useLocation } from '@/context/LocationContext';
-import { GET_NEAREST_SALON_FN } from '@/services/userService';
 
-function SalonMap() {
-  const mapRef = useRef();
-  const mapContainerRef = useRef();
+function SalonMap({ salons, loading, error }) {
+  const mapRef = useRef(null);
+  const mapContainerRef = useRef(null);
   const [selectedSalon, setSelectedSalon] = useState(null);
-  const [salons, setSalons] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const { latitude, longitude, locationText } = useLocation();
   const router = useRouter();
   const [markers, setMarkers] = useState([]);
   const [mapInitialized, setMapInitialized] = useState(false);
   const [userLocationSet, setUserLocationSet] = useState(false);
+  const rootsRef = useRef([]);
 
-  // Initialize map first
+  // Initialize map when component mounts
   useEffect(() => {
-    if (!mapContainerRef.current || mapInitialized) return;
+    if (!mapContainerRef.current || mapRef.current) return;
     
     console.log("Initializing map");
     mapboxgl.accessToken = 'pk.eyJ1IjoicWlmeSIsImEiOiJjbTc2OGlvZ2IwNjNnMm5wejhybXNhbXd3In0.oiEiHV6rkY5IlL6qGJwkRA';
     
-    // Start with default center, we'll zoom to user location after map loads
-    mapRef.current = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [77.6380511, 12.9173669],
-      zoom: 13,
-      minZoom: 10
-    });
-
-    const geolocate = new mapboxgl.GeolocateControl({
-      positionOptions: {
-        enableHighAccuracy: true
-      },
-      trackUserLocation: true,
-      showUserHeading: true
-    });
-
-    mapRef.current.addControl(geolocate);
-
-    // When map loads, zoom to user location
-    mapRef.current.on('load', () => {
-      console.log("Map loaded");
-      setMapInitialized(true);
-      
-      // If we already have user location from context, use it
-      if (latitude && longitude && !userLocationSet) {
-        console.log("Using context location:", latitude, longitude);
-        mapRef.current.flyTo({
-          center: [longitude, latitude],
-          zoom: 15
-        });
-        setUserLocationSet(true);
-      } else {
-        // Otherwise try to get location from browser
-        console.log("Triggering geolocation");
-        geolocate.trigger();
-      }
-    });
-
-    // When user location is found via GeolocateControl
-    geolocate.on('geolocate', (e) => {
-      const lon = e.coords.longitude;
-      const lat = e.coords.latitude;
-      console.log("User location found:", lat, lon);
-      
-      // Add a user location marker (blue dot)
-      new mapboxgl.Marker({
-        color: '#0078FF',
-        scale: 0.8
-      }).setLngLat([lon, lat]).addTo(mapRef.current);
-      
-      // Fly to user location
-      mapRef.current.flyTo({
-        center: [lon, lat],
-        zoom: 15
+    try {
+      const map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [77.6380511, 12.9173669],
+        zoom: 13,
+        minZoom: 10
       });
       
-      setUserLocationSet(true);
-    });
+      mapRef.current = map;
+  
+      const geolocate = new mapboxgl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true
+        },
+        trackUserLocation: true,
+        showUserHeading: false,
+      });
+  
+      map.addControl(geolocate);
+  
+      // When map loads, zoom to user location
+      map.on('load', () => {
+        console.log("Map loaded, mapRef exists:", !!mapRef.current);
+        setMapInitialized(true);
+        
+        // If we already have user location from context, use it
+        if (latitude && longitude && !userLocationSet) {
+          console.log("Using context location:", latitude, longitude);
+          map.flyTo({
+            center: [longitude, latitude],
+            zoom: 15
+          });
+          setUserLocationSet(true);
+          
+          // We've removed the user location marker code from here
+        } else {
+          // Otherwise try to get location from browser
+          console.log("Triggering geolocation");
+          geolocate.trigger();
+        }
+        
+        // Add salon markers immediately after map is loaded
+        addSalonMarkers();
+      });
+  
+      // When user location is found via GeolocateControl
+      geolocate.on('geolocate', (e) => {
+        const lon = e.coords.longitude;
+        const lat = e.coords.latitude;
+        console.log("User location found:", lat, lon);
+        
+        // We've removed the user location marker code from here
+        
+        // Fly to user location
+        map.flyTo({
+          center: [lon, lat],
+          zoom: 15
+        });
+        
+        setUserLocationSet(true);
+        
+        // Add salon markers after user location is set
+        addSalonMarkers();
+      });
+    } catch (err) {
+      console.error("Error initializing map:", err);
+    }
 
     // Clean up function
     return () => {
       if (mapRef.current) {
+        // Clean up all roots
+        rootsRef.current.forEach(root => {
+          try {
+            root.unmount();
+          } catch (e) {
+            console.error("Error unmounting root:", e);
+          }
+        });
+        rootsRef.current = [];
+        
+        // Clean up markers
+        markers.forEach(marker => {
+          try {
+            marker.remove();
+          } catch (e) {
+            console.error("Error removing marker:", e);
+          }
+        });
+        
+        // Remove map
         mapRef.current.remove();
+        mapRef.current = null;
         setMapInitialized(false);
         setUserLocationSet(false);
       }
     };
-  }, [mapContainerRef.current]);
+  }, [mapContainerRef.current]); // Only run once when component mounts
+
+
+  const addSalonMarkers = () => {
+    if (!mapRef.current || !salons || !salons.length) {
+      console.log("Cannot add markers:", { 
+        mapExists: !!mapRef.current, 
+        salonsExist: !!salons, 
+        salonCount: salons?.length || 0 
+      });
+      return;
+    }
+
+    console.log("Adding markers for", salons.length, "salons");
+
+    // Remove existing markers and clean up React roots
+    markers.forEach(marker => {
+      try {
+        marker.remove();
+      } catch (e) {
+        console.error("Error removing marker:", e);
+      }
+    });
+    
+    rootsRef.current.forEach(root => {
+      try {
+        root.unmount();
+      } catch (e) {
+        console.error("Error unmounting root:", e);
+      }
+    });
+    rootsRef.current = [];
+    
+    const newMarkers = [];
+    const validSalonsCount = {total: 0, valid: 0};
+
+    // Add new markers
+    salons.forEach((salon) => {
+      validSalonsCount.total++;
+      
+      const coordinates = getSalonCoordinates(salon);
+      
+      if (!coordinates.lng || !coordinates.lat) {
+        console.warn(`Salon "${salon.name}" missing coordinates:`, coordinates);
+        return;
+      }
+      
+      validSalonsCount.valid++;
+      console.log("Creating marker for:", salon.name, "at", coordinates.lat, coordinates.lng);
+      
+      try {
+        // Create a DOM element
+        const el = document.createElement('div');
+        el.className = 'mapboxgl-marker salon-marker';
+        
+        // Important: Append to document body to ensure element is in DOM
+        document.body.appendChild(el);
+        
+        // Create a React root
+        const root = createRoot(el);
+        rootsRef.current.push(root);
+        
+        // Render the custom marker component
+        root.render(
+          <CustomMarker
+            name={salon.name}
+            photo={salon.images[0]}
+          />
+        );
+        
+        // Create the marker with the element
+        const marker = new mapboxgl.Marker({
+          element: el,
+          anchor: 'bottom'
+        }).setLngLat([coordinates.lng, coordinates.lat]);
+        
+        // Add click event listener
+        el.addEventListener('click', () => {
+          setSelectedSalon(salon);
+        });
+        
+        // Add to map
+        marker.addTo(mapRef.current);
+        newMarkers.push(marker);
+      } catch (error) {
+        console.error("Error adding marker for salon:", salon.name, error);
+      }
+    });
+
+    setMarkers(newMarkers);
+    console.log(`Added ${newMarkers.length} markers. Valid salons: ${validSalonsCount.valid}/${validSalonsCount.total}`);
+
+    // Center the view to include all markers and user location
+    if (newMarkers.length > 0) {
+      try {
+        // Create a bounds object
+        const bounds = new mapboxgl.LngLatBounds();
+        
+        // Add user location to bounds (we still want to include user location in the bounds)
+        if (latitude && longitude) {
+          bounds.extend([longitude, latitude]);
+        }
+        
+        // Add all salon locations to bounds
+        salons.forEach(salon => {
+          const coordinates = getSalonCoordinates(salon);
+          if (coordinates.lng && coordinates.lat) {
+            bounds.extend([coordinates.lng, coordinates.lat]);
+          }
+        });
+        
+        // Fit the map to the bounds with padding
+        if (!bounds.isEmpty() && mapRef.current) {
+          mapRef.current.fitBounds(bounds, {
+            padding: 50,
+            maxZoom: 15
+          });
+        }
+      } catch (error) {
+        console.error("Error setting map bounds:", error);
+      }
+    }
+  };
 
   // Fly to user location when latitude/longitude changes in context
   useEffect(() => {
-    if (!mapRef.current || !mapInitialized || !latitude || !longitude) return;
+    if (!mapRef.current || !latitude || !longitude) return;
     
     if (!userLocationSet) {
       console.log("Location context updated, flying to:", latitude, longitude);
@@ -112,43 +261,11 @@ function SalonMap() {
       });
       setUserLocationSet(true);
       
-      // Add a user location marker
-      new mapboxgl.Marker({
-        color: '#0078FF',
-        scale: 0.8
-      }).setLngLat([longitude, latitude]).addTo(mapRef.current);
-    }
-  }, [latitude, longitude, mapInitialized]);
-
-  // Fetch salons data
-  useEffect(() => {
-    const fetchSalons = async () => {
-      setLoading(true);
-      setError('');
+      // We've removed the user location marker code from here
       
-      try {
-        if (latitude && longitude) {
-          console.log("Finding nearest salons for map");
-          const response = await GET_NEAREST_SALON_FN(latitude, longitude);
-          console.log("API Response:", response);
-          
-          if (response?.data?.data?.salons && Array.isArray(response.data.data.salons)) {
-            console.log("Salons found:", response.data.data.salons.length);
-            setSalons(response.data.data.salons);
-          } else {
-            console.error("Unexpected API response structure:", response);
-            setError('Invalid data format received from server.');
-          }
-        }
-      } catch (err) {
-        console.error('Failed to fetch salons for map:', err);
-        setError('Failed to load salons. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSalons();
+      // Try adding markers after location is set
+      addSalonMarkers();
+    }
   }, [latitude, longitude]);
 
   // Function to get coordinates from a salon object
@@ -171,94 +288,13 @@ function SalonMap() {
     };
   };
 
-  // Add salon markers when salon data is loaded and map is ready
+  // Add salon markers when salon data is loaded or changes
   useEffect(() => {
-    if (!mapRef.current || !mapInitialized || salons.length === 0) {
-      console.log("Not adding markers yet:", { 
-        mapExists: !!mapRef.current, 
-        mapInitialized, 
-        salonCount: salons.length 
-      });
-      return;
+    if (mapRef.current && mapInitialized && salons?.length > 0) {
+      console.log("Salons data updated, adding markers");
+      addSalonMarkers();
     }
-
-    console.log("Adding markers for", salons.length, "salons");
-
-    // Remove existing markers
-    markers.forEach(marker => marker.remove());
-    
-    const newMarkers = [];
-    const validSalonsCount = {total: 0, valid: 0};
-
-    // Add new markers
-    salons.forEach((salon) => {
-      validSalonsCount.total++;
-      
-      const coordinates = getSalonCoordinates(salon);
-      
-      if (!coordinates.lng || !coordinates.lat) {
-        console.warn(`Salon "${salon.name}" missing coordinates:`, coordinates);
-        return;
-      }
-      
-      validSalonsCount.valid++;
-      console.log("Creating marker for:", salon.name, "at", coordinates.lat, coordinates.lng);
-      
-      const markerContainer = document.createElement('div');
-      const root = createRoot(markerContainer);
-      
-      // Add click handler to container
-      markerContainer.addEventListener('click', () => {
-        setSelectedSalon(salon);
-      });
-
-      root.render(
-        <CustomMarker
-          name={salon.name}
-          photo={salon.profile_image || salon.photo}
-        />
-      );
-
-      try {
-        const marker = new mapboxgl.Marker(markerContainer, {
-          anchor: 'bottom',
-          offset: [0, -5]
-        }).setLngLat([coordinates.lng, coordinates.lat]).addTo(mapRef.current);
-
-        newMarkers.push(marker);
-      } catch (error) {
-        console.error("Error adding marker:", error);
-      }
-    });
-
-    setMarkers(newMarkers);
-    console.log(`Added ${newMarkers.length} markers. Valid salons: ${validSalonsCount.valid}/${validSalonsCount.total}`);
-
-    // Center the view to include all markers and user location
-    if (newMarkers.length > 0 && userLocationSet) {
-      // Create a bounds object
-      const bounds = new mapboxgl.LngLatBounds();
-      
-      // Add user location to bounds
-      if (latitude && longitude) {
-        bounds.extend([longitude, latitude]);
-      }
-      
-      // Add all salon locations to bounds
-      salons.forEach(salon => {
-        const coordinates = getSalonCoordinates(salon);
-        if (coordinates.lng && coordinates.lat) {
-          bounds.extend([coordinates.lng, coordinates.lat]);
-        }
-      });
-      
-      // Fit the map to the bounds with padding
-      mapRef.current.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 15
-      });
-    }
-  }, [salons, mapInitialized, userLocationSet]);
+  }, [salons, mapInitialized]);
 
   const handleViewServices = (salonId) => {
     router.push(`/services/${salonId}`);
@@ -296,13 +332,13 @@ function SalonMap() {
         </div>
       )}
 
-      {salons.length === 0 && !loading && !error && latitude != null && (
+      {salons?.length === 0 && !loading && !error && latitude != null && (
         <div className="absolute top-0 left-0 right-0 z-50 bg-yellow-100 p-2 text-center">
           <p>No salons found in your area.</p>
         </div>
       )}
 
-      {markers.length === 0 && salons.length > 0 && !loading && (
+      {markers.length === 0 && salons?.length > 0 && !loading && mapInitialized && (
         <div className="absolute top-0 left-0 right-0 z-50 bg-yellow-100 p-2 text-center">
           <p>Found salons but couldn't display them on the map. Please try again later.</p>
         </div>

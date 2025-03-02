@@ -7,7 +7,9 @@ import {
   GET_SALON_SERVICES_API,
   GET_LOCATION_NAME_BY_COORDINATES_API,
   GET_LOCATION_FROM_TEXT_API,
-  GET_NEAREST_SALON_API
+  GET_NEAREST_SALON_API,
+  CREATE_ORDER_API,
+  CONFIRM_BOOKING_API
 } from '@/endpoints/index.js';
 
 // Send OTP Function
@@ -75,6 +77,23 @@ export const GET_LOCATION_FROM_TEXT_FN = async(text)=>{
 export const GET_NEAREST_SALON_FN = async(latitude, longitude)=>{
   try{
     return await axiosInstance.post(GET_NEAREST_SALON_API, {latitude,longitude})
+  }catch(err){
+    return err
+  }
+}
+
+export const CREATE_ORDER_FN = async(amount)=>{
+  try{
+    return await axiosInstance.post(CREATE_ORDER_API, {amount})
+  }catch(err){
+    return err
+  }
+}
+
+export const CONFIRM_BOOKING_FN = async(bookingData)=>{
+  try{
+    console.log(bookingData);
+    return await axiosInstance.post(CONFIRM_BOOKING_API, bookingData)
   }catch(err){
     return err
   }

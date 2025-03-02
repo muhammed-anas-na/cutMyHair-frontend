@@ -1,7 +1,7 @@
 import React from 'react';
 import { Heart, Star, Clock } from 'lucide-react';
 
-const SalonCard = ({ salon }) => {
+const SalonCard = ({ salon, handleSalonSelect }) => {
  
   const checkIfOpenToday = () => {
     if (!salon || !salon.working_hours) return false;
@@ -41,7 +41,7 @@ const SalonCard = ({ salon }) => {
   const todayHours = getTodayHours();
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden mb-4 hover:shadow-lg transition-shadow duration-300">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden mb-4 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={()=>handleSalonSelect(salon)}>
       <div className="flex items-start p-4 gap-4">
         {/* Salon Image */}
         <div className="w-16 h-16 flex-shrink-0">
