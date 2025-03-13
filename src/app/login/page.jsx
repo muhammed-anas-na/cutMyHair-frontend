@@ -4,6 +4,7 @@ import { Facebook, Instagram, Twitter } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import Link from "next/link";
 
 export default function Login() {
     const [isOtpView, setIsOtpView] = useState(false);
@@ -331,6 +332,13 @@ export default function Login() {
                     >
                         {isLoading ? "Please wait..." : (isOtpView ? "Verify OTP" : "Send OTP")}
                     </button>
+                    {
+                        !isOtpView && (
+                            <div className="text-center mb-5">
+                                <Link href={'/register'} className="">Already have an account ?</Link>
+                            </div>
+                        )
+                    }
                 </div>
             </div>
         </div>

@@ -87,13 +87,10 @@ const SalonManagement = () => {
             >
               <div className="relative h-48">
                 <img
-                  src={salon.images && salon.images.length > 0 ? salon.images[0] : "/api/placeholder/300/200"}
+                  src={salon.images && salon.images.length > 0 ? salon.images[0] : null}
                   alt={salon.name}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "/api/placeholder/300/200";
-                  }}
+           
                 />
                 <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full flex items-center gap-1">
                   <span className="text-[#CE145B]">{salon.rating || "New"}</span>

@@ -12,11 +12,13 @@ export const CONFIRM_BOOKING_API = `${USER_BASE_URL}/confirm-booking`
 export const GET_USER_BOOKINGS_BY_ID_API = `${USER_BASE_URL}/get-user-bookings`
 export const GET_BOOKING_DETAIL_BY_ID_API = `${USER_BASE_URL}/get-booking-details`
 
+
 // Salon-related endpoints for Users
 export const GET_SALON_FEEDBACKS_API = `${USER_BASE_URL}/get-salon-feedbacks`;
 export const GET_SALON_SERVICES_API = `${USER_BASE_URL}/get-salon-services`;
 export const GET_NEAREST_SALON_API = `${USER_BASE_URL}/get-nearest-salon`;
-
+export const SEARCH_SALON_API = `${USER_BASE_URL}/search`;
+export const GET_TIME_SLOT_API = `${USER_BASE_URL}/get-time-slots`
 // Owner-related endpoints
 export const OWNER_SEND_OTP_API = `${OWNER_BASE_URL}/send-otp`;
 export const OWNER_VERIFY_OTP_API = `${OWNER_BASE_URL}/verify-otp`;
@@ -29,7 +31,7 @@ export const OWNER_GET_SALON_DETAILS_BY_ID_API = `${OWNER_BASE_URL}/get-salon-de
 export const UPDATE_NUMBER_OF_SEATS_API = `${OWNER_BASE_URL}/update-number-of-seats`;
 export const UPDATE_WORKING_HOUR_API = `${OWNER_BASE_URL}/update-working-hours`;
 export const ADD_SERVICE_FOR_SALON_API = `${OWNER_BASE_URL}/add-service`;
-
+export const GET_APPOINTMENTS_OF_SALON_API = `${OWNER_BASE_URL}/get-appoinments-of-salon`;
 
 //User Payment
 export const CREATE_ORDER_API = `${USER_BASE_URL}/create-razorpay-order`;

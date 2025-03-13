@@ -11,7 +11,9 @@ import {
   CREATE_ORDER_API,
   CONFIRM_BOOKING_API,
   GET_USER_BOOKINGS_BY_ID_API,
-  GET_BOOKING_DETAIL_BY_ID_API
+  GET_BOOKING_DETAIL_BY_ID_API,
+  SEARCH_SALON_API,
+  GET_TIME_SLOT_API
 } from '@/endpoints/index.js';
 
 // Send OTP Function
@@ -115,3 +117,22 @@ export const GET_BOOKING_DETAIL_BY_ID_FN = async(booking_id)=>{
     return err
   }
 }
+
+export const SEARCH_SALON_FN = async(searchParams)=>{
+  try{
+    return await axiosInstance.post(SEARCH_SALON_API, searchParams)
+  }catch(err){
+    return err
+  }
+}
+
+export const GET_TIME_SLOTS_FN = async (salon_id, date, total_duration) => {
+  try {
+    return await axiosInstance.get(
+      `${GET_TIME_SLOT_API}?salon_id=${salon_id}&date=${date}&total_duration=${total_duration}`
+    );
+  } catch (err) {
+    console.error("Error fetching time slots:", err);
+    return err;
+  }
+};

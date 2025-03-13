@@ -9,7 +9,12 @@ const SalonContext = createContext(null);
 export const SalonProvider = ({ children }) => {
   const [salonState, setSalonState] = useState({
     salon_id: null,
-    isLoading: true
+    isLoading: true,
+    salons:[{
+      name: '',
+      location: '',
+      rating: ''
+    }]
   });
   
   const { isAuthenticated } = useAuth();
@@ -37,16 +42,22 @@ export const SalonProvider = ({ children }) => {
 
   // Function to set the salon ID
   const setSalonId = (salon_id) => {
-    // Store in localStorage for persistence
     localStorage.setItem('salon_id', salon_id);
-    
     setSalonState({
       salon_id,
       isLoading: false
     });
   };
 
-  // Function to clear the salon ID
+  const setSalon = (salonData)=>{
+    setSalon({
+      salon_id: salonData.salon_id,
+      name: salonData.name,
+      location: salonData.location,
+      rating: salonData.rating
+    });
+  }
+  
   const clearSalonId = () => {
     // Remove from localStorage
     localStorage.removeItem('salon_id');

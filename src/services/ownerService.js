@@ -7,7 +7,8 @@ import {
   OWNER_GET_SALON_DETAILS_BY_ID_API,
   UPDATE_NUMBER_OF_SEATS_API,
   UPDATE_WORKING_HOUR_API,
-  ADD_SERVICE_FOR_SALON_API
+  ADD_SERVICE_FOR_SALON_API,
+  GET_APPOINTMENTS_OF_SALON_API
 } from '@/endpoints/index.js';
 
 // Send OTP Function for Owner
@@ -88,9 +89,9 @@ export const UPDATE_WORKING_HOUR_FN = async(salon_id, workingHour)=>{
   }
 }
 
-export const GET_OWNER_SALON_FN = async(user_id)=>{
+export const GET_OWNER_SALON_FN = async(user_id,fields)=>{
   try {
-    return await axiosInstance.post(OWNER_GET_SALON_BY_ID_API, {owner_id: user_id});
+    return await axiosInstance.post(OWNER_GET_SALON_BY_ID_API, {owner_id: user_id, fields});
   } catch (err) {
     return err
   }
@@ -99,6 +100,14 @@ export const GET_OWNER_SALON_FN = async(user_id)=>{
 export const FETCH_SALON_DETAILS_BY_ID_FN = async(salon_id)=>{
   try {
     return await axiosInstance.post(OWNER_GET_SALON_DETAILS_BY_ID_API, {salon_id});
+  } catch (err) {
+    return err
+  }
+}
+
+export const GET_APPOINTMENTS_OF_SALON_FN = async(salon_id, date)=>{
+  try {
+    return await axiosInstance.post(GET_APPOINTMENTS_OF_SALON_API, {salon_id, date});
   } catch (err) {
     return err
   }

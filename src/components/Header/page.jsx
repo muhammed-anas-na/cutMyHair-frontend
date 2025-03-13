@@ -1,5 +1,6 @@
 import { Bell, Search, MoreVertical } from "lucide-react";
 import { useLocation } from "@/context/LocationContext";
+import Link from "next/link";
 
 function Header() {
   const { locationName, locationText, setShowLocationModal } = useLocation();
@@ -36,7 +37,7 @@ function Header() {
         </div>
         <div className="flex items-center gap-4">
           <Bell className="w-6 h-6 text-gray-600" />
-          <Search className="w-6 h-6 text-gray-600" />
+          <Link href={'/search'}><Search className="w-6 h-6 text-gray-600" /></Link>
           <MoreVertical className="w-6 h-6 text-gray-600" />
         </div>
       </div>

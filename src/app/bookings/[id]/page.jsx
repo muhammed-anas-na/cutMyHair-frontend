@@ -48,7 +48,7 @@ const BookingConfirmation = ({ params }) => {
   const generateQRData = () => {
     if (!bookingDetails) return '';
     // Create a QR-friendly string with essential booking details
-    return `BOOKING:${bookingDetails._id}|DATE:${bookingDetails.appointment_date}|TIME:${bookingDetails.appointment_time}`;
+    return `BOOKING:${bookingDetails._id}|DATE:${bookingDetails.appointment_date}|TIME:${bookingDetails.scheduled_start_time}`;
   };
 
   if (loading) {
@@ -147,7 +147,7 @@ const BookingConfirmation = ({ params }) => {
             </div>
             <div className="flex items-start">
               <div className="w-24 text-gray-500">Time:</div>
-              <div className="font-medium">{formatTime(bookingDetails.appointment_time)}</div>
+              <div className="font-medium">{formatTime(bookingDetails.scheduled_start_time)}</div>
             </div>
             <div className="flex items-start">
               <div className="w-24 text-gray-500">Duration:</div>

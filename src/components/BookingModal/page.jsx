@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Clock, Calendar, MapPin, User } from 'lucide-react';
 import Script from 'next/script';
-import { CREATE_ORDER_FN, CONFIRM_BOOKING_FN } from '@/services/userService';
+import { CREATE_ORDER_FN, CONFIRM_BOOKING_FN, GET_TIME_SLOTS_FN } from '@/services/userService';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -15,37 +15,63 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
   const [bookingDetails, setBookingDetails] = useState(null);
   const [formattedDate, setFormattedDate] = useState('');
   const [customDate, setCustomDate] = useState('');
-  const {user_id} = useAuth();
+  const [timeSlots, setTimeSlots] = useState([]);
+  const [showAllSlots, setShowAllSlots] = useState(false);
+  const { user_id } = useAuth();
   const router = useRouter();
+
+  // Number of time slots to show initially
+  const initialSlotsToShow = 8;
+
   useEffect(() => {
     if (isOpen) {
       setIsAnimating(true);
-      // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
-      
-      // Set default selected time to first available slot
-      if (!selectedTime && timeSlots.length > 0) {
-        setSelectedTime(timeSlots[0].time);
-      }
-      
-      // Format the date based on selection
       updateFormattedDate();
     } else {
       document.body.style.overflow = 'unset';
-      // Reset the success state when modal is closed
       setBookingSuccess(false);
       setBookingDetails(null);
+      setShowAllSlots(false);
     }
-    
+
     return () => {
       document.body.style.overflow = 'unset';
     };
   }, [isOpen, selectedDate, customDate]);
 
+  useEffect(() => {
+    async function fetchTimeSlots() {
+      console.log("Fetching time slots");
+      const isoDate = getISODateString();
+      const response = await GET_TIME_SLOTS_FN(salonData.salon_id, isoDate, totalDuration);
+      console.log("Fetched Time slots ==>", response);
+      if (response.data && response.data.success && response.data.data.timeSlots.length > 0) {
+        const fetchedSlots = response.data.data.timeSlots.map((slot, index) => ({
+          id: index + 1,
+          time: slot.formattedTime,
+          availableSeats: slot.availableSeats,
+        }));
+        setTimeSlots(fetchedSlots);
+        if (fetchedSlots.length > 0 && !selectedTime) {
+          setSelectedTime(fetchedSlots[0].time);
+        }
+      } else {
+        setTimeSlots([]);
+        setSelectedTime(null);
+      }
+      setShowAllSlots(false);
+    }
+
+    if (isOpen) {
+      fetchTimeSlots();
+    }
+  }, [isOpen, selectedDate, customDate, salonData.salon_id, totalDuration]);
+
   const updateFormattedDate = () => {
     const today = new Date();
     let dateToUse;
-    
+
     if (selectedDate === 'today') {
       dateToUse = today;
       setFormattedDate(formatDate(today));
@@ -65,13 +91,12 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
   const getISODateString = () => {
     const today = new Date();
-    
     if (selectedDate === 'today') {
       return today.toISOString().split('T')[0];
     } else if (selectedDate === 'tomorrow') {
@@ -79,9 +104,18 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
       tomorrow.setDate(tomorrow.getDate() + 1);
       return tomorrow.toISOString().split('T')[0];
     } else if (selectedDate === 'pick' && customDate) {
-      return customDate;
+      try {
+        const parsedDate = new Date(customDate);
+        if (isNaN(parsedDate.getTime())) {
+          console.error("Invalid custom date:", customDate);
+          return today.toISOString().split('T')[0];
+        }
+        return parsedDate.toISOString().split('T')[0];
+      } catch (error) {
+        console.error("Error parsing custom date:", error);
+        return today.toISOString().split('T')[0];
+      }
     }
-    
     return today.toISOString().split('T')[0];
   };
 
@@ -92,34 +126,25 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
     setTimeout(() => {
       onClose();
     }, 300);
-    router.replace(`/bookings/${bookingDetails._id}`)
+    if (bookingSuccess && bookingDetails?._id) {
+      router.replace(`/bookings/${bookingDetails._id}`);
+    }
   };
 
-  const timeSlots = [
-    { id: 1, time: '9:00 AM' },
-    { id: 2, time: '12:00 PM' },
-    { id: 3, time: '2:00 PM' },
-    { id: 4, time: '4:00 PM' }
-  ];
-
   const handleBooking = async () => {
-    // Validate selections
-    if (!selectedTime || (selectedDate === 'pick' && !customDate)) {
-      alert('Please select a valid date and time');
+    if (!selectedTime) {
+      alert('Please select a valid time slot');
       return;
     }
-    
+
     try {
       setIsProcessing(true);
-      
-      // Create an order in Razorpay
       const response = await CREATE_ORDER_FN(totalPrice);
-      
+
       if (!response.data || !response.data.orderId) {
         throw new Error("Failed to create order");
       }
-      
-      // Prepare Razorpay options
+
       const options = {
         key: 'rzp_test_SNNaKxo04yi7Lf',
         amount: totalPrice * 100,
@@ -127,7 +152,7 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
         name: salonData?.name || "Salon Booking",
         description: `Booking for ${selectedServices.length} services`,
         order_id: response.data.orderId,
-        handler: function(paymentResponse) {
+        handler: function (paymentResponse) {
           confirmBooking(paymentResponse);
         },
         prefill: {
@@ -137,13 +162,11 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
         },
         theme: {
           color: "#CE145B",
-        }
+        },
       };
-      
-      // Open Razorpay checkout
+
       const rzp1 = new window.Razorpay(options);
       rzp1.open();
-      
     } catch (err) {
       console.error("Payment initiation failed:", err);
       alert("Failed to initiate payment. Please try again.");
@@ -154,7 +177,6 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
 
   const confirmBooking = async (paymentResponse) => {
     try {
-      // Format the booking details to send to the server
       const bookingData = {
         salon_id: salonData?.salon_id,
         salon_name: salonData?.name,
@@ -163,22 +185,21 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
           service_id: service.service_id,
           name: service.name,
           price: service.price,
-          duration: service.duration
+          duration: service.duration,
         })),
         appointment_date: getISODateString(),
-        appointment_time: selectedTime,
+        scheduled_start_time: selectedTime,
         total_price: totalPrice,
         total_duration: totalDuration,
         payment_details: {
           payment_id: paymentResponse.razorpay_payment_id,
           order_id: paymentResponse.razorpay_order_id,
-          signature: paymentResponse.razorpay_signature
+          signature: paymentResponse.razorpay_signature,
         },
         status: "confirmed",
-        booking_date: new Date().toISOString()
+        booking_date: new Date().toISOString(),
       };
-      
-      // Send booking details to server
+
       const response = await CONFIRM_BOOKING_FN(bookingData);
       if (response.status === 200) {
         setBookingSuccess(true);
@@ -186,12 +207,16 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
       } else {
         throw new Error("Failed to confirm booking");
       }
-      
     } catch (err) {
       console.error("Booking confirmation failed:", err);
       alert("Payment was successful, but we couldn't confirm your booking. Our team will contact you shortly.");
     }
   };
+
+  // Prepare time slots for display with pagination
+  const displayTimeSlots = showAllSlots 
+    ? timeSlots 
+    : timeSlots.slice(0, initialSlotsToShow);
 
   return (
     <div
@@ -200,23 +225,15 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
       onClick={handleClose}
     >
       <Script src='https://checkout.razorpay.com/v1/checkout.js' />
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black bg-opacity-50" />
-
-      {/* Modal Content */}
       <div
         className={`relative bg-white w-full sm:w-max-lg sm:rounded-t-xl rounded-t-xl max-h-[90vh] overflow-y-auto transform transition-transform duration-300 ease-out
-          ${isOpen ? 'translate-y-0' : 'translate-y-full'}
-          sm:max-w-md w-full`}
+          ${isOpen ? 'translate-y-0' : 'translate-y-full'} sm:max-w-md w-full`}
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="sticky top-0 bg-white border-b z-10">
           <div className="p-4">
-            <button
-              onClick={handleClose}
-              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
-            >
+            <button onClick={handleClose} className="absolute right-4 top-4 text-gray-500 hover:text-gray-700">
               <X className="w-6 h-6" />
             </button>
             <h2 className="text-2xl font-semibold mb-2">
@@ -230,11 +247,8 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
             )}
           </div>
         </div>
-
-        {/* Scrollable Content */}
         <div className="overflow-y-auto">
           {bookingSuccess ? (
-            // Success screen
             <div className="p-6 text-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -243,7 +257,6 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
               </div>
               <h3 className="text-xl font-semibold mb-2">Your appointment is confirmed!</h3>
               <p className="text-gray-600 mb-6">We look forward to seeing you at the salon.</p>
-              
               <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
                 <div className="flex items-start mb-3">
                   <Calendar className="w-5 h-5 text-gray-500 mr-3 mt-1" />
@@ -253,7 +266,6 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
                     <p className="font-medium">{selectedTime}</p>
                   </div>
                 </div>
-                
                 <div className="flex items-start mb-3">
                   <MapPin className="w-5 h-5 text-gray-500 mr-3 mt-1" />
                   <div>
@@ -262,7 +274,6 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
                     <p className="text-gray-600 text-sm">{salonData?.location_text}</p>
                   </div>
                 </div>
-                
                 <div className="flex items-start">
                   <User className="w-5 h-5 text-gray-500 mr-3 mt-1" />
                   <div>
@@ -272,18 +283,12 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
                   </div>
                 </div>
               </div>
-              
-              <button 
-                onClick={handleClose}
-                className="w-full bg-pink-600 text-white py-3 rounded-lg font-medium"
-              >
+              <button onClick={handleClose} className="w-full bg-pink-600 text-white py-3 rounded-lg font-medium">
                 Done
               </button>
             </div>
           ) : (
-            // Booking form
             <>
-              {/* Selected Services */}
               <div className="p-4 border-b">
                 <h3 className="text-lg font-medium mb-4">Confirm your services</h3>
                 {selectedServices.map((service) => (
@@ -314,8 +319,6 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
                 ))}
                 <button className="text-pink-600 font-medium mt-4" onClick={handleClose}>Add more services +</button>
               </div>
-
-              {/* Date Selection */}
               <div className="p-4 border-b">
                 <h3 className="text-lg font-medium mb-4">Select Date and Time</h3>
                 <p className="text-gray-600 mb-2">Date</p>
@@ -332,15 +335,16 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
                   >
                     Tomorrow
                   </button>
+                  {/* Commented out Pick a Date functionality for now
                   <button
                     className={`px-4 py-2 rounded-lg border flex-1 min-w-[100px] ${selectedDate === 'pick' ? 'bg-pink-100 border-pink-300' : 'border-gray-300'}`}
                     onClick={() => setSelectedDate('pick')}
                   >
                     Pick a Date
                   </button>
+                  */}
                 </div>
-
-                {/* Custom date picker */}
+                {/* Commented out custom date picker for now
                 {selectedDate === 'pick' && (
                   <div className="mb-6">
                     <input
@@ -352,23 +356,51 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
                     />
                   </div>
                 )}
-
-                {/* Time Slots */}
+                */}
                 <p className="text-gray-600 mb-2">Slots</p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {timeSlots.map((slot) => (
-                    <button
-                      key={slot.id}
-                      className={`px-4 py-2 rounded-lg border ${selectedTime === slot.time ? 'bg-pink-100 border-pink-300' : 'border-gray-300'}`}
-                      onClick={() => setSelectedTime(slot.time)}
-                    >
-                      {slot.time}
-                    </button>
-                  ))}
-                </div>
+                {timeSlots.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {displayTimeSlots.map((slot) => (
+                        <button
+                          key={slot.id}
+                          className={`px-4 py-2 rounded-lg border ${selectedTime === slot.time ? 'bg-pink-100 border-pink-300' : 'border-gray-300'}`}
+                          onClick={() => setSelectedTime(slot.time)}
+                        >
+                          {slot.time}
+                        </button>
+                      ))}
+                    </div>
+                    {timeSlots.length > initialSlotsToShow && (
+                      <button 
+                        className="text-pink-600 font-medium text-center w-full mt-3"
+                        onClick={() => setShowAllSlots(!showAllSlots)}
+                      >
+                        {showAllSlots ? 'Show Less' : `Show All (${timeSlots.length}) Slots`}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-6">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Clock className="w-8 h-8 text-gray-500" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">No slots available</h3>
+                    <p className="text-gray-600 mb-4">
+                      We don't have any available slots for this date. 
+                      Please try another date or contact the salon directly.
+                    </p>
+                    <div className="flex justify-center space-x-3">
+                      <button
+                        className="px-4 py-2 rounded-lg border border-pink-300 text-pink-600"
+                        onClick={() => setSelectedDate(selectedDate === 'today' ? 'tomorrow' : 'today')}
+                      >
+                        Try {selectedDate === 'today' ? 'Tomorrow' : 'Today'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {/* Salon Details */}
               <div className="p-4 border-b">
                 <h3 className="text-lg font-medium mb-4">Salon Details</h3>
                 <div className="flex items-start">
@@ -376,9 +408,9 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
                   <div>
                     <p className="font-medium">{salonData?.name}</p>
                     <p className="text-gray-600 text-sm">{salonData?.location_text}</p>
-                    <a 
+                    <a
                       href={`https://maps.google.com/?q=${salonData?.location_text}`}
-                      target="_blank" 
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="text-pink-600 text-sm inline-block mt-1"
                     >
@@ -390,16 +422,23 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
             </>
           )}
         </div>
-
-        {/* Bottom Action - Fixed at bottom */}
         {!bookingSuccess && (
           <div className="sticky bottom-0 bg-white border-t p-4 shadow-lg">
             <button
-              className={`w-full py-4 rounded-lg font-medium ${isProcessing ? 'bg-gray-400 text-white' : 'bg-pink-600 text-white'}`}
+              className={`w-full py-4 rounded-lg font-medium ${
+                !selectedTime || timeSlots.length === 0 || isProcessing 
+                  ? 'bg-gray-400 text-white cursor-not-allowed' 
+                  : 'bg-pink-600 text-white'
+              }`}
               onClick={handleBooking}
-              disabled={isProcessing}
+              disabled={!selectedTime || timeSlots.length === 0 || isProcessing}
             >
-              {isProcessing ? 'Processing...' : `Pay ₹${totalPrice} and Confirm Booking`}
+              {isProcessing 
+                ? 'Processing...' 
+                : timeSlots.length === 0 
+                  ? 'No Available Slots' 
+                  : `Pay ₹${totalPrice} and Confirm Booking`
+              }
             </button>
           </div>
         )}
