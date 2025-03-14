@@ -2,6 +2,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { OWNER_SEND_OTP_FN, OWNER_VERIFY_OTP_FN } from "@/services/ownerService"; 
 import { Facebook, Instagram, Twitter } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from "react";
 
@@ -308,7 +309,15 @@ export default function OwnerRegister() {
                         {isOtpView ? "Verify OTP" : "Send OTP"}
                     </button>
 
-                    <div className="flex gap-3 justify-evenly my-8">
+                    {
+                        !isOtpView && (
+                            <div className="text-center mb-5">
+                                <Link href={'/owner/login'} className="">New to our platform?</Link>
+                            </div>
+                        )
+                    }
+
+                    {/* <div className="flex gap-3 justify-evenly my-8">
                         <div className="flex items-center gap-4">
                             <div className="h-14 w-14 rounded-full bg-white flex items-center justify-center cursor-pointer">
                                 <Instagram className="w-6 h-6 text-[#B62B62]" />
@@ -320,7 +329,7 @@ export default function OwnerRegister() {
                                 <Twitter className="w-6 h-6 text-[#B62B62]" />
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>

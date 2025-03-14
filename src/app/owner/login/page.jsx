@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { OWNER_SEND_OTP_FN, OWNER_VERIFY_OTP_FN } from "@/services/ownerService";
+import Link from "next/link";
 
 export default function Login() {
     const [isOtpView, setIsOtpView] = useState(false);
@@ -300,6 +301,14 @@ export default function Login() {
                     >
                         {isLoading ? "Please wait..." : (isOtpView ? "Verify OTP" : "Send OTP")}
                     </button>
+
+                    {
+                        !isOtpView && (
+                            <div className="text-center mb-5">
+                                <Link href={'/owner/register'} className="">Already have an account?</Link>
+                            </div>
+                        )
+                    }
                 </div>
             </div>
         </div>

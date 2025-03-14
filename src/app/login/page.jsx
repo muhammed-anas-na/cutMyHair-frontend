@@ -10,7 +10,6 @@ export default function Login() {
     const [isOtpView, setIsOtpView] = useState(false);
     const [isEditingPhone, setIsEditingPhone] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState("");
-    const [name, setName] = useState("");
     const [otp, setOtp] = useState(["", "", "", ""]);
     const [phoneError, setPhoneError] = useState("");
     const [otpError, setOtpError] = useState("");
@@ -35,15 +34,6 @@ export default function Login() {
         return () => clearInterval(interval);
     }, [resendDisabled, timer]);
 
-    // Validate name
-    const validateName = () => {
-        if (!name.trim()) {
-            setNameError("Name is required");
-            return false;
-        }
-        setNameError("");
-        return true;
-    };
 
     // Validate phone number
     const validatePhone = () => {
@@ -123,6 +113,7 @@ export default function Login() {
                 try {
                     const response = await VERIFY_OTP_FN(name, otp.join(""), 'login');
                     if (response.status === 200) {
+                        console.log("Loign User id =>",response);
                         login({
                             user_id:response.data.data.user_id,
                             access_token: response.data.data.access_token
@@ -141,7 +132,7 @@ export default function Login() {
                 }
             }
         } else {
-            if (validateName() && validatePhone()) {
+            if (validatePhone()) {
                 setIsLoading(true);
                 try {
                     const response = await SEND_OTP_FN(phoneNumber , 'login');
@@ -242,20 +233,6 @@ export default function Login() {
                             <div>
                                 <input
                                     type="text"
-                                    placeholder="Name"
-                                    value={name}
-                                    onChange={handleNameChange}
-                                    className={`p-3 rounded-md md:text-lg w-full ${
-                                        nameError ? 'border-2 border-red-500' : ''
-                                    }`}
-                                />
-                                {nameError && (
-                                    <p className="text-red-500 text-sm mt-1">{nameError}</p>
-                                )}
-                            </div>
-                            <div>
-                                <input
-                                    type="text"
                                     placeholder="Enter mobile Number"
                                     value={phoneNumber}
                                     onChange={handlePhoneChange}
@@ -335,7 +312,7 @@ export default function Login() {
                     {
                         !isOtpView && (
                             <div className="text-center mb-5">
-                                <Link href={'/register'} className="">Already have an account ?</Link>
+                                <Link href={'/register'} className="">New to our platform ?</Link>
                             </div>
                         )
                     }

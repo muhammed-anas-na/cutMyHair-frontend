@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, X, Phone, Mail, Clock, CreditCard, Calendar, User, Store, MapPin, AlertCircle } from 'lucide-react';
 import { GET_OWNER_SALON_FN } from '@/services/ownerService';
-import { GET_APPOINTMENTS_OF_SALON_FN } from '@/services/ownerService'; // Added missing import
+import { GET_APPOINTMENTS_OF_SALON_FN } from '@/services/ownerService';
 import { useAuth } from '@/context/AuthContext';
 
 const SalonSchedule = () => {
@@ -19,11 +19,60 @@ const SalonSchedule = () => {
   const [error, setError] = useState(null);
   const { user_id } = useAuth();
 
-  // Generate time slots from 9 AM to 8 PM
+  // Generate time slots from 9 AM to 8 PM (IST)
   const timeSlots = Array.from({ length: 12 }, (_, i) => {
     const hour = i + 9;
     return `${hour.toString().padStart(2, '0')}:00`;
   });
+
+  // Helper function to convert UTC time to IST
+  const convertUTCtoIST = (utcTimeString) => {
+    // Parse the time from format like "03:30 AM"
+    const [hourMinute, period] = utcTimeString.split(' ');
+    const [hours, minutes] = hourMinute.split(':').map(num => parseInt(num, 10));
+    
+    // Convert to 24-hour format
+    let hour24 = hours;
+    if (period === 'PM' && hours !== 12) {
+      hour24 += 12;
+    } else if (period === 'AM' && hours === 12) {
+      hour24 = 0;
+    }
+    
+    // Add 5 hours and 30 minutes for IST conversion
+    let istHour = hour24 + 5;
+    let istMinute = parseInt(minutes, 10) + 30;
+    
+    // Adjust if minutes exceed 60
+    if (istMinute >= 60) {
+      istHour += 1;
+      istMinute -= 60;
+    }
+    
+    // Handle day overflow
+    istHour = istHour % 24;
+    
+    // Convert back to 12-hour format
+    const istPeriod = istHour >= 12 ? 'PM' : 'AM';
+    const istHour12 = istHour > 12 ? istHour - 12 : (istHour === 0 ? 12 : istHour);
+    
+    return `${istHour12.toString().padStart(2, '0')}:${istMinute.toString().padStart(2, '0')} ${istPeriod}`;
+  };
+
+  // Helper function to convert IST time string to hour format for comparison
+  const timeToHour = (timeString) => {
+    const [time, period] = timeString.split(' ');
+    const [hours, minutes] = time.split(':').map(num => parseInt(num, 10));
+    
+    let hour24 = hours;
+    if (period === 'PM' && hours !== 12) {
+      hour24 += 12;
+    } else if (period === 'AM' && hours === 12) {
+      hour24 = 0;
+    }
+    
+    return hour24;
+  };
 
   // Fetch salons owned by the owner
   useEffect(() => {
@@ -35,7 +84,7 @@ const SalonSchedule = () => {
         const response = await GET_OWNER_SALON_FN(userId, ['name', 'rating', 'address', 'stylists', 'stats', 'salon_id']);
         if (response.data.data && response.data.data.length > 0) {
           setSalons(response.data.data);
-          setSelectedSalon(response.data.data[2].salon_id); // Select first salon by default
+          setSelectedSalon(response.data.data[0].salon_id); // Select first salon by default
         } else {
           setError('No salons found for this account');
         }
@@ -56,14 +105,20 @@ const SalonSchedule = () => {
       if (!salonId) return;
       
       setLoading(true);
-      console.log(salonId)
       try {
         const response = await GET_APPOINTMENTS_OF_SALON_FN(salonId, {
           date: date.toISOString().split('T')[0] // Format as YYYY-MM-DD
         });
         
-        if (response.data.data) {
-          setAppointments(response.data.data.data);
+        if (response.data && response.data.data && response.data.data.data) {
+          // Process appointments to add IST times
+          const processedAppointments = response.data.data.data.map(apt => ({
+            ...apt,
+            // Add IST times while keeping the original UTC times
+            ist_start_time: convertUTCtoIST(apt.scheduled_start_time),
+            ist_end_time: convertUTCtoIST(apt.scheduled_end_time)
+          }));
+          setAppointments(processedAppointments);
         } else {
           setAppointments([]);
         }
@@ -81,14 +136,33 @@ const SalonSchedule = () => {
     }
   }, [selectedSalon, date]);
 
-  // Filter appointments by selected criteria
+  // Filter appointments by selected criteria and time slot
   const getAppointmentsForTimeSlot = (time) => {
-    return appointments?.filter(apt => 
-      apt.scheduled_start_time === time 
-      && 
-      (selectedStylist === 'all' || apt.stylist === selectedStylist) &&
-      (selectedService === 'all' || apt.service.toLowerCase().includes(selectedService.toLowerCase()))
-    );
+    if (!appointments || appointments.length === 0) return [];
+    
+    // Convert the timeslot (e.g. "09:00") to 24-hour format hour for comparison
+    const [hours] = time.split(':');
+    const slotHour = parseInt(hours, 10);
+    
+    return appointments.filter(apt => {
+      // Get the hour from IST start time for comparison
+      const aptStartHour = timeToHour(apt.ist_start_time);
+      
+      // Filter by time slot
+      const matchesTimeSlot = aptStartHour === slotHour;
+      
+      // Filter by stylist if selected
+      const matchesStylist = selectedStylist === 'all' || 
+                            (apt.stylist && apt.stylist === selectedStylist);
+      
+      // Filter by service if selected
+      const matchesService = selectedService === 'all' || 
+                            (apt.services && apt.services.some(service => 
+                              service.name.toLowerCase().includes(selectedService.toLowerCase())
+                            ));
+      
+      return matchesTimeSlot && matchesStylist && matchesService;
+    });
   };
 
   const handlePreviousDay = () => {
@@ -123,10 +197,12 @@ const SalonSchedule = () => {
   };
 
   const getPaymentStatusColor = (status) => {
-    return status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+    return status === 'paid' || status === 'completed' 
+      ? 'bg-green-100 text-green-800' 
+      : 'bg-yellow-100 text-yellow-800';
   };
 
-  const currentSalon = salons.find(salon => salon.salon_id=== selectedSalon);
+  const currentSalon = salons.find(salon => salon.salon_id === selectedSalon);
 
   const formatDateDisplay = (date) => {
     return date.toLocaleDateString('en-US', { 
@@ -237,6 +313,7 @@ const SalonSchedule = () => {
   // Check if we have any data to show
   const hasAppointments = appointments.length > 0;
   const anyAppointmentsForDay = timeSlots.some(time => getAppointmentsForTimeSlot(time).length > 0);
+
   return (
     <div className="max-w-6xl mx-auto p-5 bg-white rounded-xl shadow-sm">
       {/* Header */}
@@ -340,7 +417,6 @@ const SalonSchedule = () => {
           <div>
             {timeSlots.map(time => {
               const appointmentsForSlot = getAppointmentsForTimeSlot(time);
-              {console.log("appointmentsForSlot =>" , appointmentsForSlot)}
               return (
                 <div key={time} className="flex min-h-[80px] border-b border-gray-200">
                   <div className="w-24 p-3 bg-gray-50 text-gray-600 text-sm flex items-center">
@@ -349,26 +425,27 @@ const SalonSchedule = () => {
                   <div className="flex-1 p-2 flex flex-wrap gap-2">
                     {appointmentsForSlot.length > 0 ? (
                       appointmentsForSlot.map(apt => (
-                       
                         <div 
                           key={apt._id}
                           onClick={() => handleAppointmentClick(apt)}
                           className="flex-1 min-w-[250px] max-w-[300px] bg-white rounded-lg shadow-sm p-3 border-l-4 border-l-[#CE145B] cursor-pointer hover:-translate-y-0.5 hover:shadow-md transition-all"
                         >
-                           
                           <div className="flex justify-between mb-2">
                             <span className="font-semibold text-gray-800">
-                              {apt.user_details.name}
+                              {apt.user_details?.name || "Customer"}
                             </span>
                             <span className="text-sm text-gray-600">
-                              {apt.scheduled_start_time} - {apt.scheduled_end_time}
+                              {apt.ist_start_time} - {apt.ist_end_time}
                             </span>
                           </div>
                           <div>
-        
-                            {apt.services.length > 1 ? (<div className="text-[#CE145B] mb-1">{apt.services[0].name}+</div>): (<div className="text-[#CE145B] mb-1">{apt.services[0].name}</div>)}
+                            {apt.services && apt.services.length > 1 ? (
+                              <div className="text-[#CE145B] mb-1">{apt.services[0].name}+</div>
+                            ) : (
+                              <div className="text-[#CE145B] mb-1">{apt.services?.[0]?.name || "Service"}</div>
+                            )}
                             
-                            <div className="text-gray-600">Stylist: Any Avalible</div>
+                            <div className="text-gray-600">Stylist: {apt.stylist || "Any Available"}</div>
                             <div className="mt-2">
                               <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${getStatusColor(apt.status)}`}>
                                 {apt.status.toUpperCase()}
@@ -408,12 +485,12 @@ const SalonSchedule = () => {
                   <div className="flex items-center gap-4">
                     <img
                       src={selectedAppointment?.profileImage || "/api/placeholder/64/64"}
-                      alt={selectedAppointment.user_details.name}
+                      alt={selectedAppointment.user_details?.name || "Customer"}
                       className="w-16 h-16 rounded-full object-cover"
                     />
                     <div>
                       <h2 className="text-xl font-semibold text-gray-900">
-                        {selectedAppointment.user_details.name}
+                        {selectedAppointment.user_details?.name || "Customer"}
                       </h2>
                       <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${getStatusColor(selectedAppointment.status)}`}>
                         {selectedAppointment.status.toUpperCase()}
@@ -438,14 +515,14 @@ const SalonSchedule = () => {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-gray-700">
                       <Phone size={16} className="text-[#CE145B]" />
-                      <a href={`tel:${selectedAppointment.user_details.phone_number}`} className="hover:text-[#CE145B]">
-                      {selectedAppointment.user_details.phone_number}
+                      <a href={`tel:${selectedAppointment.user_details?.phone_number}`} className="hover:text-[#CE145B]">
+                      {selectedAppointment.user_details?.phone_number || "N/A"}
                       </a>
                     </div>
                     <div className="flex items-center gap-2 text-gray-700">
                       <Mail size={16} className="text-[#CE145B]" />
                       <a href={`mailto:${selectedAppointment?.email}`} className="hover:text-[#CE145B]">
-                        {selectedAppointment?.email}
+                        {selectedAppointment?.email || "N/A"}
                       </a>
                     </div>
                   </div>
@@ -463,11 +540,11 @@ const SalonSchedule = () => {
                     </div>
                     <div className="flex items-center gap-2 text-gray-700">
                       <Clock size={16} className="text-[#CE145B]" />
-                      <span>{selectedAppointment.scheduled_start_time} - {selectedAppointment.scheduled_end_time}</span>
+                      <span>{selectedAppointment.ist_start_time} - {selectedAppointment.ist_end_time}</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-700">
                       <User size={16} className="text-[#CE145B]" />
-                      <span>Stylist: {selectedAppointment?.stylist}</span>
+                      <span>Stylist: {selectedAppointment?.stylist || "Any Available"}</span>
                     </div>
                     {selectedAppointment?.lastVisit && (
                       <div className="mt-2 bg-gray-50 p-2 rounded text-sm">
@@ -485,7 +562,7 @@ const SalonSchedule = () => {
                 <div className="mb-6">
                   <h3 className="text-sm font-medium text-gray-500 mb-3">Services & Payment</h3>
                   <div className="space-y-3">
-                    {selectedAppointment.services.map((service, index) => (
+                    {selectedAppointment.services && selectedAppointment.services.map((service, index) => (
                       <div key={index} className="flex justify-between text-gray-700">
                         <span>{service.name}</span>
                         <span>₹{service.price}</span>
@@ -498,8 +575,8 @@ const SalonSchedule = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <CreditCard size={16} className="text-[#CE145B]" />
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(selectedAppointment.payment_details.payment_status)}`}>
-                        {selectedAppointment.payment_details.payment_status.toUpperCase()}
+                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(selectedAppointment.payment_details?.payment_status || 'pending')}`}>
+                        {(selectedAppointment.payment_details?.payment_status || 'pending').toUpperCase()}
                       </span>
                     </div>
                   </div>

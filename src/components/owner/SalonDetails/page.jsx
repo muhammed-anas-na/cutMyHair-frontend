@@ -5,7 +5,7 @@ import {
   Trash2, Clock, ChevronDown, Save, X
 } from 'lucide-react';
 import { ADD_SERVICE_FOR_SALON_FN, FETCH_SALON_DETAILS_BY_ID_FN } from '@/services/ownerService';
-
+import { formatTo12HourIST } from '@/helpers';
 const SalonDetails = ({ salon_id }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -63,6 +63,8 @@ const SalonDetails = ({ salon_id }) => {
     }
   }
 
+
+
   useEffect(() => {
     const fetchData = async (salon_id) => {
       setIsLoading(true);
@@ -71,7 +73,7 @@ const SalonDetails = ({ salon_id }) => {
         if (response?.data?.data) {
           // Format the data correctly
           const salon = response.data.data;
-
+console.log(salon);
           // Convert working hours to the format the UI expects
           const formattedHours = {};
           const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -80,17 +82,8 @@ const SalonDetails = ({ salon_id }) => {
             const dayData = salon.working_hours[day];
             if (dayData.isOpen) {
               // Extract just the time part (HH:MM) from the ISO string
-              const startTime = dayData.start ? new Date(dayData.start).toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-              }) : 'closed';
-
-              const endTime = dayData.end ? new Date(dayData.end).toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-              }) : 'closed';
+              const startTime = dayData.start ? dayData.start.split('T')[1].slice(0, 5) : 'closed';
+              const endTime = dayData.end ? dayData.end.split('T')[1].slice(0, 5) : 'closed';
 
               formattedHours[day.substring(0, 3)] = { open: startTime, close: endTime };
             } else {
@@ -112,7 +105,7 @@ const SalonDetails = ({ salon_id }) => {
             rating: salon.rating || 0,
             services: salon.services
           };
-
+console.log("formattedHours==>",formattedHours)
           setSalonData(formattedSalon);
         } else {
           setError('Failed to load salon data');
@@ -366,71 +359,91 @@ const SalonDetails = ({ salon_id }) => {
 
           {/* Opening Hours */}
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Opening Hours</h2>
-            <div className="space-y-3">
-              {Object.entries(salonData.openingHours).map(([day, hours]) => (
-                <div key={day} className="flex justify-between items-center">
-                  <span className="capitalize text-gray-700">
-                    {day === 'mon' ? 'Monday' :
-                      day === 'tue' ? 'Tuesday' :
-                        day === 'wed' ? 'Wednesday' :
-                          day === 'thu' ? 'Thursday' :
-                            day === 'fri' ? 'Friday' :
-                              day === 'sat' ? 'Saturday' :
-                                'Sunday'}
-                  </span>
-                  {isEditing ? (
-                    <div className="flex gap-2">
-                      <select
-                        value={hours.open === 'closed' ? 'closed' : hours.open}
-                        onChange={(e) => setSalonData({
-                          ...salonData,
-                          openingHours: {
-                            ...salonData.openingHours,
-                            [day]: {
-                              ...hours,
-                              open: e.target.value,
-                              close: e.target.value === 'closed' ? 'closed' : hours.close
-                            }
-                          }
-                        })}
-                        className="w-24 p-1 border rounded"
-                      >
-                        <option value="closed">Closed</option>
-                        {Array.from({ length: 24 }).map((_, i) => {
-                          const hour = i.toString().padStart(2, '0');
-                          return <option key={hour} value={`${hour}:00`}>{`${hour}:00`}</option>;
-                        })}
-                      </select>
-                      <span>-</span>
-                      <select
-                        value={hours.close === 'closed' ? 'closed' : hours.close}
-                        onChange={(e) => setSalonData({
-                          ...salonData,
-                          openingHours: {
-                            ...salonData.openingHours,
-                            [day]: { ...hours, close: e.target.value }
-                          }
-                        })}
-                        className="w-24 p-1 border rounded"
-                        disabled={hours.open === 'closed'}
-                      >
-                        <option value="closed">Closed</option>
-                        {Array.from({ length: 24 }).map((_, i) => {
-                          const hour = i.toString().padStart(2, '0');
-                          return <option key={hour} value={`${hour}:00`}>{`${hour}:00`}</option>;
-                        })}
-                      </select>
-                    </div>
-                  ) : (
-                    <span className="text-gray-600">
-                      {hours.open === 'closed' ? 'Closed' : `${hours.open} - ${hours.close}`}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
+  <h2 className="text-lg font-semibold text-gray-900 mb-4">Opening Hours</h2>
+  <div className="space-y-3">
+    {Object.entries(salonData.openingHours).map(([day, hours]) => (
+      <div key={day} className="flex justify-between items-center">
+        <span className="capitalize text-gray-700">
+          {day === "mon"
+            ? "Monday"
+            : day === "tue"
+            ? "Tuesday"
+            : day === "wed"
+            ? "Wednesday"
+            : day === "thu"
+            ? "Thursday"
+            : day === "fri"
+            ? "Friday"
+            : day === "sat"
+            ? "Saturday"
+            : "Sunday"}
+        </span>
+        {isEditing ? (
+          <div className="flex gap-2">
+            <select
+              value={hours.open === "closed" ? "closed" : hours.open}
+              onChange={(e) =>
+                setSalonData({
+                  ...salonData,
+                  openingHours: {
+                    ...salonData.openingHours,
+                    [day]: {
+                      ...hours,
+                      open: e.target.value,
+                      close: e.target.value === "closed" ? "closed" : hours.close,
+                    },
+                  },
+                })
+              }
+              className="w-24 p-1 border rounded"
+            >
+              <option value="closed">Closed</option>
+              {Array.from({ length: 24 }).map((_, i) => {
+                const hour = i.toString().padStart(2, "0");
+                return (
+                  <option key={hour} value={`${hour}:00`}>
+                    {formatTo12HourIST(`${hour}:00`)}
+                  </option>
+                );
+              })}
+            </select>
+            <span>-</span>
+            <select
+              value={hours.close === "closed" ? "closed" : hours.close}
+              onChange={(e) =>
+                setSalonData({
+                  ...salonData,
+                  openingHours: {
+                    ...salonData.openingHours,
+                    [day]: { ...hours, close: e.target.value },
+                  },
+                })
+              }
+              className="w-24 p-1 border rounded"
+              disabled={hours.open === "closed"}
+            >
+              <option value="closed">Closed</option>
+              {Array.from({ length: 24 }).map((_, i) => {
+                const hour = i.toString().padStart(2, "0");
+                return (
+                  <option key={hour} value={`${hour}:00`}>
+                    {formatTo12HourIST(`${hour}:00`)}
+                  </option>
+                );
+              })}
+            </select>
           </div>
+        ) : (
+          <span className="text-gray-600">
+            {hours.open === "closed"
+              ? "Closed"
+              : `${formatTo12HourIST(hours.open)} - ${formatTo12HourIST(hours.close)}`}
+          </span>
+        )}
+      </div>
+    ))}
+  </div>
+</div>
         </div>
       )}
 

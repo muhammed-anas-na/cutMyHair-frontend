@@ -31,7 +31,7 @@ export const VERIFY_OTP_FN = async (name, otp, from = '') => {
     const response = await axiosInstance.post(VERIFY_OTP_API, { name, otp, from });
     return response;
   } catch (err) {
-    return err.response ? err.response.data : err;
+    return err
   }
 };
 

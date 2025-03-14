@@ -4,6 +4,7 @@ import { Facebook, Instagram, Twitter } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import Link from "next/link";
 
 export default function Register() {
     const [isOtpView, setIsOtpView] = useState(false);
@@ -121,20 +122,21 @@ export default function Register() {
                 setIsLoading(true);
                 try {
                     const response = await VERIFY_OTP_FN(name, otp.join(""), 'register');
+                    console.log(response);
                     if (response.status === 200) {
                         login({
-                            user_id:response.data.data.user_id,
-                            access_token: response.data.data.access_token
+                            user_id:response.data.user_id,
+                            access_token: response.data.access_token
                         });
                         router.replace('/home');
                     } else {
                         // Handle other response statuses
-                        const errorMsg = response.data?.message || "Failed to verify OTP. Please try again.";
+                        const errorMsg = response?.data?.message || "Failed to verify OTP. Please try again.";
                         setOtpError(errorMsg);
                     }
                 } catch (error) {
                     console.error("OTP verification failed:", error);
-                    setOtpError(error.response?.data?.message || "Invalid OTP. Please try again.");
+                    setOtpError(error || "Invalid OTP. Please try again.");
                 } finally {
                     setIsLoading(false);
                 }
@@ -332,6 +334,13 @@ export default function Register() {
                     >
                         {isLoading ? "Please wait..." : (isOtpView ? "Verify OTP" : "Send OTP")}
                     </button>
+                    {
+                        !isOtpView && (
+                            <div className="text-center mb-5">
+                                <Link href={'/login'} className="">Already have an account?</Link>
+                            </div>
+                        )
+                    }
                 </div>
             </div>
         </div>

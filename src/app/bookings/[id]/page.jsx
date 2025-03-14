@@ -36,14 +36,15 @@ const BookingConfirmation = ({ params }) => {
     });
   };
 
-  const formatTime = (timeString) => {
-    if (!timeString) return '';
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours, 10);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${minutes} ${ampm}`;
-  };
+  // const formatTime = (timeString) => {
+  //   console.log(timeString);
+  //   if (!timeString) return '';
+  //   const [hours, minutes] = timeString.split(':');
+  //   const hour = parseInt(hours, 10);
+  //   const ampm = hour >= 12 ? '' : '';
+  //   const hour12 = hour % 12 || 12;
+  //   return `${hour12}:${minutes} ${ampm}`;
+  // };
 
   const generateQRData = () => {
     if (!bookingDetails) return '';
@@ -143,11 +144,11 @@ const BookingConfirmation = ({ params }) => {
           <div className="flex flex-col gap-2">
             <div className="flex items-start">
               <div className="w-24 text-gray-500">Date:</div>
-              <div className="font-medium">{formatDate(bookingDetails.appointment_date)}</div>
+              <div className="font-medium">{bookingDetails.appointment_date}</div>
             </div>
             <div className="flex items-start">
               <div className="w-24 text-gray-500">Time:</div>
-              <div className="font-medium">{formatTime(bookingDetails.scheduled_start_time)}</div>
+              <div className="font-medium">{bookingDetails.scheduled_start_time}</div>
             </div>
             <div className="flex items-start">
               <div className="w-24 text-gray-500">Duration:</div>

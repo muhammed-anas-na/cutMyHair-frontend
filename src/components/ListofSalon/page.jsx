@@ -5,6 +5,8 @@ import SalonCard from "../SalonCard/page";
 import SalonFeedback from '../SalonReview/page';
 import { useState } from 'react';
 import { useRouter } from "next/navigation";
+import { MapPin, Scissors, RotateCcw, Search } from 'lucide-react';
+import { motion } from 'framer-motion';
 export default function ListOfSalon({ salons, loading, error }) {
   const { latitude, longitude, locationText } = useLocation();
   const [selectedSalon, setSelectedSalon] = useState()
@@ -41,9 +43,60 @@ export default function ListOfSalon({ salons, loading, error }) {
 
   if (salons.length === 0 && !loading) {
     return (
-      <div className="p-5 text-center">
-        <p>No salons found near {locationText}.</p>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        className="p-6 text-center rounded-lg border border-gray-100 shadow-sm my-4 mx-auto"
+      >
+        <motion.div
+          initial={{ y: -10 }}
+          animate={{ y: 0 }}
+          transition={{ 
+            duration: 0.5,
+            type: "spring"
+          }}
+          className="mb-5 flex justify-center"
+        >
+          <div className="p-3 bg-pink-50 rounded-full">
+            <Scissors size={32} className="text-[#CE145B]" />
+          </div>
+        </motion.div>
+        
+        <h3 className="font-medium text-lg mb-2 text-[#CE145B]">
+          No available salons
+        </h3>
+        
+        <p className="text-gray-600 mb-5 flex items-center justify-center gap-1">
+          <MapPin size={16} className="text-[#CE145B]" />
+          We couldn't find any salons near {locationText}
+        </p>
+        
+        <div className="space-y-3 max-w-xs mx-auto">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full flex items-center justify-center gap-2 bg-[#CE145B] rounded-md py-3 px-4 text-white hover:bg-[#B01050] transition-colors"
+            onClick={() => onRetry && onRetry()}
+          >
+            <RotateCcw size={16} />
+            Refresh search
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full flex items-center justify-center gap-2 bg-white border border-[#CE145B] rounded-md py-3 px-4 text-[#CE145B] hover:bg-pink-50 transition-colors"
+          >
+            <Search size={16} />
+            Try different location
+          </motion.button>
+          
+          <p className="text-sm text-gray-500 mt-4 px-2">
+            Popular nearby areas may have more salon options available
+          </p>
+        </div>
+      </motion.div>
     );
   }
 

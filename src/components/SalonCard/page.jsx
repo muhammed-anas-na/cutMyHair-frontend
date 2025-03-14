@@ -1,27 +1,22 @@
 import React from 'react';
 import { Heart, Star, Clock } from 'lucide-react';
-
+import { checkIfOpenToday } from '@/helpers';
 const SalonCard = ({ salon, handleSalonSelect }) => {
  
-  const checkIfOpenToday = () => {
-    if (!salon || !salon.working_hours) return false;
-    
-    const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const today = daysOfWeek[new Date().getDay()];
-    
-    if (!salon.working_hours[today]) return false;
-    
-    return salon.working_hours[today].isOpen;
-  };
 
-  // Format the time (removing the 1970-01-01T part)
-  const formatTime = (timeString) => {
+
+
+const formatTime = (timeString) => {
+    console.log(timeString);
     if (!timeString) return '';
     
     const time = new Date(timeString);
-    return time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
+    return time.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        hour12: true, 
+    });
+};
   // Get today's working hours
   const getTodayHours = () => {
     const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -37,7 +32,7 @@ const SalonCard = ({ salon, handleSalonSelect }) => {
     return `${formatTime(hours.start)} - ${formatTime(hours.end)}`;
   };
 
-  const isOpen = checkIfOpenToday();
+  const isOpen = checkIfOpenToday(salon);
   const todayHours = getTodayHours();
 
   return (
@@ -120,7 +115,7 @@ const SalonCard = ({ salon, handleSalonSelect }) => {
               {isOpen ? 'Open' : 'Closed'}
             </span>
             <span className="mx-1">•</span>
-            <span className="text-gray-500">{todayHours}</span>
+            <span className="text-gray-500">{todayHours.toUpperCase()}</span>
           </div>
         </div>
       </div>

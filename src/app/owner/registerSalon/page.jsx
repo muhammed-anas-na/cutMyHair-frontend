@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useSalon } from "@/context/SalonContext";
 import LocatemeMap from "@/components/LocateMeMap/page";
 import LocateMeMap from "@/components/LocateMeMap/page";
+import Link from "next/link";
 
 const ImagePreview = ({ image, onRemove }) => (
   <div className="relative w-20 h-20">
@@ -116,12 +117,13 @@ export default function Register() {
             className="w-full h-auto md:object-cover md:h-screen"
           />
           {currentStep === "1" && (
-            <button 
-              className="absolute top-4 right-4 px-4 py-1 bg-white bg-opacity-80 rounded-full text-sm"
+            <Link
+            href={'/owner/dashboard'} 
+              className="absolute top-4 right-4 px-4 py-1 bg-white bg-opacity-80 rounded-full text-sm cursor-pointer"
               
             >
               Skip
-            </button>
+            </Link>
           )}
         </div>
 

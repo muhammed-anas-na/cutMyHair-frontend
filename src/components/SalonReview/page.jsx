@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 const SalonFeedback = ({ salon, onClose, onViewServices }) => {
   // Sample images if salon.images is empty (for development/testing)
+  console.log(salon);
   const sampleImages = [
     {
         id: 1,
@@ -38,7 +39,16 @@ const SalonFeedback = ({ salon, onClose, onViewServices }) => {
       </>
     );
   };
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
 
+    const time = new Date(timeString);
+    return time.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        hour12: true, 
+    });
+};
   // Use salon.images if available, otherwise use sample images
   const imagesToDisplay = salon.images && salon.images.length > 0 
     ? salon.images 
@@ -112,13 +122,13 @@ const SalonFeedback = ({ salon, onClose, onViewServices }) => {
           {salon.working_hours ? (
             <div className="grid grid-cols-2 gap-2">
               {Object.entries(salon.working_hours).map(([day, hours]) => (
-                <div key={day} className="flex justify-between">
+                <div key={day} className="flex justify-between text-xs">
                   <p className="capitalize text-gray-700">{day}</p>
                   <p className="text-gray-700">
-                    {hours.isOpen ? 
-                      `${new Date(hours.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(hours.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` 
-                      : 'Closed'}
-                  </p>
+                  {hours.isOpen ? 
+                    `${formatTime(hours.start).toUpperCase()} - ${formatTime(hours.end).toUpperCase()}` 
+                    : 'Closed'}
+                </p>
                 </div>
               ))}
             </div>

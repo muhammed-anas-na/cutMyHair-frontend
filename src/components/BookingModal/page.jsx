@@ -5,6 +5,7 @@ import Script from 'next/script';
 import { CREATE_ORDER_FN, CONFIRM_BOOKING_FN, GET_TIME_SLOTS_FN } from '@/services/userService';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { formatTo12HourIST } from '@/helpers';
 
 const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, totalPrice, totalDuration, salonData }) => {
   const [isAnimating, setIsAnimating] = useState(false);
@@ -199,7 +200,7 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
         status: "confirmed",
         booking_date: new Date().toISOString(),
       };
-
+      
       const response = await CONFIRM_BOOKING_FN(bookingData);
       if (response.status === 200) {
         setBookingSuccess(true);
@@ -362,12 +363,14 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
                   <>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {displayTimeSlots.map((slot) => (
+                        
                         <button
                           key={slot.id}
                           className={`px-4 py-2 rounded-lg border ${selectedTime === slot.time ? 'bg-pink-100 border-pink-300' : 'border-gray-300'}`}
                           onClick={() => setSelectedTime(slot.time)}
                         >
-                          {slot.time}
+                          
+                          {formatTo12HourIST(slot.time)}
                         </button>
                       ))}
                     </div>
