@@ -15,41 +15,38 @@ export const formatTo12HourIST = (time) => {
 
   export const checkIfOpenToday = (salon) => {
     if (!salon || !salon.working_hours) return false;
-    
-    // Get days of week
+  
     const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    
-    // Get current date and time in IST
+  
+    // Current date and time in IST
     const now = new Date();
-    const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30 (5.5 hours)
+    const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
     const nowInIST = new Date(now.getTime() + (istOffset + now.getTimezoneOffset() * 60 * 1000));
-    
-    // Get current day of week in IST
+  
     const todayInIST = daysOfWeek[nowInIST.getDay()];
-    
-    // Check if salon is open today
+  
     if (!salon.working_hours[todayInIST] || !salon.working_hours[todayInIST].isOpen) {
       return false;
     }
-    
-    // Get current time in IST as hours and minutes
+  
+    // Current time in IST (in minutes)
     const currentHour = nowInIST.getHours();
     const currentMinute = nowInIST.getMinutes();
     const currentTimeInMinutes = currentHour * 60 + currentMinute;
-    
-    // Parse salon opening hours from the timestamp format
-    const startTime = new Date(salon.working_hours[todayInIST].start);
-    const endTime = new Date(salon.working_hours[todayInIST].end);
-    
-    // Extract hours and minutes and convert to total minutes
+  
+    // Parse salon hours and adjust to IST
+    const startTime = new Date(salon.working_hours[todayInIST].start); // 03:30 UTC
+    const endTime = new Date(salon.working_hours[todayInIST].end);     // 10:30 UTC
+  
+    // Convert UTC to IST (add 5:30 hours)
+    const istOffsetMinutes = 5.5 * 60; // 330 minutes
     const openingHour = startTime.getUTCHours();
     const openingMinute = startTime.getUTCMinutes();
-    const openingTimeInMinutes = openingHour * 60 + openingMinute;
-    
+    const openingTimeInMinutes = (openingHour * 60 + openingMinute) + istOffsetMinutes; // 210 + 330 = 540 (9:00 IST)
+  
     const closingHour = endTime.getUTCHours();
     const closingMinute = endTime.getUTCMinutes();
-    const closingTimeInMinutes = closingHour * 60 + closingMinute;
-    
-    // Check if current time is within opening hours
+    const closingTimeInMinutes = (closingHour * 60 + closingMinute) + istOffsetMinutes; // 630 + 330 = 960 (16:00 IST)
+  
     return currentTimeInMinutes >= openingTimeInMinutes && currentTimeInMinutes < closingTimeInMinutes;
   };

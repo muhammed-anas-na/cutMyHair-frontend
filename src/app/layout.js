@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "Salon",
+  title: "Cut My Hair",
   description: "Next Gen Salon Experience",
 };
 
