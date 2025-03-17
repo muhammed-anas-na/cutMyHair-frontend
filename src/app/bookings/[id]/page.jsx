@@ -36,20 +36,10 @@ const BookingConfirmation = ({ params }) => {
     });
   };
 
-  // const formatTime = (timeString) => {
-  //   console.log(timeString);
-  //   if (!timeString) return '';
-  //   const [hours, minutes] = timeString.split(':');
-  //   const hour = parseInt(hours, 10);
-  //   const ampm = hour >= 12 ? '' : '';
-  //   const hour12 = hour % 12 || 12;
-  //   return `${hour12}:${minutes} ${ampm}`;
-  // };
-
   const generateQRData = () => {
     if (!bookingDetails) return '';
     // Create a QR-friendly string with essential booking details
-    return `BOOKING:${bookingDetails._id}|DATE:${bookingDetails.appointment_date}|TIME:${bookingDetails.scheduled_start_time}`;
+    return `http://localhost:3000/BOOKING:${bookingDetails._id}|DATE:${bookingDetails.appointment_date}|TIME:${bookingDetails.scheduled_start_time}`;
   };
 
   if (loading) {
@@ -234,5 +224,4 @@ const BookingConfirmation = ({ params }) => {
     </div>
   );
 };
-
 export default BookingConfirmation;

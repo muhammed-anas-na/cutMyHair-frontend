@@ -45,7 +45,7 @@ const HeroSection = () => {
           {/* Left Column - Text and Service Categories */}
           <div className="w-full md:w-1/2">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-8">
-              Home services at your doorstep
+              Haircuts on Your Schedule.
             </h1>
 
             {/* Services Selector Card */}

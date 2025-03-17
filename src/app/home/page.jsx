@@ -53,7 +53,7 @@ const Home = () => {
       <Header />
       <div className="flex justify-between p-7">
         <div className="flex flex-col">
-          <h1 className="font-bold text-xl">Nearest Salon</h1>
+          {/* <h1 className="font-bold text-xl">Nearest Salon</h1> */}
         </div>
         <div className="flex gap-2 items-center">
           <h3 className="text-xs">Map View</h3>

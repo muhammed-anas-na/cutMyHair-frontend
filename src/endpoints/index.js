@@ -35,3 +35,6 @@ export const GET_APPOINTMENTS_OF_SALON_API = `${OWNER_BASE_URL}/get-appoinments-
 
 //User Payment
 export const CREATE_ORDER_API = `${USER_BASE_URL}/create-razorpay-order`;
+
+
+export const GET_ALL_SALONS_API = `${USER_BASE_URL}/get-all-salons`;

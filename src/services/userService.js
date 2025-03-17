@@ -13,7 +13,8 @@ import {
   GET_USER_BOOKINGS_BY_ID_API,
   GET_BOOKING_DETAIL_BY_ID_API,
   SEARCH_SALON_API,
-  GET_TIME_SLOT_API
+  GET_TIME_SLOT_API,
+  GET_ALL_SALONS_API
 } from '@/endpoints/index.js';
 
 // Send OTP Function
@@ -136,3 +137,12 @@ export const GET_TIME_SLOTS_FN = async (salon_id, date, total_duration) => {
     return err;
   }
 };
+
+
+export const FETCH_ALL_SALONS_FN = async()=>{
+  try {
+    return await axiosInstance.get(GET_ALL_SALONS_API);
+  } catch (err) {
+    return err;
+  }
+}

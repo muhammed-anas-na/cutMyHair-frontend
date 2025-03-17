@@ -7,10 +7,13 @@ import { useState } from 'react';
 import { useRouter } from "next/navigation";
 import { MapPin, Scissors, RotateCcw, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
+
 export default function ListOfSalon({ salons, loading, error }) {
   const { latitude, longitude, locationText } = useLocation();
   const [selectedSalon, setSelectedSalon] = useState()
   const router = useRouter();
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center p-10">
@@ -110,22 +113,68 @@ export default function ListOfSalon({ salons, loading, error }) {
     setSelectedSalon()
   }
 
+  // Main UI with additional styling to match the screenshot
   return (
-    <div className="space-y-4 pb-20">
-      {salons.map((salon) => (
-        <SalonCard key={salon.salon_id} salon={salon} handleSalonSelect={handleSalonSelect} />
-      ))}
+    <div className="px-4 sm:px-6 pb-24">
+      {/* Categories Section */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-3 mx-5">
+          <h2 className="text-lg font-semibold">Categories</h2>
+          <Link href="/categories" className="text-sm text-[#CE145B]">see all</Link>
+        </div>
+        
+        <div className="cateogries flex flex-wrap gap-5 mx-5">
+          <CategoryItem label="Haircut" src='/service-icons/men-hair.png' />
+          <CategoryItem label="Haircolour" src='/service-icons/hair-coloring.png' />
+          <CategoryItem label="Shaving" src='/service-icons/shaving-icon.png' />
+          <CategoryItem label="Facials" src='/service-icons/facial-treatment.png' />
+          <CategoryItem label="Trimming" src='/service-icons/shaving-icon.png' />
+          <CategoryItem label="Beard" src='/service-icons/shaving-icon.png'  />
+          <CategoryItem label="Massage" src='/service-icons/massage.png'  />
+          <CategoryItem label="Makeup" src='/service-icons/makeup.png' />
+        </div>
+      </div>
+      
+      {/* Best Salons Section */}
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-lg font-semibold">Best salons near you</h2>
+          <a href="#" className="text-sm text-[#CE145B]">see all</a>
+        </div>
+        
+        <div className="space-y-3 sm:space-y-4">
+          {salons.map((salon) => (
+            <SalonCard key={salon.salon_id} salon={salon} handleSalonSelect={handleSalonSelect} />
+          ))}
+        </div>
+      </div>
+      
+      {/* Salon Feedback Modal */}
       {selectedSalon && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-40">
-          <div className="absolute bottom-0 left-0 right-0 z-50">
-            <SalonFeedback 
-              salon={selectedSalon} 
-              onClose={handleClose}
-              onViewServices={() => handleViewServices(selectedSalon.salon_id)}
-            />
+          <div className="absolute bottom-0 left-0 right-0 z-50 sm:flex sm:items-center sm:justify-center">
+            <div className="sm:max-w-lg sm:w-full sm:rounded-lg sm:overflow-hidden">
+              <SalonFeedback 
+                salon={selectedSalon} 
+                onClose={handleClose}
+                onViewServices={() => handleViewServices(selectedSalon.salon_id)}
+              />
+            </div>
           </div>
         </div>
       )}
     </div> 
   );
 }
+
+// Categories Item Component
+const CategoryItem = ({ label, src='' }) => {
+  return (
+    <div className="flex flex-col items-center justify-center w-16 cursor-pointer">
+      <div className="h-10 w-10 bg-gray-300 rounded-lg mb-1 p-1">
+        <img src={src}/>
+      </div>
+      <span className="text-xs text-center">{label}</span>
+    </div>
+  );
+};

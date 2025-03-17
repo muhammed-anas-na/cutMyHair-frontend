@@ -1,22 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Heart, Star, Clock } from 'lucide-react';
 import { checkIfOpenToday } from '@/helpers';
+
 const SalonCard = ({ salon, handleSalonSelect }) => {
- 
-
-
-
-const formatTime = (timeString) => {
-    console.log(timeString);
+  const [isFavorite, setIsFavorite] = useState(salon.isFavorite || false);
+  const [isHeartAnimating, setIsHeartAnimating] = useState(false);
+  const formatTime = (timeString) => {
     if (!timeString) return '';
     
     const time = new Date(timeString);
     return time.toLocaleTimeString([], { 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        hour12: true, 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      hour12: true, 
     });
-};
+  };
+  
   // Get today's working hours
   const getTodayHours = () => {
     const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -36,86 +35,91 @@ const formatTime = (timeString) => {
   const todayHours = getTodayHours();
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden mb-4 hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={()=>handleSalonSelect(salon)}>
-      <div className="flex items-start p-4 gap-4">
-        {/* Salon Image */}
-        <div className="w-16 h-16 flex-shrink-0">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden mb-4 hover:shadow-lg transition-shadow duration-300 cursor-pointer" 
+         onClick={() => handleSalonSelect(salon)}>
+      <div className="relative">
+        {/* Main Salon Image */}
+        <div className="w-full h-44">
           {salon.images && salon.images.length > 0 ? (
             <img
               src={salon.images[0]}
-              alt={`${salon.name} thumbnail`}
-              className="w-full h-full object-cover rounded-lg"
+              alt={`${salon.name}`}
+              className="w-full h-full object-cover"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = "/salon-fallback.jpg"; // Fallback image
+                e.target.src = "/salon-fallback.jpg";
               }}
             />
           ) : (
-            <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
-              <span className="text-gray-400 text-xs">No image</span>
+            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+              <span className="text-gray-400 text-sm">No image</span>
             </div>
           )}
-        </div>
-        
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-start w-full">
-            <div className="flex-1 min-w-0 pr-2">
-              <h3 className="text-lg font-semibold text-gray-900 truncate">
-                {salon.name}
-              </h3>
-              <p className="text-sm text-gray-500 truncate">
-                {salon.location_name}, {salon.address}
-              </p>
+          
+          {/* Open Badge */}
+          <div className="absolute top-2 left-2">
+            <div className={`px-3 py-1 text-sm rounded-md font-medium ${isOpen ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+              {isOpen ? 'Open' : 'Closed'}
             </div>
-            <button className="text-gray-400 hover:text-gray-500 flex-shrink-0">
-              <Heart className="w-6 h-6" />
+          </div>
+          
+          {/* Favorite Button - with animation */}
+          <div className="absolute top-2 right-2">
+            <button 
+              className="bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition-all duration-300 transform hover:scale-110 active:scale-95"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsFavorite(!isFavorite);
+                setIsHeartAnimating(true);
+                setTimeout(() => setIsHeartAnimating(false), 300);
+              }}
+              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Heart 
+                className={`w-5 h-5 transition-all duration-300 ${
+                  isHeartAnimating ? 'scale-125' : ''
+                } ${
+                  isFavorite 
+                    ? 'fill-current text-[#CE145B]' 
+                    : 'text-gray-400 hover:text-[#CE145B]'
+                }`} 
+              />
             </button>
           </div>
-          
-          {/* Rating */}
-          <div className="flex items-center mt-2">
-            <div className="flex">
-              {[...Array(5)].map((_, i) => {
-                // Handle rating properly - if salon rating is 0, show empty stars
-                const rating = salon.rating || 0;
-                const isFilled = i < Math.floor(rating);
-                const isHalfFilled = !isFilled && i < Math.ceil(rating) && rating % 1 !== 0;
-                
-                return (
-                  <Star
-                    key={i}
-                    className={`w-5 h-5 ${
-                      isFilled ? 'fill-current' : 
-                      isHalfFilled ? 'fill-current opacity-75' : 
-                      'fill-current opacity-30'
-                    } text-[#CE145B]`}
-                  />
-                );
-              })}
+        </div>
+        
+        {/* Salon Info */}
+        <div className="p-3">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900">
+                {salon.name}
+              </h3>
+              <p className="text-base text-gray-500">
+                {salon.location_name || ''}{salon.location_name && salon.address ? ', ' : ''}{salon.address}
+              </p>
             </div>
-            <span className="ml-2 text-sm font-medium text-gray-600">
-              {salon.rating > 0 ? salon.rating.toFixed(1) : 'New'}
-            </span>
-            
-            {/* Distance */}
-            <span className="ml-auto text-sm text-gray-500">
-              {salon.distance !== undefined ? 
-                (salon.distanceInKm < 1 ? 
-                  `${Math.round(salon.distance * 1000)} m` : 
-                  `${salon.distanceInKm.toFixed(1)} km`) : 
-                ''}
-            </span>
+            <div className="flex items-center">
+              <span className="text-lg font-bold mr-1">
+                {salon.rating > 0 ? salon.rating.toFixed(1) : '4.6'}
+              </span>
+              <Star className="w-5 h-5 fill-current text-[#CE145B]" />
+            </div>
           </div>
           
-          {/* Open/Closed status */}
-          <div className="flex items-center mt-2 text-sm">
-            <Clock className="w-4 h-4 mr-1" />
-            <span className={isOpen ? 'text-green-600' : 'text-red-500'}>
-              {isOpen ? 'Open' : 'Closed'}
-            </span>
-            <span className="mx-1">•</span>
-            <span className="text-gray-500">{todayHours.toUpperCase()}</span>
+          {/* Hours and Distance */}
+          <div className="flex justify-between items-center mt-2">
+            <div className="flex items-center text-sm text-gray-600">
+              <Clock className="w-4 h-4 mr-1" />
+              <span>{todayHours.toUpperCase()}</span>
+            </div>
+            <div className="text-sm text-gray-600">
+              {salon.distance !== undefined ? 
+                (salon.distance < 1 ? 
+                  `${Math.round(salon.distance * 1000)} m away` : 
+                  `${salon.distance.toFixed(1)} km away`) : 
+                ''}
+            </div>
           </div>
         </div>
       </div>
