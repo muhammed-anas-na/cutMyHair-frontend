@@ -2,12 +2,12 @@
   "name": "salon-frontend",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
+"scripts": {
+  "dev": "next dev",
+  "build": "NEXT_STATIC_EXPORT=true next build && mkdir -p out && cp -r .next/static out/ && cp -r .next/server/app/* out/",
+  "start": "next start",
+  "lint": "next lint"
+},
   "dependencies": {
     "@capacitor/android": "^7.1.0",
     "@capacitor/core": "^7.1.0",

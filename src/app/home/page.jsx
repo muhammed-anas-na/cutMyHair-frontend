@@ -17,6 +17,7 @@ const Home = () => {
   const [salons, setSalons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const { latitude, longitude, locationText } = useLocation();
 
   useEffect(() => {
@@ -26,7 +27,6 @@ const Home = () => {
       
       try {
         if (latitude && longitude) {
-       
           const response = await GET_NEAREST_SALON_FN(latitude, longitude);
           
           if (response?.data?.data?.salons && Array.isArray(response.data.data.salons)) {
@@ -35,6 +35,9 @@ const Home = () => {
             console.error("Unexpected API response structure:", response);
             setError('Invalid data format received from server.');
           }
+        } else {
+          // Show location modal if no location is set
+          setIsLocationModalOpen(true);
         }
       } catch (err) {
         console.error('Failed to fetch salons:', err);
@@ -47,39 +50,59 @@ const Home = () => {
     fetchSalons();
   }, [latitude, longitude]);
 
+  const handleRetry = () => {
+    if (!latitude || !longitude) {
+      setIsLocationModalOpen(true);
+    } else {
+      setLoading(true);
+      setError('');
+      // Re-fetch salons
+      fetchSalons();
+    }
+  };
+
   return (
-    <>
-    <div>
+    <div className="min-h-screen bg-white flex flex-col">
       <Header />
-      <div className="flex justify-between p-7">
-        <div className="flex flex-col">
-          {/* <h1 className="font-bold text-xl">Nearest Salon</h1> */}
+      
+      <div className="flex-grow">
+        <div className="flex justify-between p-4 sm:p-7 max-w-6xl mx-auto">
+          <div className="flex flex-col">
+            {/* <h1 className="font-bold text-xl">Nearest Salon</h1> */}
+          </div>
+          <div className="flex gap-2 items-center">
+            <h3 className="text-xs md:text-sm font-medium">Map View</h3>
+            <ToggleSwitch isOn={isMapView} setIsOn={setIsMapView} />
+          </div>
         </div>
-        <div className="flex gap-2 items-center">
-          <h3 className="text-xs">Map View</h3>
-          <ToggleSwitch isOn={isMapView} setIsOn={setIsMapView} />
+        
+        <div className="max-w-6xl mx-auto w-full">
+          {isMapView ? (
+            <SalonMap 
+              salons={salons}
+              loading={loading}
+              error={error}
+              onRetry={handleRetry}
+            />
+          ) : (
+            <ListOfSalon 
+              salons={salons}
+              loading={loading}
+              error={error}
+              onRetry={handleRetry}
+              onOpenLocationModal={() => setIsLocationModalOpen(true)}
+            />
+          )}
         </div>
       </div>
       
-      {/* Pass shared data to child components */}
-      {isMapView ? (
-        <SalonMap 
-          salons={salons}
-          loading={loading}
-          error={error}
-        />
-      ) : (
-        <ListOfSalon 
-          salons={salons}
-          loading={loading}
-          error={error}
-        />
-      )}
-      
       <Navigation currentPage={'home'} />
+      
+      <LocationModal 
+        isOpen={isLocationModalOpen} 
+        onClose={() => setIsLocationModalOpen(false)} 
+      />
     </div>
-    <LocationModal/>
-    </>
   );
 };
 

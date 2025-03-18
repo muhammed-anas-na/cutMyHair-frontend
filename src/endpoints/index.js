@@ -32,9 +32,11 @@ export const UPDATE_NUMBER_OF_SEATS_API = `${OWNER_BASE_URL}/update-number-of-se
 export const UPDATE_WORKING_HOUR_API = `${OWNER_BASE_URL}/update-working-hours`;
 export const ADD_SERVICE_FOR_SALON_API = `${OWNER_BASE_URL}/add-service`;
 export const GET_APPOINTMENTS_OF_SALON_API = `${OWNER_BASE_URL}/get-appoinments-of-salon`;
+export const ADD_NEW_CATEGORY_API = `${OWNER_BASE_URL}/add-category`;
 
 //User Payment
 export const CREATE_ORDER_API = `${USER_BASE_URL}/create-razorpay-order`;
 
 
+//SEO
 export const GET_ALL_SALONS_API = `${USER_BASE_URL}/get-all-salons`;

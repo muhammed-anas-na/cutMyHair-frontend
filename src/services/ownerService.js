@@ -8,7 +8,8 @@ import {
   UPDATE_NUMBER_OF_SEATS_API,
   UPDATE_WORKING_HOUR_API,
   ADD_SERVICE_FOR_SALON_API,
-  GET_APPOINTMENTS_OF_SALON_API
+  GET_APPOINTMENTS_OF_SALON_API,
+  ADD_NEW_CATEGORY_API
 } from '@/endpoints/index.js';
 
 // Send OTP Function for Owner
@@ -113,9 +114,31 @@ export const GET_APPOINTMENTS_OF_SALON_FN = async(salon_id, date)=>{
   }
 }
 
-export const ADD_SERVICE_FOR_SALON_FN = async(salon_id, name, description, price,duration,category,status)=>{
+// Service Function: ADD_SERVICE_FOR_SALON_FN
+export const ADD_SERVICE_FOR_SALON_FN = async (salon_id, name, description, price, duration, category, status, category_id) => {
   try {
-    return await axiosInstance.post(ADD_SERVICE_FOR_SALON_API, {salon_id, name, description, price,duration,category,status});
+    console.log("IDDD===>",category_id)
+    const response = await axiosInstance.post(ADD_SERVICE_FOR_SALON_API, {
+      salon_id,
+      name,
+      description,
+      price,
+      duration,
+      category,
+      status,
+      category_id: category_id || null // Explicitly send null if no category_id
+    });
+    return response;
+  } catch (err) {
+    console.error('API Error:', err.response?.data || err.message);
+    throw err;
+  }
+};
+
+
+export const ADD_NEW_CATEGORY_FN = async(data)=>{
+  try {
+    return await axiosInstance.post(ADD_NEW_CATEGORY_API, data);
   } catch (err) {
     return err
   }

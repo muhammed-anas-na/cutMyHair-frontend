@@ -16,6 +16,7 @@ const SalonManagement = () => {
     const fetchSalons = async () => {
       setLoading(true);
       try {
+        console.log(user_id);
         const response = await GET_OWNER_SALON_FN(user_id);
         if (response?.data?.data) {
           setSalons(response.data.data);
