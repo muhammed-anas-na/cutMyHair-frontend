@@ -165,9 +165,7 @@ export default function TrendingTopics({
                       src={article.image}
                       alt={article.title}
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      fill
                       sizes="(max-width: 640px) 80vw, (max-width: 768px) 325px, (max-width: 1024px) 300px, 320px"
-                      priority={false}
                     />
                     {article.category && (
                       <div className="absolute top-0 left-0 m-3">

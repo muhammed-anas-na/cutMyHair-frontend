@@ -1,67 +1,138 @@
-'use client';
-import React, { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
 import { GET_BLOG_BY_SLUG_FN } from '@/services/userService';
+import ClientBlogPost from './ClientBlogPost';
+import { Suspense } from 'react';
+import LoadingSpinner from '../LoadingSpinner';
 
-export default function SingleBlogPost({ params }) {
-  const slug = React.use(React.useMemo(() => params, [params])).slug;
-  const [blogData, setBlogData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [email, setEmail] = useState('');
-  const [emailError, setEmailError] = useState('');
-
-  React.useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const response = await GET_BLOG_BY_SLUG_FN(slug);
-        setBlogData(response.data.blog);
-        setIsLoading(false);
-      } catch (err) {
-        console.error(err);
-        setError(err);
-        setIsLoading(false);
-      }
+// Generate metadata function for SEO (runs on server)
+export async function generateMetadata({ params }) {
+  try {
+    const { slug } = params;
+    const response = await GET_BLOG_BY_SLUG_FN(slug);
+    const blog = response.data.blog;
+    
+    // Clean description for meta tags (strip HTML)
+    const description = blog.description
+      .substring(0, 160)
+      .replace(/<[^>]*>/g, '');
+    
+    return {
+      title: `${blog.title} | CutMyHair.in Blog`,
+      description: description,
+      openGraph: {
+        title: blog.title,
+        description: description,
+        url: `https://cutmyhair.in/blogs/${slug}`,
+        type: 'article',
+        images: [
+          {
+            url: blog.image,
+            width: 1200,
+            height: 630,
+            alt: blog.imageAlt || blog.title,
+          },
+        ],
+        article: {
+          publishedTime: blog.createdAt,
+          modifiedTime: blog.updatedAt || blog.createdAt,
+          section: blog.category.replace(/-/g, ' '),
+          tags: [blog.category.replace(/-/g, ' '), 'beauty', 'salon']
+        }
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: blog.title,
+        description: description,
+        images: [blog.image],
+      },
+      alternates: {
+        canonical: `https://cutmyhair.in/blogs/${slug}`,
+      },
     };
-    fetchData();
-  }, [slug]);
-
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    
-    // Basic email validation
-    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-      setEmailError('Please enter a valid email address');
-      return;
-    }
-    
-    // Simulate subscription (replace with actual API call)
-    setIsLoading(true);
-    setEmailError('');
-    
-    setTimeout(() => {
-      setIsSubscribed(true);
-      setIsLoading(false);
-    }, 1000);
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(window.location.href);
-    alert('Link copied to clipboard!');
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-[#CE145B]"></div>
-      </div>
-    );
+  } catch (error) {
+    console.error("Error generating metadata:", error);
+    // Fallback metadata if blog fetch fails
+    return {
+      title: 'Blog Post | CutMyHair.in',
+      description: 'Read our latest beauty and salon articles on CutMyHair.in',
+    };
   }
+}
 
-  if (error || !blogData) {
+// Generate JSON-LD schema for structured data
+async function generateJsonLd({ params }) {
+  try {
+    const { slug } = params;
+    const response = await GET_BLOG_BY_SLUG_FN(slug);
+    const blog = response.data.blog;
+    
+    const cleanDescription = blog.description.substring(0, 160).replace(/<[^>]*>/g, '');
+    const isoDate = new Date(blog.createdAt).toISOString();
+    
+    return {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": blog.title,
+      "image": [blog.image],
+      "datePublished": isoDate,
+      "dateModified": blog.updatedAt ? new Date(blog.updatedAt).toISOString() : isoDate,
+      "author": {
+        "@type": "Organization",
+        "name": "CutMyHair.in"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "CutMyHair.in",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://cutmyhair.in/images/logo.png"
+        }
+      },
+      "description": cleanDescription,
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": `https://cutmyhair.in/blogs/${slug}`
+      },
+      "keywords": `${blog.category.replace(/-/g, ' ')}, beauty salon, hair styling, cutmyhair`
+    };
+  } catch (error) {
+    console.error("Error generating JSON-LD:", error);
+    return null;
+  }
+}
+
+// Main page component (server component)
+export default async function BlogPostPage({ params }) {
+  try {
+    const { slug } = params;
+    // Fetch blog data on the server
+    const response = await GET_BLOG_BY_SLUG_FN(slug);
+    const blogData = response.data.blog;
+    
+    // Generate the JSON-LD
+    const jsonLd = await generateJsonLd({ params });
+    
+    // Pass the data to the client component
+    return (
+      <>
+        {/* Add JSON-LD structured data */}
+        {jsonLd && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
+        )}
+        
+        {/* Wrap the client component with Suspense for loading states */}
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen">
+          <LoadingSpinner />
+        </div>}>
+          <ClientBlogPost blogData={blogData} slug={slug} />
+        </Suspense>
+      </>
+    );
+  } catch (error) {
+    console.error("Error loading blog:", error);
+    // Render error state
     return (
       <div className="flex justify-center items-center min-h-screen text-center">
         <div>
@@ -71,159 +142,14 @@ export default function SingleBlogPost({ params }) {
           <p className="text-gray-600 mb-6">
             Unable to load the blog post. Please try again later.
           </p>
-          <Link 
-            href="/blog" 
+          <a 
+            href="/blogs" 
             className="bg-[#CE145B] text-white px-6 py-2 rounded-lg hover:bg-[#A81049] transition-colors"
           >
             Back to Blog
-          </Link>
+          </a>
         </div>
       </div>
     );
   }
-
-  const { title, description, image, imageAlt, category, createdAt } = blogData;
-
-  return (
-    <div className="bg-white min-h-screen">
-      {/* Back button and category */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="flex flex-wrap items-center justify-between mb-4">
-          <Link 
-            href="/blogs" 
-            className="inline-flex items-center text-gray-600 hover:text-[#CE145B] transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-            </svg>
-            All posts
-          </Link>
-          <div className="flex items-center space-x-4 mt-2 sm:mt-0">
-            <span className="px-3 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded-full capitalize">
-              {category.replace('-', ' ')}
-            </span>
-            <span className="text-gray-500 text-sm">
-              {new Date(createdAt).toLocaleDateString('en-US', { 
-                month: 'long', 
-                day: 'numeric', 
-                year: 'numeric' 
-              })}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Blog header */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-          {title}
-        </h1>
-      </div>
-
-      {/* Featured image */}
-      <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] mb-8 overflow-hidden">
-        <img 
-          src={`${image}`}
-          alt={imageAlt || title}
-          className="object-cover md:object-contain w-full h-full hover:scale-105 transition-transform duration-700"
-          fill
-          priority
-        />
-      </div>
-
-      {/* Blog content */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-        <div 
-          className="prose prose-lg max-w-none prose-img:rounded-xl prose-headings:text-gray-900 prose-a:text-[#CE145B]"
-          dangerouslySetInnerHTML={{ __html: description }}
-        />
-      </div>
-
-      {/* Share section */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-        <div className="border-t border-gray-200 pt-6 flex flex-wrap justify-center items-center space-x-4">
-          <span className="text-sm text-gray-600">Share:</span>
-          <button 
-            onClick={copyToClipboard}
-            className="text-gray-600 hover:text-[#CE145B] transition-colors"
-            aria-label="Copy link"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
-            </svg>
-          </button>
-          <a 
-            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(title)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-600 hover:text-[#CE145B] transition-colors"
-            aria-label="Share on Twitter"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="w-5 h-5" viewBox="0 0 16 16">
-              <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"/>
-            </svg>
-          </a>
-          <a 
-            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-600 hover:text-[#CE145B] transition-colors"
-            aria-label="Share on Facebook"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="w-5 h-5" viewBox="0 0 16 16">
-              <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"/>
-            </svg>
-          </a>
-        </div>
-      </div>
-
-      {/* Subscribe section */}
-      <div className="bg-white py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-[#FFF7F5] rounded-2xl p-6 sm:p-10">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-2">Subscribe to newsletter</h2>
-              <p className="text-gray-600">Subscribe to receive the latest blog posts to your inbox weekly.</p>
-            </div>
-            
-            {isSubscribed ? (
-              <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-green-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 className="text-xl font-semibold mb-2">Thank you for subscribing!</h3>
-                <p className="text-gray-600">You'll now receive our latest blog posts and updates.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubscribe} className="max-w-md mx-auto">
-                <div className="relative">
-                  <input
-                    type="email"
-                    placeholder="Enter your email address"
-                    className={`w-full px-4 py-3 rounded-lg shadow-sm border ${emailError ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-[#CE145B] focus:border-transparent`}
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setEmailError('');
-                    }}
-                  />
-                  <button 
-                    type="submit"
-                    className="absolute right-2 top-2 bg-[#CE145B] text-white px-4 py-1 rounded-lg hover:bg-[#A81049] transition-colors disabled:bg-gray-400"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Subscribing...' : 'Subscribe'}
-                  </button>
-                </div>
-                {emailError && <p className="text-red-500 text-sm mt-1">{emailError}</p>}
-                <p className="text-xs text-gray-500 mt-3 text-center">
-                  By subscribing you agree to with our <Link href="/privacy-policy" className="underline hover:text-[#CE145B]">Privacy Policy</Link>
-                </p>
-              </form>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 }
