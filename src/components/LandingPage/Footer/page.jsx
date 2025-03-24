@@ -18,7 +18,7 @@ const Footer = () => {
   const customerLinks = [
     { label: 'UC reviews', href: '/reviews' },
     { label: 'Categories near you', href: '/categories' },
-    { label: 'Blog', href: '/blog' },
+    { label: 'Blogs', href: '/blogs' },
     { label: 'Contact us', href: '/contact' },
   ];
 

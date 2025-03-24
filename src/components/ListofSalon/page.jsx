@@ -9,7 +9,7 @@ import { MapPin, Scissors, RotateCcw, Search, Star, ChevronRight, Gift, Clock, P
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
-export default function ListOfSalon({ salons, loading, error, onRetry, onOpenLocationModal }) {
+export default function ListOfSalon({favorites, salons, loading, error, onRetry, onOpenLocationModal }) {
   const { latitude, longitude, locationText } = useLocation();
   const [selectedSalon, setSelectedSalon] = useState();
   const [activeCategory, setActiveCategory] = useState('All');
@@ -149,7 +149,8 @@ export default function ListOfSalon({ salons, loading, error, onRetry, onOpenLoc
   }
 
   const handleSalonSelect = (value) => {
-    setSelectedSalon(value);
+    // setSelectedSalon(value);
+    router.push(`/salon/${value.salon_id}`)
   };
   
   const handleViewServices = () => {
@@ -191,7 +192,7 @@ export default function ListOfSalon({ salons, loading, error, onRetry, onOpenLoc
   // Main UI with additional styling to match the screenshot
   return (
     <div className="px-4 sm:px-6 pb-24">
-      {/* Horizontally Scrollable Promotional Banners */}
+      {/* Horizontally Scrollable Promotional Banners - with hidden scrollbar */}
       <div className="mb-6 -mx-2 px-2">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold">Special Offers</h2>
@@ -200,7 +201,7 @@ export default function ListOfSalon({ salons, loading, error, onRetry, onOpenLoc
           </Link>
         </div>
         
-        <div className="overflow-x-auto -mx-2 px-2 flex space-x-4 pb-2 no-scrollbar">
+        <div className="overflow-x-auto -mx-2 px-2 flex space-x-4 pb-2 scrollbar-hide">
           {promotionalBanners.map((banner) => (
             <motion.div 
               key={banner.id}
@@ -242,7 +243,7 @@ export default function ListOfSalon({ salons, loading, error, onRetry, onOpenLoc
         </div>
       </div>
       
-      {/* Categories Section - Horizontally scrollable on mobile */}
+      {/* Categories Section - Horizontally scrollable with hidden scrollbar */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-lg font-semibold">Categories</h2>
@@ -251,7 +252,7 @@ export default function ListOfSalon({ salons, loading, error, onRetry, onOpenLoc
           </Link>
         </div>
         
-        <div className="overflow-x-auto -mx-1 px-1 flex space-x-3 pb-2 no-scrollbar">
+        <div className="overflow-x-auto -mx-1 px-1 flex space-x-3 pb-2 scrollbar-hide">
           <CategoryItem label="All" src='/service-icons/all-services.png' isActive={activeCategory === 'All'} onClick={() => setActiveCategory('All')} />
           <CategoryItem label="Haircut" src='/service-icons/men-hair.png' isActive={activeCategory === 'Haircut'} onClick={() => setActiveCategory('Haircut')} />
           <CategoryItem label="Haircolour" src='/service-icons/hair-coloring.png' isActive={activeCategory === 'Haircolour'} onClick={() => setActiveCategory('Haircolour')} />
@@ -264,8 +265,8 @@ export default function ListOfSalon({ salons, loading, error, onRetry, onOpenLoc
         </div>
       </div>
       
-      {/* Quick Filters */}
-      <div className="mb-4 overflow-x-auto -mx-1 px-1 flex space-x-2 pb-2 no-scrollbar">
+      {/* Quick Filters - Horizontally scrollable with hidden scrollbar */}
+      <div className="mb-4 overflow-x-auto -mx-1 px-1 flex space-x-2 pb-2 scrollbar-hide">
         <button className="flex-shrink-0 flex items-center gap-1 text-xs bg-[#FEF0F5] text-[#CE145B] px-3 py-1.5 rounded-full font-medium">
           <Star size={12} />
           Top Rated
@@ -308,39 +309,30 @@ export default function ListOfSalon({ salons, loading, error, onRetry, onOpenLoc
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <SalonCard salon={salon} handleSalonSelect={handleSalonSelect} />
+              <SalonCard favorites={favorites} salon={salon} handleSalonSelect={handleSalonSelect} />
             </motion.div>
           ))}
         </div>
       </div>
-      
-      {/* Salon Feedback Modal with improved animations */}
-      <AnimatePresence>
-        {selectedSalon && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black bg-opacity-60 z-40 p-4 flex items-end sm:items-center justify-center"
-          >
-            <motion.div 
-              initial={{ y: 100, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 100, opacity: 0 }}
-              transition={{ type: "spring", damping: 25 }}
-              className="w-full max-w-lg bg-white sm:rounded-2xl overflow-hidden"
-            >
-              <SalonFeedback 
-                salon={selectedSalon} 
-                onClose={handleClose}
-                onViewServices={() => handleViewServices()}
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {/* Style to hide scrollbar */}
+            <style jsx global>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        
+        /* Custom rotation class */
+        .rotate-270 {
+          transform: rotate(270deg);
+        }
+      `}</style>
     </div> 
+
+
+
   );
 }
 

@@ -14,7 +14,12 @@ import {
   GET_BOOKING_DETAIL_BY_ID_API,
   SEARCH_SALON_API,
   GET_TIME_SLOT_API,
-  GET_ALL_SALONS_API
+  GET_ALL_SALONS_API,
+  ADD_TO_FAVORITES_API,
+  REMOVE_FROM_FAVORITES_API,
+  GET_ALL_FAVOURITES_API,
+  GET_BLOGS_API,
+  GET_BLOG_BY_SLUG_API
 } from '@/endpoints/index.js';
 
 // Send OTP Function
@@ -79,9 +84,9 @@ export const GET_LOCATION_FROM_TEXT_FN = async(text)=>{
   }
 }
 
-export const GET_NEAREST_SALON_FN = async(latitude, longitude)=>{
+export const GET_NEAREST_SALON_FN = async(latitude, longitude, user_id)=>{
   try{
-    return await axiosInstance.post(GET_NEAREST_SALON_API, {latitude,longitude})
+    return await axiosInstance.post(GET_NEAREST_SALON_API, {latitude,longitude, user_id})
   }catch(err){
     return err
   }
@@ -143,6 +148,47 @@ export const FETCH_ALL_SALONS_FN = async()=>{
   try {
     return await axiosInstance.get(GET_ALL_SALONS_API);
   } catch (err) {
+    return err;
+  }
+}
+
+export const ADD_TO_FAVORITES_FN = async(salon_id, user_id)=>{
+  try {
+    return await axiosInstance.post(ADD_TO_FAVORITES_API , {salon_id, user_id});
+  } catch (err) {
+    return err;
+  }
+}
+
+export const REMOVE_FROM_FAVORITES_FN = async(salon_id, user_id)=>{
+  try {
+    return await axiosInstance.post(REMOVE_FROM_FAVORITES_API , {salon_id, user_id});
+  } catch (err) {
+    return err;
+  }
+}
+
+export const GET_ALL_FAVOURITES_FN = async(user_id)=>{
+  try{
+    return await axiosInstance.post(GET_ALL_FAVOURITES_API, {user_id})
+  }catch(err){
+    return err;
+  }
+}
+
+
+export const GET_BLOGS_FN = async()=>{
+  try{
+    return await axiosInstance.get(GET_BLOGS_API)
+  }catch(err){
+    return err;
+  }
+}
+
+export const GET_BLOG_BY_SLUG_FN = async(slug)=>{
+  try{
+    return await axiosInstance.post(GET_BLOG_BY_SLUG_API, {slug})
+  }catch(err){
     return err;
   }
 }

@@ -13,63 +13,55 @@ import {
   Star, 
   ChevronDown, 
   ChevronUp, 
-  Scissors, 
-  Award,
+  Scissors,
+  Image,
   ThumbsUp,
   MessageCircle,
   Share2
 } from 'lucide-react';
+import { checkIfOpenToday } from '@/helpers';
 
-const SalonAbout = () => {
+const SalonAbout = ({ salon = {} }) => {
   const [activeSection, setActiveSection] = useState('overview');
   const [expandedFaq, setExpandedFaq] = useState(null);
   
-  // Salon information
-  const salonInfo = {
-    name: "Signate Unisex Salon",
-    description: "Established in 2015, Signate is a premier unisex salon offering exceptional haircuts, styling, coloring, and beauty services. Our team of experienced stylists is dedicated to helping you look and feel your best.",
-    longDescription: "At Signate, we believe that great hair can transform your day. Our salon combines technical expertise with creative vision to deliver personalized services that enhance your natural beauty. We use only premium products and stay updated with the latest trends and techniques to provide you with the best possible experience. Whether you're looking for a subtle change or a bold transformation, our stylists work closely with you to achieve your desired look.",
-    address: "Lmd Square, Bavdhan, Pune",
-    phone: "+91 98765 43210",
-    email: "info@signatesalon.com",
-    website: "www.signatesalon.com",
-    rating: 4.8,
-    reviews: 250,
-    workingHours: [
-      { day: "Monday", hours: "9:00 AM - 8:00 PM" },
-      { day: "Tuesday", hours: "9:00 AM - 8:00 PM" },
-      { day: "Wednesday", hours: "9:00 AM - 8:00 PM" },
-      { day: "Thursday", hours: "9:00 AM - 8:00 PM" },
-      { day: "Friday", hours: "9:00 AM - 9:00 PM" },
-      { day: "Saturday", hours: "8:00 AM - 9:00 PM" },
-      { day: "Sunday", hours: "10:00 AM - 6:00 PM" }
-    ],
-    amenities: [
-      "Free Wi-Fi",
-      "Complimentary Beverages",
-      "Air Conditioning",
-      "Parking Available",
-      "Wheelchair Accessible",
-      "Premium Products"
-    ],
-    images: [
-      "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800",
-      "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=800",
-      "https://images.unsplash.com/photo-1600948836101-f9ffda59d250?w=800"
-    ],
-    socialMedia: {
-      instagram: "@signatesalon",
-      facebook: "SignateUnisexSalon",
-      twitter: "@SignateSalon"
-    },
-    achievements: [
-      "Best Salon in Pune - 2022",
-      "Excellence in Customer Service - 2021",
-      "Top Rated Salon on BeautySphere - 2020"
-    ]
-  };
+  // Extract working hours from salon data or provide empty array as fallback
+  const workingHours = salon?.working_hours ? [
+    { day: "Monday", hours: salon.working_hours.monday?.isOpen ? formatTime(salon.working_hours.monday.start) + " - " + formatTime(salon.working_hours.monday.end) : "Closed" },
+    { day: "Tuesday", hours: salon.working_hours.tuesday?.isOpen ? formatTime(salon.working_hours.tuesday.start) + " - " + formatTime(salon.working_hours.tuesday.end) : "Closed" },
+    { day: "Wednesday", hours: salon.working_hours.wednesday?.isOpen ? formatTime(salon.working_hours.wednesday.start) + " - " + formatTime(salon.working_hours.wednesday.end) : "Closed" },
+    { day: "Thursday", hours: salon.working_hours.thursday?.isOpen ? formatTime(salon.working_hours.thursday.start) + " - " + formatTime(salon.working_hours.thursday.end) : "Closed" },
+    { day: "Friday", hours: salon.working_hours.friday?.isOpen ? formatTime(salon.working_hours.friday.start) + " - " + formatTime(salon.working_hours.friday.end) : "Closed" },
+    { day: "Saturday", hours: salon.working_hours.saturday?.isOpen ? formatTime(salon.working_hours.saturday.start) + " - " + formatTime(salon.working_hours.saturday.end) : "Closed" },
+    { day: "Sunday", hours: salon.working_hours.sunday?.isOpen ? formatTime(salon.working_hours.sunday.start) + " - " + formatTime(salon.working_hours.sunday.end) : "Closed" }
+  ] : [];
   
-  // FAQ data
+  // Helper function to format time string
+  function formatTime(timeString) {
+    if (!timeString) return "";
+    try {
+      const date = new Date(timeString);
+      return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (error) {
+      console.error("Error formatting time:", error);
+      return timeString;
+    }
+  }
+  
+  // Standard salon amenities - these will be shown even if not specifically mentioned in DB
+  const amenities = [
+    "Free Wi-Fi",
+    "Air Conditioning",
+    "Parking Available",
+    "Wheelchair Accessible",
+    "Premium Products"
+  ];
+
+  // FAQ data - kept static but could be moved to DB later
   const faqs = [
     {
       id: 1,
@@ -84,17 +76,17 @@ const SalonAbout = () => {
     {
       id: 3,
       question: "Do you offer any loyalty programs or discounts?",
-      answer: "Yes! We have a loyalty program where you earn points for every service and product purchase. We also offer seasonal promotions, referral bonuses, and special discounts for first-time clients. Download our app or sign up for our newsletter to stay updated on our latest offers."
+      answer: "Yes! We have a loyalty program where you earn points for every service and product purchase. We also offer seasonal promotions, referral bonuses, and special discounts for first-time clients."
     },
     {
       id: 4,
       question: "What brands do you use at the salon?",
-      answer: "We use premium products from brands like Wella, Olaplex, Kérastase, L'Oréal Professional, and Moroccan Oil. We carefully select products that deliver excellent results while maintaining hair health and integrity."
+      answer: "We use premium products from well-known professional brands. We carefully select products that deliver excellent results while maintaining hair health and integrity."
     },
     {
       id: 5,
       question: "Are there parking facilities available?",
-      answer: "Yes, we have dedicated parking spaces for our clients in the building's basement. Additionally, there's ample street parking available in the vicinity of the salon."
+      answer: "Yes, we have dedicated parking spaces for our clients. Please check with us for specific parking instructions when you make your appointment."
     }
   ];
   
@@ -110,6 +102,21 @@ const SalonAbout = () => {
     { id: 'amenities', label: 'Amenities' },
     { id: 'faqs', label: 'FAQs' }
   ];
+
+  // Handle empty state for the entire salon data
+  if (!salon || Object.keys(salon).length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <div className="bg-gray-100 p-4 rounded-full mb-4">
+          <Scissors size={32} className="text-gray-400" />
+        </div>
+        <h3 className="text-lg font-medium text-gray-800 mb-2">No Information Available</h3>
+        <p className="text-gray-500 max-w-md">
+          There is no information available about this salon yet.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-20">
@@ -142,12 +149,16 @@ const SalonAbout = () => {
             {/* Header info */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5">
               <div>
-                <h1 className="text-xl font-bold text-gray-900">{salonInfo.name}</h1>
-                <div className="flex items-center mt-1">
-                  <Star size={16} className="text-yellow-500 fill-yellow-500" />
-                  <span className="ml-1 font-medium">{salonInfo.rating}</span>
-                  <span className="text-gray-500 text-sm ml-1">({salonInfo.reviews} reviews)</span>
-                </div>
+                <h1 className="text-xl font-bold text-gray-900">{salon.name || "Unnamed Salon"}</h1>
+                {salon.rating && (
+                  <div className="flex items-center mt-1">
+                    <Star size={16} className="text-yellow-500 fill-yellow-500" />
+                    <span className="ml-1 font-medium">{salon.rating}</span>
+                    {salon.reviews && (
+                      <span className="text-gray-500 text-sm ml-1">({salon.reviews} reviews)</span>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="flex space-x-3 mt-3 sm:mt-0">
                 <motion.button 
@@ -172,48 +183,47 @@ const SalonAbout = () => {
             </div>
             
             {/* Images gallery - horizontal scroll */}
-            <div className="mb-6">
-              <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide">
-                <div className="flex space-x-3 pb-2">
-                  {salonInfo.images.map((image, index) => (
-                    <div 
-                      key={index} 
-                      className="w-64 h-40 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200"
-                    >
-                      <img 
-                        src={image} 
-                        alt={`${salonInfo.name} - ${index + 1}`} 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ))}
+            {salon.images && salon.images.length > 0 ? (
+              <div className="mb-6">
+                <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide">
+                  <div className="flex space-x-3 pb-2">
+                    {salon.images.map((image, index) => (
+                      <div 
+                        key={index} 
+                        className="w-64 h-40 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200"
+                      >
+                        <img 
+                          src={image} 
+                          alt={`${salon.name} - ${index + 1}`} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="mb-6 bg-gray-100 rounded-lg p-4 flex flex-col items-center justify-center h-40">
+                <Image size={32} className="text-gray-400 mb-2" />
+                <p className="text-gray-500 text-sm">No images available</p>
+              </div>
+            )}
             
             {/* Description */}
             <div className="mb-6">
               <h2 className="text-base font-semibold mb-2 text-gray-900">About Us</h2>
-              <p className="text-gray-700 text-sm leading-relaxed mb-3">{salonInfo.description}</p>
-              <p className="text-gray-700 text-sm leading-relaxed">{salonInfo.longDescription}</p>
-            </div>
-            
-            {/* Achievements */}
-            <div className="mb-6">
-              <h2 className="text-base font-semibold mb-3 text-gray-900 flex items-center">
-                <Award size={16} className="mr-1 text-[#CE145B]" />
-                Achievements
-              </h2>
-              <div className="bg-gray-50 rounded-lg p-3">
-                <ul className="space-y-2">
-                  {salonInfo.achievements.map((achievement, index) => (
-                    <li key={index} className="flex items-start">
-                      <div className="text-yellow-500 mr-2 text-lg">🏆</div>
-                      <span className="text-sm text-gray-700">{achievement}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {salon.description ? (
+                <>
+                  <p className="text-gray-700 text-sm leading-relaxed mb-3">{salon.description}</p>
+                  {salon.longDescription && (
+                    <p className="text-gray-700 text-sm leading-relaxed">{salon.longDescription}</p>
+                  )}
+                </>
+              ) : (
+                <p className="text-gray-500 text-sm bg-gray-50 p-3 rounded-lg">
+                  No description available for this salon yet.
+                </p>
+              )}
             </div>
             
             {/* Contact information */}
@@ -221,36 +231,41 @@ const SalonAbout = () => {
               <h2 className="text-base font-semibold mb-3 text-gray-900">Contact & Location</h2>
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="space-y-3">
-                  <div className="flex items-start">
-                    <MapPin size={16} className="mt-0.5 text-[#CE145B] mr-2 flex-shrink-0" />
-                    <span className="text-sm text-gray-700">{salonInfo.address}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Phone size={16} className="text-[#CE145B] mr-2 flex-shrink-0" />
-                    <span className="text-sm text-gray-700">{salonInfo.phone}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Mail size={16} className="text-[#CE145B] mr-2 flex-shrink-0" />
-                    <span className="text-sm text-gray-700">{salonInfo.email}</span>
-                  </div>
+                  {salon.address || salon.location_text ? (
+                    <div className="flex items-start">
+                      <MapPin size={16} className="mt-0.5 text-[#CE145B] mr-2 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">{salon.address || salon.location_text}</span>
+                    </div>
+                  ) : null}
+                  
+                  {salon.contact_phone && (
+                    <div className="flex items-center">
+                      <Phone size={16} className="text-[#CE145B] mr-2 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">{salon.contact_phone}</span>
+                    </div>
+                  )}
+                  
+                  {salon.email && (
+                    <div className="flex items-center">
+                      <Mail size={16} className="text-[#CE145B] mr-2 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">{salon.email}</span>
+                    </div>
+                  )}
+                  
+                  {!salon.address && !salon.location_text && !salon.contact_phone && !salon.email && (
+                    <div className="py-2 text-sm text-gray-500">
+                      Contact information not available
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
             
-            {/* Social media */}
+            {/* Social media - placeholder for future implementation */}
             <div className="mb-3">
               <h2 className="text-base font-semibold mb-3 text-gray-900">Connect With Us</h2>
-              <div className="flex space-x-3">
-                <a href="#" className="flex items-center bg-[#FEF0F5] rounded-lg px-3 py-2 hover:bg-[#FEE7EF] transition-colors">
-                  <Instagram size={18} className="text-[#CE145B] mr-2" />
-                  <span className="text-sm text-gray-700">{salonInfo.socialMedia.instagram}</span>
-                </a>
-                <a href="#" className="flex items-center bg-[#FEF0F5] rounded-lg px-3 py-2 hover:bg-[#FEE7EF] transition-colors">
-                  <Facebook size={18} className="text-[#CE145B] mr-2" />
-                </a>
-                <a href="#" className="flex items-center bg-[#FEF0F5] rounded-lg px-3 py-2 hover:bg-[#FEE7EF] transition-colors">
-                  <Twitter size={18} className="text-[#CE145B] mr-2" />
-                </a>
+              <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-500">
+                Social media information coming soon
               </div>
             </div>
           </div>
@@ -261,29 +276,44 @@ const SalonAbout = () => {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Opening Hours</h2>
-              <div className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-                Open now
-              </div>
+              {
+                checkIfOpenToday(salon) == true ? (
+                  <div className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                  Open now
+                </div>
+                ) : (
+                  <div className="px-3 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+                  Closed Now
+                </div>
+                )
+              }
             </div>
             
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              {salonInfo.workingHours.map((schedule, index) => (
-                <div 
-                  key={index}
-                  className={`flex justify-between p-3 ${
-                    index !== salonInfo.workingHours.length - 1 ? 'border-b border-gray-100' : ''
-                  } ${schedule.day === 'Sunday' ? 'bg-gray-50' : ''}`}
-                >
-                  <div className="flex items-center">
-                    <Clock size={16} className="text-gray-400 mr-2" />
-                    <span className={`text-sm ${schedule.day === 'Sunday' ? 'font-medium' : ''}`}>
-                      {schedule.day}
-                    </span>
+            {workingHours.length > 0 ? (
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                {workingHours.map((schedule, index) => (
+                  <div 
+                    key={index}
+                    className={`flex justify-between p-3 ${
+                      index !== workingHours.length - 1 ? 'border-b border-gray-100' : ''
+                    } ${schedule.day === 'Sunday' ? 'bg-gray-50' : ''}`}
+                  >
+                    <div className="flex items-center">
+                      <Clock size={16} className="text-gray-400 mr-2" />
+                      <span className={`text-sm ${schedule.day === 'Sunday' ? 'font-medium' : ''}`}>
+                        {schedule.day}
+                      </span>
+                    </div>
+                    <span className="text-sm text-gray-700">{schedule.hours}</span>
                   </div>
-                  <span className="text-sm text-gray-700">{schedule.hours}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-4 text-center">
+                <Clock size={24} className="mx-auto mb-2 text-gray-400" />
+                <p className="text-gray-500">Working hours information not available</p>
+              </div>
+            )}
             
             <div className="mt-4 p-3 bg-[#FEF0F5] rounded-lg flex items-center">
               <Scissors size={16} className="text-[#CE145B] mr-2" />
@@ -294,84 +324,29 @@ const SalonAbout = () => {
           </div>
         )}
         
-        {/* Amenities section */}
-        {activeSection === 'amenities' && (
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Salon Amenities</h2>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {salonInfo.amenities.map((amenity, index) => (
-                <div 
-                  key={index}
-                  className="flex items-center p-3 bg-gray-50 rounded-lg"
-                >
-                  <div className="w-8 h-8 rounded-full bg-[#FEF0F5] flex items-center justify-center mr-3">
-                    <Scissors size={16} className="text-[#CE145B]" />
-                  </div>
-                  <span className="text-sm text-gray-700">{amenity}</span>
-                </div>
-              ))}
+               {/* Amenities section */}
+               {activeSection === 'amenities' && (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="bg-gray-100 p-4 rounded-full mb-4">
+              <Scissors size={32} className="text-gray-400" />
             </div>
-            
-            <div className="mt-6">
-              <h3 className="text-base font-semibold text-gray-900 mb-3">Our Facilities</h3>
-              <p className="text-sm text-gray-700 mb-4">
-                We're committed to providing a comfortable and luxurious experience. Our salon is designed with your comfort in mind, featuring ergonomic chairs, premium products, and a relaxing atmosphere.
-              </p>
-              
-              <div className="bg-[#FEF0F5] rounded-lg p-4">
-                <h4 className="font-medium text-[#CE145B] mb-2">Special Accommodations</h4>
-                <p className="text-sm text-gray-700">
-                  Have special requirements or need specific accommodations? Please let us know in advance, and we'll do our best to make your visit comfortable and enjoyable.
-                </p>
-              </div>
-            </div>
+            <h3 className="text-lg font-medium text-gray-800 mb-2">Amenities Coming Soon</h3>
+            <p className="text-gray-500 max-w-md text-center">
+              We're currently updating our amenities information. Please check back later for a complete list of salon amenities and facilities.
+            </p>
           </div>
         )}
         
-        {/* FAQs section */}
-        {activeSection === 'faqs' && (
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Frequently Asked Questions</h2>
-            
-            <div className="space-y-3">
-              {faqs.map((faq) => (
-                <div 
-                  key={faq.id} 
-                  className="border border-gray-200 rounded-lg overflow-hidden"
-                >
-                  <button
-                    className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-50 transition-colors"
-                    onClick={() => toggleFaq(faq.id)}
-                  >
-                    <span className="font-medium text-gray-900">{faq.question}</span>
-                    {expandedFaq === faq.id ? (
-                      <ChevronUp size={18} className="text-gray-500" />
-                    ) : (
-                      <ChevronDown size={18} className="text-gray-500" />
-                    )}
-                  </button>
-                  
-                  {expandedFaq === faq.id && (
-                    <div className="p-3 pt-0 bg-gray-50">
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        {faq.answer}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ))}
+              {/* FAQs section */}
+              {activeSection === 'faqs' && (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="bg-gray-100 p-4 rounded-full mb-4">
+              <MessageCircle size={32} className="text-gray-400" />
             </div>
-            
-            <div className="mt-6 bg-gray-50 rounded-lg p-4">
-              <h3 className="font-medium text-gray-900 mb-2">Have more questions?</h3>
-              <p className="text-sm text-gray-700 mb-3">
-                We're here to help! Feel free to reach out to us via phone, email, or social media.
-              </p>
-              <button className="text-sm font-medium text-[#CE145B] flex items-center">
-                Contact us <ChevronDown size={16} className="ml-1 rotate-270" />
-              </button>
-            </div>
+            <h3 className="text-lg font-medium text-gray-800 mb-2">FAQs Coming Soon</h3>
+            <p className="text-gray-500 max-w-md text-center">
+              We're gathering the most common questions from our clients. Our FAQ section will be available soon to help answer your queries.
+            </p>
           </div>
         )}
       </div>

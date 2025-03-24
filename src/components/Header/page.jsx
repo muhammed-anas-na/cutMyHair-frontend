@@ -5,13 +5,11 @@ import { useLocation } from "@/context/LocationContext";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from '@/context/ThemeContext';
 
 function Header() {
   const { locationName, locationText, setShowLocationModal } = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const { isDarkMode } = useTheme();
 
   // Track scroll for shadow effect
   useEffect(() => {
@@ -43,7 +41,7 @@ function Header() {
   };
 
   return (
-    <header className={`sticky top-0 z-50 ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} border-b`}>
+    <div className={`bg-white sticky top-0 z-30 transition-shadow duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between p-4">
           {/* Logo (for medium screens and up) */}
@@ -76,7 +74,7 @@ function Header() {
             {/* Search button - more prominent */}
             <Link href={'/search'}>
               <motion.div 
-                className={`p-2 sm:p-2.5 ${isDarkMode ? 'bg-gray-800' : 'bg-[#FEF0F5]'} rounded-full flex items-center justify-center`}
+                className="p-2 sm:p-2.5 bg-[#FEF0F5] rounded-full flex items-center justify-center"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -86,31 +84,31 @@ function Header() {
             
             {/* Notification button with indicator */}
             <motion.div 
-              className={`p-2 sm:p-2.5 rounded-full flex items-center justify-center relative ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+              className="p-2 sm:p-2.5 rounded-full flex items-center justify-center relative hover:bg-gray-100"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Bell className={`w-5 h-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
+              <Bell className="w-5 h-5 text-gray-700" />
               <span className="absolute top-1 right-1 bg-[#CE145B] rounded-full w-2 h-2"></span>
             </motion.div>
             
             {/* Menu button - transforms to More options on larger screens */}
             <motion.div 
-              className={`p-2 sm:p-2.5 rounded-full flex items-center justify-center md:hidden ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+              className="p-2 sm:p-2.5 rounded-full flex items-center justify-center hover:bg-gray-100 md:hidden"
               onClick={toggleMenu}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Menu className={`w-5 h-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
+              <Menu className="w-5 h-5 text-gray-700" />
             </motion.div>
             
             {/* More options button - visible only on medium screens and up */}
             <motion.div 
-              className={`hidden md:flex p-2.5 rounded-full items-center justify-center ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+              className="hidden md:flex p-2.5 rounded-full items-center justify-center hover:bg-gray-100"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <MoreVertical className={`w-5 h-5 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`} />
+              <MoreVertical className="w-5 h-5 text-gray-700" />
             </motion.div>
           </div>
         </div>
@@ -124,23 +122,41 @@ function Header() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className={`md:hidden ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} border-t`}
+            className="border-t border-gray-100 md:hidden"
           >
-            <div className="px-4 py-2">
-              <Link href="/profile" className={`block py-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Profile
+            <div className="p-4 space-y-3">
+              <Link href="/profile" className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                  <span className="text-sm font-medium">U</span>
+                </div>
+                <span className="font-medium">My Profile</span>
               </Link>
-              <Link href="/settings" className={`block py-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Settings
+              
+              <Link href="/appointments" className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                  <Bell size={16} className="text-gray-600" />
+                </div>
+                <span className="font-medium">My Appointments</span>
               </Link>
-              <button className={`block w-full text-left py-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Logout
-              </button>
+              
+              <Link href="/favorites" className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                  <Bell size={16} className="text-gray-600" />
+                </div>
+                <span className="font-medium">Saved Salons</span>
+              </Link>
+              
+              <div className="pt-2 border-t border-gray-100">
+                <Link href="/help" className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md">
+                  <span className="text-gray-600">Help & Support</span>
+                  <ChevronDown size={16} className="text-gray-400" />
+                </Link>
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </div>
   );
 }
 

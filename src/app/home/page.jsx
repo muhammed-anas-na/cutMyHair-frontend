@@ -11,6 +11,7 @@ import SalonMap from "@/components/SalonMap/page";
 import { useLocation } from '@/context/LocationContext';
 import LocationModal from '@/components/LocationModal/page';
 import { GET_NEAREST_SALON_FN } from '@/services/userService';
+import { useAuth } from '@/context/AuthContext';
 
 const Home = () => {
   const [isMapView, setIsMapView] = useState(false);
@@ -18,8 +19,9 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [favorites , setFavorites] = useState([]);
   const { latitude, longitude, locationText } = useLocation();
-
+  const {user_id} = useAuth(); 
   useEffect(() => {
     const fetchSalons = async () => {
       setLoading(true);
@@ -27,10 +29,13 @@ const Home = () => {
       
       try {
         if (latitude && longitude) {
-          const response = await GET_NEAREST_SALON_FN(latitude, longitude);
+          const response = await GET_NEAREST_SALON_FN(latitude, longitude, user_id);
           
           if (response?.data?.data?.salons && Array.isArray(response.data.data.salons)) {
             setSalons(response.data.data.salons);
+            if(response.data.data?.favorites){
+              setFavorites(response.data.data?.favorites)
+            }
           } else {
             console.error("Unexpected API response structure:", response);
             setError('Invalid data format received from server.');
@@ -86,6 +91,7 @@ const Home = () => {
             />
           ) : (
             <ListOfSalon 
+              favorites={favorites}
               salons={salons}
               loading={loading}
               error={error}

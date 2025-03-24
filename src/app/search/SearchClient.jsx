@@ -178,7 +178,7 @@ export default function SearchClient({ initialQuery = '' }) {
 
   const handleBack = () => {
     setAnimation(false);
-    setTimeout(() => router.back(), 300);
+    setTimeout(() => router.push('/home'), 300);
   };
 
   const formatServices = (services) =>

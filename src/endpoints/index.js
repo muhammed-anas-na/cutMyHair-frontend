@@ -1,7 +1,7 @@
 const BASE_URL = 'http://localhost:8000/api';
 const OWNER_BASE_URL = `${BASE_URL}/owner`;
 const USER_BASE_URL = `${BASE_URL}/users`;
-
+const BLOG_BASE_URL = `${BASE_URL}/blogs`;
 // User-related endpoints
 export const SEND_OTP_API = `${USER_BASE_URL}/send-otp`;
 export const VERIFY_OTP_API = `${USER_BASE_URL}/verify-otp`;
@@ -19,6 +19,9 @@ export const GET_SALON_SERVICES_API = `${USER_BASE_URL}/get-salon-services`;
 export const GET_NEAREST_SALON_API = `${USER_BASE_URL}/get-nearest-salon`;
 export const SEARCH_SALON_API = `${USER_BASE_URL}/search`;
 export const GET_TIME_SLOT_API = `${USER_BASE_URL}/get-time-slots`
+export const ADD_TO_FAVORITES_API =  `${USER_BASE_URL}/add-to-favorites`
+export const REMOVE_FROM_FAVORITES_API = `${USER_BASE_URL}/remove-from-favorites`
+export const GET_ALL_FAVOURITES_API = `${USER_BASE_URL}/get-favorites`
 // Owner-related endpoints
 export const OWNER_SEND_OTP_API = `${OWNER_BASE_URL}/send-otp`;
 export const OWNER_VERIFY_OTP_API = `${OWNER_BASE_URL}/verify-otp`;
@@ -40,3 +43,5 @@ export const CREATE_ORDER_API = `${USER_BASE_URL}/create-razorpay-order`;
 
 //SEO
 export const GET_ALL_SALONS_API = `${USER_BASE_URL}/get-all-salons`;
+export const GET_BLOGS_API = `${BLOG_BASE_URL}/get-all-blogs`;
+export const GET_BLOG_BY_SLUG_API = `${BLOG_BASE_URL}/get-blog-by-slug`;

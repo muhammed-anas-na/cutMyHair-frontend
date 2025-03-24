@@ -34,7 +34,7 @@ export async function generateMetadata({ searchParams }) {
 async function fetchPopularSalons() {
   try {
     const response = await FETCH_ALL_SALONS_FN();
-    return response?.data?.response.slice(0, 5) || []; // Top 5 salons
+    return response?.data?.response.slice(0, 5) || [];
   } catch (error) {
     console.error('Error fetching popular salons:', error);
     return [];

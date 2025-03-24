@@ -18,6 +18,7 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
   const [customDate, setCustomDate] = useState('');
   const [timeSlots, setTimeSlots] = useState([]);
   const [showAllSlots, setShowAllSlots] = useState(false);
+  const [isClosed, setIsClosed] = useState(false);
   const { user_id } = useAuth();
   const router = useRouter();
 
@@ -45,9 +46,21 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
     async function fetchTimeSlots() {
       console.log("Fetching time slots");
       const isoDate = getISODateString();
+      console.log("Date==>", isoDate);
       const response = await GET_TIME_SLOTS_FN(salonData.salon_id, isoDate, totalDuration);
       console.log("Fetched Time slots ==>", response);
-      if (response.data && response.data.success && response.data.data.timeSlots.length > 0) {
+      
+      // First check if salon is closed
+      if (response.data && response.data.message === "Salon is closed on this date") {
+        console.log("Salon is closed");
+        setIsClosed(true);
+        setTimeSlots([]);
+        setSelectedTime(null);
+      } 
+      // Then check if we have time slots
+      else if (response.data && response.data.success && response.data.data && response.data.data.timeSlots && response.data.data.timeSlots.length > 0) {
+        console.log("Found time slots");
+        setIsClosed(false);
         const fetchedSlots = response.data.data.timeSlots.map((slot, index) => ({
           id: index + 1,
           time: slot.formattedTime,
@@ -57,7 +70,11 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
         if (fetchedSlots.length > 0 && !selectedTime) {
           setSelectedTime(fetchedSlots[0].time);
         }
-      } else {
+      } 
+      // Default case - no slots available but salon is open
+      else {
+        console.log("No slots available");
+        setIsClosed(false);
         setTimeSlots([]);
         setSelectedTime(null);
       }
@@ -67,7 +84,7 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
     if (isOpen) {
       fetchTimeSlots();
     }
-  }, [isOpen, selectedDate, customDate, salonData.salon_id, totalDuration]);
+  }, [isOpen, selectedDate, customDate, salonData?.salon_id, totalDuration]);
 
   const updateFormattedDate = () => {
     const today = new Date();
@@ -97,27 +114,34 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
   };
 
   const getISODateString = () => {
-    const today = new Date();
+    const today = new Date(); // Local time: e.g., March 22, 2025, 1:28 AM IST
+    let dateToUse = today;
+  
     if (selectedDate === 'today') {
-      return today.toISOString().split('T')[0];
+      dateToUse = today;
     } else if (selectedDate === 'tomorrow') {
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return tomorrow.toISOString().split('T')[0];
+      dateToUse = new Date(today);
+      dateToUse.setDate(today.getDate() + 1);
     } else if (selectedDate === 'pick' && customDate) {
       try {
         const parsedDate = new Date(customDate);
         if (isNaN(parsedDate.getTime())) {
           console.error("Invalid custom date:", customDate);
-          return today.toISOString().split('T')[0];
+          dateToUse = today;
+        } else {
+          dateToUse = parsedDate;
         }
-        return parsedDate.toISOString().split('T')[0];
       } catch (error) {
         console.error("Error parsing custom date:", error);
-        return today.toISOString().split('T')[0];
+        dateToUse = today;
       }
     }
-    return today.toISOString().split('T')[0];
+  
+    // Use local IST date components
+    const year = dateToUse.getFullYear();
+    const month = String(dateToUse.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const day = String(dateToUse.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   if (!isOpen && !isAnimating) return null;
@@ -189,7 +213,7 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
           duration: service.duration,
         })),
         appointment_date: getISODateString(),
-        scheduled_start_time: selectedTime,
+        scheduled_start_time: formatTo12HourIST(selectedTime),
         total_price: totalPrice,
         total_duration: totalDuration,
         payment_details: {
@@ -218,7 +242,7 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
   const displayTimeSlots = showAllSlots 
     ? timeSlots 
     : timeSlots.slice(0, initialSlotsToShow);
-
+  console.log(selectedTime);
   return (
     <div
       className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity duration-300 
@@ -336,72 +360,66 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
                   >
                     Tomorrow
                   </button>
-                  {/* Commented out Pick a Date functionality for now
-                  <button
-                    className={`px-4 py-2 rounded-lg border flex-1 min-w-[100px] ${selectedDate === 'pick' ? 'bg-pink-100 border-pink-300' : 'border-gray-300'}`}
-                    onClick={() => setSelectedDate('pick')}
-                  >
-                    Pick a Date
-                  </button>
-                  */}
                 </div>
-                {/* Commented out custom date picker for now
-                {selectedDate === 'pick' && (
-                  <div className="mb-6">
-                    <input
-                      type="date"
-                      className="w-full p-2 border rounded-lg"
-                      min={new Date().toISOString().split('T')[0]}
-                      value={customDate}
-                      onChange={(e) => setCustomDate(e.target.value)}
-                    />
-                  </div>
-                )}
-                */}
-                <p className="text-gray-600 mb-2">Slots</p>
-                {timeSlots.length > 0 ? (
-                  <>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {displayTimeSlots.map((slot) => (
-                        
-                        <button
-                          key={slot.id}
-                          className={`px-4 py-2 rounded-lg border ${selectedTime === slot.time ? 'bg-pink-100 border-pink-300' : 'border-gray-300'}`}
-                          onClick={() => setSelectedTime(slot.time)}
-                        >
-                          
-                          {formatTo12HourIST(slot.time)}
-                        </button>
-                      ))}
-                    </div>
-                    {timeSlots.length > initialSlotsToShow && (
-                      <button 
-                        className="text-pink-600 font-medium text-center w-full mt-3"
-                        onClick={() => setShowAllSlots(!showAllSlots)}
-                      >
-                        {showAllSlots ? 'Show Less' : `Show All (${timeSlots.length}) Slots`}
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-6">
+            
+                {isClosed ? (
+                  <div className="text-center py-4">
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Clock className="w-8 h-8 text-gray-500" />
                     </div>
-                    <h3 className="text-lg font-medium mb-2">No slots available</h3>
+                    <h3 className="text-lg font-medium mb-2">Salon is closed</h3>
                     <p className="text-gray-600 mb-4">
-                      We don't have any available slots for this date. 
-                      Please try another date or contact the salon directly.
+                      The salon is not open on this date.
+                      Please try another date.
                     </p>
-                    <div className="flex justify-center space-x-3">
-                      <button
-                        className="px-4 py-2 rounded-lg border border-pink-300 text-pink-600"
-                        onClick={() => setSelectedDate(selectedDate === 'today' ? 'tomorrow' : 'today')}
-                      >
-                        Try {selectedDate === 'today' ? 'Tomorrow' : 'Today'}
-                      </button>
-                    </div>
                   </div>
+                ) : (
+                  <>
+                    <p className="text-gray-600 mb-2">Slots</p>
+                    {timeSlots.length > 0 ? (
+                      <>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {displayTimeSlots.map((slot) => (
+                            
+                            <button
+                              key={slot.id}
+                              className={`px-4 py-2 rounded-lg border ${selectedTime === slot.time ? 'bg-pink-100 border-pink-300' : 'border-gray-300'}`}
+                              onClick={() => setSelectedTime(formatTo12HourIST(slot.time))}
+                            >
+                              {formatTo12HourIST(slot.time)}
+                            </button>
+                          ))}
+                        </div>
+                        {timeSlots.length > initialSlotsToShow && (
+                          <button 
+                            className="text-pink-600 font-medium text-center w-full mt-3"
+                            onClick={() => setShowAllSlots(!showAllSlots)}
+                          >
+                            {showAllSlots ? 'Show Less' : `Show All (${timeSlots.length}) Slots`}
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <div className="text-center py-6">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Clock className="w-8 h-8 text-gray-500" />
+                        </div>
+                        <h3 className="text-lg font-medium mb-2">No slots available</h3>
+                        <p className="text-gray-600 mb-4">
+                          We don't have any available slots for this date. 
+                          Please try another date or contact the salon directly.
+                        </p>
+                        <div className="flex justify-center space-x-3">
+                          <button
+                            className="px-4 py-2 rounded-lg border border-pink-300 text-pink-600"
+                            onClick={() => setSelectedDate(selectedDate === 'today' ? 'tomorrow' : 'today')}
+                          >
+                            Try {selectedDate === 'today' ? 'Tomorrow' : 'Today'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
               <div className="p-4 border-b">

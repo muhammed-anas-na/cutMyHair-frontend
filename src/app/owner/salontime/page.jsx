@@ -105,7 +105,6 @@ const WorkingHours = () => {
                       placeholder="Start time"
                     />
                     <span className="text-gray-500 px-1">to</span>
-                    {console.log(times.end)}
                     <TimeInput
                       value={times.end}
                       onChange={(e) => handleTimeChange(day, 'end', e.target.value)}

@@ -1,12 +1,27 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, X, Phone, Mail, Clock, CreditCard, Calendar, User, Store, MapPin, AlertCircle } from 'lucide-react';
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  X, 
+  Phone, 
+  Mail, 
+  Clock, 
+  CreditCard, 
+  Calendar, 
+  User, 
+  Store, 
+  MapPin, 
+  AlertCircle,
+  CheckCircle
+} from 'lucide-react';
 import { GET_OWNER_SALON_FN } from '@/services/ownerService';
 import { GET_APPOINTMENTS_OF_SALON_FN } from '@/services/ownerService';
 import { useAuth } from '@/context/AuthContext';
 
 const SalonSchedule = () => {
   const [date, setDate] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedStylist, setSelectedStylist] = useState('all');
   const [selectedService, setSelectedService] = useState('all');
   const [selectedSalon, setSelectedSalon] = useState(null);
@@ -18,60 +33,68 @@ const SalonSchedule = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user_id } = useAuth();
+  
+  // Update current time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    
+    return () => clearInterval(timer);
+  }, []);
 
-  // Generate time slots from 9 AM to 8 PM (IST)
-  const timeSlots = Array.from({ length: 12 }, (_, i) => {
-    const hour = i + 9;
+  // Generate time slots from 6 AM to 10 PM (IST)
+  const timeSlots = Array.from({ length: 17 }, (_, i) => {
+    const hour = i + 6;
     return `${hour.toString().padStart(2, '0')}:00`;
   });
 
-  // Helper function to convert UTC time to IST
-  const convertUTCtoIST = (utcTimeString) => {
-    // Parse the time from format like "03:30 AM"
-    const [hourMinute, period] = utcTimeString.split(' ');
-    const [hours, minutes] = hourMinute.split(':').map(num => parseInt(num, 10));
+  // Helper function to parse time from different formats
+  const parseTimeString = (timeString) => {
+    if (!timeString) return null;
     
-    // Convert to 24-hour format
-    let hour24 = hours;
-    if (period === 'PM' && hours !== 12) {
-      hour24 += 12;
-    } else if (period === 'AM' && hours === 12) {
-      hour24 = 0;
+    // Handle full ISO date string format (includes GMT+0530)
+    if (timeString.includes('GMT+0530')) {
+      return new Date(timeString);
     }
     
-    // Add 5 hours and 30 minutes for IST conversion
-    let istHour = hour24 + 5;
-    let istMinute = parseInt(minutes, 10) + 30;
-    
-    // Adjust if minutes exceed 60
-    if (istMinute >= 60) {
-      istHour += 1;
-      istMinute -= 60;
+    // Handle "HH:MM AM/PM" format
+    if (timeString.includes('AM') || timeString.includes('PM')) {
+      const [hourMinute, period] = timeString.split(' ');
+      const [hours, minutes] = hourMinute.split(':').map(num => parseInt(num, 10));
+      
+      // Convert to 24-hour format
+      let hour24 = hours;
+      if (period === 'PM' && hours !== 12) {
+        hour24 += 12;
+      } else if (period === 'AM' && hours === 12) {
+        hour24 = 0;
+      }
+      
+      const date = new Date();
+      date.setHours(hour24, minutes, 0, 0);
+      return date;
     }
     
-    // Handle day overflow
-    istHour = istHour % 24;
-    
-    // Convert back to 12-hour format
-    const istPeriod = istHour >= 12 ? 'PM' : 'AM';
-    const istHour12 = istHour > 12 ? istHour - 12 : (istHour === 0 ? 12 : istHour);
-    
-    return `${istHour12.toString().padStart(2, '0')}:${istMinute.toString().padStart(2, '0')} ${istPeriod}`;
+    return null;
   };
 
-  // Helper function to convert IST time string to hour format for comparison
-  const timeToHour = (timeString) => {
-    const [time, period] = timeString.split(' ');
-    const [hours, minutes] = time.split(':').map(num => parseInt(num, 10));
+  // Helper function to format time in IST
+  const formatTimeToIST = (date) => {
+    if (!date) return '';
     
-    let hour24 = hours;
-    if (period === 'PM' && hours !== 12) {
-      hour24 += 12;
-    } else if (period === 'AM' && hours === 12) {
-      hour24 = 0;
-    }
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hours12 = hours % 12 || 12;
     
-    return hour24;
+    return `${hours12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
+  };
+
+  // Helper function to convert date object to hour integer for comparison
+  const getHourFromDate = (date) => {
+    if (!date) return null;
+    return date.getHours();
   };
 
   // Fetch salons owned by the owner
@@ -111,13 +134,26 @@ const SalonSchedule = () => {
         });
         
         if (response.data && response.data.data && response.data.data.data) {
-          // Process appointments to add IST times
-          const processedAppointments = response.data.data.data.map(apt => ({
-            ...apt,
-            // Add IST times while keeping the original UTC times
-            ist_start_time: convertUTCtoIST(apt.scheduled_start_time),
-            ist_end_time: convertUTCtoIST(apt.scheduled_end_time)
-          }));
+          // Process appointments to normalize time formats
+          const processedAppointments = response.data.data.data.map(apt => {
+            // Parse the start and end times
+            const startTimeDate = parseTimeString(apt.scheduled_start_time);
+            const endTimeDate = parseTimeString(apt.scheduled_end_time);
+            
+            return {
+              ...apt,
+              // Store parsed date objects
+              startTimeDate,
+              endTimeDate,
+              // Format for display
+              ist_start_time: formatTimeToIST(startTimeDate),
+              ist_end_time: formatTimeToIST(endTimeDate),
+              // Additional useful fields
+              duration: apt.total_duration || 0,
+              customer_name: apt.user_details?.name || "Customer",
+              payment_status: apt.payment_details?.payment_status || 'pending'
+            };
+          });
           setAppointments(processedAppointments);
         } else {
           setAppointments([]);
@@ -136,17 +172,30 @@ const SalonSchedule = () => {
     }
   }, [selectedSalon, date]);
 
+  // Get unique services from all appointments
+  const allServices = React.useMemo(() => {
+    if (!appointments || appointments.length === 0) return [];
+    
+    const services = appointments.flatMap(apt => 
+      apt.services ? apt.services.map(service => service.name) : []
+    );
+    
+    return [...new Set(services)];
+  }, [appointments]);
+
   // Filter appointments by selected criteria and time slot
   const getAppointmentsForTimeSlot = (time) => {
     if (!appointments || appointments.length === 0) return [];
     
     // Convert the timeslot (e.g. "09:00") to 24-hour format hour for comparison
-    const [hours] = time.split(':');
-    const slotHour = parseInt(hours, 10);
+    const slotHour = parseInt(time.split(':')[0], 10);
     
     return appointments.filter(apt => {
-      // Get the hour from IST start time for comparison
-      const aptStartHour = timeToHour(apt.ist_start_time);
+      // Skip if we don't have valid time data
+      if (!apt.startTimeDate) return false;
+      
+      // Get the hour from start time for comparison
+      const aptStartHour = getHourFromDate(apt.startTimeDate);
       
       // Filter by time slot
       const matchesTimeSlot = aptStartHour === slotHour;
@@ -187,16 +236,20 @@ const SalonSchedule = () => {
   };
 
   const getStatusColor = (status) => {
+    if (!status) return 'bg-gray-100 text-gray-800';
+    
     const statusColors = {
       'confirmed': 'bg-green-100 text-green-800',
       'in-progress': 'bg-blue-100 text-blue-800',
       'completed': 'bg-gray-100 text-gray-800',
       'cancelled': 'bg-red-100 text-red-800'
     };
-    return statusColors[status] || 'bg-gray-100 text-gray-800';
+    return statusColors[status.toLowerCase()] || 'bg-gray-100 text-gray-800';
   };
 
   const getPaymentStatusColor = (status) => {
+    if (!status) return 'bg-yellow-100 text-yellow-800';
+    
     return status === 'paid' || status === 'completed' 
       ? 'bg-green-100 text-green-800' 
       : 'bg-yellow-100 text-yellow-800';
@@ -213,10 +266,56 @@ const SalonSchedule = () => {
   };
 
   const isToday = (date) => {
+    if (!date) return false;
+    
     const today = new Date();
     return date.getDate() === today.getDate() &&
       date.getMonth() === today.getMonth() &&
       date.getFullYear() === today.getFullYear();
+  };
+
+  // Check if a time slot is current
+  const isCurrentTimeSlot = (time) => {
+    if (!isToday(date)) return false;
+    
+    const slotHour = parseInt(time.split(':')[0], 10);
+    const currentHour = currentTime.getHours();
+    
+    return slotHour === currentHour;
+  };
+
+  // Format service list for display
+  const formatServiceList = (services) => {
+    if (!services || services.length === 0) return "No services";
+    
+    if (services.length === 1) {
+      return services[0].name;
+    }
+    
+    return `${services[0].name} + ${services.length - 1} more`;
+  };
+
+  // Handle appointment status update
+  const handleStatusUpdate = (appointmentId, newStatus) => {
+    // In a real app, you would call API to update status
+    console.log(`Updating appointment ${appointmentId} to ${newStatus}`);
+    
+    // Update local state to reflect the change immediately
+    setAppointments(prevAppointments => 
+      prevAppointments.map(apt => 
+        apt._id === appointmentId 
+          ? { ...apt, status: newStatus } 
+          : apt
+      )
+    );
+    
+    // If we're updating the currently selected appointment
+    if (selectedAppointment && selectedAppointment._id === appointmentId) {
+      setSelectedAppointment(prev => ({ ...prev, status: newStatus }));
+    }
+    
+    // Close the detail panel after status update
+    setIsDetailOpen(false);
   };
 
   // Empty state component
@@ -310,9 +409,75 @@ const SalonSchedule = () => {
     </div>
   );
 
+  // Create appointment card component
+  const AppointmentCard = ({ appointment }) => {
+    const isUpcoming = appointment.startTimeDate > currentTime;
+    const isPast = appointment.endTimeDate < currentTime;
+    const isInProgress = !isUpcoming && !isPast;
+
+    return (
+      <div 
+        onClick={() => handleAppointmentClick(appointment)}
+        className={`flex-1 min-w-[250px] max-w-[300px] rounded-lg shadow-sm p-3 cursor-pointer hover:-translate-y-0.5 hover:shadow-md transition-all
+          ${isInProgress ? 'bg-blue-50 border-l-4 border-l-blue-500' : 
+            isUpcoming ? 'bg-white border-l-4 border-l-[#CE145B]' : 
+            'bg-gray-50 border-l-4 border-l-gray-400'}`}
+      >
+        <div className="flex justify-between mb-2">
+          <span className="font-semibold text-gray-800">
+            {appointment.customer_name}
+          </span>
+          <span className="text-sm text-gray-600">
+            {appointment.ist_start_time} - {appointment.ist_end_time}
+          </span>
+        </div>
+        <div>
+          <div className={`${isInProgress ? 'text-blue-600' : 'text-[#CE145B]'} mb-1 font-medium`}>
+            {formatServiceList(appointment.services)}
+            {isInProgress && <span className="ml-2 animate-pulse">● In Progress</span>}
+          </div>
+          
+          <div className="text-gray-600">Stylist: {appointment.stylist || "Any Available"}</div>
+          <div className="mt-2 flex justify-between items-center">
+            <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${getStatusColor(appointment.status)}`}>
+              {appointment.status?.toUpperCase() || 'PENDING'}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Check if we have any data to show
   const hasAppointments = appointments.length > 0;
   const anyAppointmentsForDay = timeSlots.some(time => getAppointmentsForTimeSlot(time).length > 0);
+
+  // Current time indicator
+  const CurrentTimeIndicator = () => {
+    if (!isToday(date)) return null;
+    
+    const currentHour = currentTime.getHours();
+    const currentMinute = currentTime.getMinutes();
+    
+    // Calculate position within timeline (0-100%)
+    const minutePercentage = (currentMinute / 60) * 100;
+    
+    return (
+      <div 
+        className="absolute left-0 w-full border-t-2 border-red-500 z-10"
+        style={{ 
+          top: `${minutePercentage}%`,
+          background: 'linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0) 100%)',
+          height: '2px'
+        }}
+      >
+        <div className="absolute -top-1 -left-1 w-2 h-2 rounded-full bg-red-500"></div>
+        <div className="absolute -top-3 -right-16 bg-red-100 text-red-800 text-xs font-medium px-1 py-0.5 rounded">
+          {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-5 bg-white rounded-xl shadow-sm">
@@ -321,7 +486,18 @@ const SalonSchedule = () => {
         <div className="flex flex-col md:flex-row justify-between items-center mb-4">
           <div>
             <h1 className="text-2xl font-semibold m-0">Salon Dashboard</h1>
-            <p className="mt-1 opacity-90">Manage your appointments efficiently</p>
+            <p className="mt-1 opacity-90">
+              {isToday(date) ? 'Today\'s Schedule' : `Schedule for ${formatDateDisplay(date)}`}
+            </p>
+            {isToday(date) && (
+              <p className="text-white bg-white bg-opacity-20 px-2 py-1 rounded-md mt-2 text-sm inline-block">
+                Current Time: {currentTime.toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true,
+                })}
+              </p>
+            )}
           </div>
           {!loading && salons.length > 0 && <SalonSwitcher />}
         </div>
@@ -329,16 +505,20 @@ const SalonSchedule = () => {
         {currentSalon && (
           <div className="flex flex-wrap gap-4 mt-4">
             <div className="bg-white bg-opacity-10 p-3 rounded-lg text-center">
-              <span className="block text-2xl font-semibold">{currentSalon?.stats?.todayAppointments || 0}</span>
-              <span className="text-sm opacity-90">Today's Appointments</span>
+              <span className="block text-2xl font-semibold">{appointments.length || 0}</span>
+              <span className="text-sm opacity-90">{isToday(date) ? "Today's Appointments" : "Appointments"}</span>
             </div>
             <div className="bg-white bg-opacity-10 p-3 rounded-lg text-center">
-              <span className="block text-2xl font-semibold">{currentSalon?.stats?.availableSlots || 0}</span>
-              <span className="text-sm opacity-90">Available Slots</span>
+              <span className="block text-2xl font-semibold">
+                {appointments.filter(apt => apt.status === 'completed').length || 0}
+              </span>
+              <span className="text-sm opacity-90">Completed</span>
             </div>
             <div className="bg-white bg-opacity-10 p-3 rounded-lg text-center">
-              <span className="block text-2xl font-semibold">{currentSalon?.rating?.toFixed(1) || '-'}</span>
-              <span className="text-sm opacity-90">Rating</span>
+              <span className="block text-2xl font-semibold">
+                ₹{appointments.reduce((total, apt) => total + (apt.total_price || 0), 0).toLocaleString()}
+              </span>
+              <span className="text-sm opacity-90">Total Revenue</span>
             </div>
           </div>
         )}
@@ -389,10 +569,9 @@ const SalonSchedule = () => {
             disabled={loading}
           >
             <option value="all">All Services</option>
-            <option value="haircut">Haircut</option>
-            <option value="color">Hair Color</option>
-            <option value="style">Style</option>
-            <option value="treatment">Treatment</option>
+            {allServices.map(service => (
+              <option key={service} value={service}>{service}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -417,42 +596,26 @@ const SalonSchedule = () => {
           <div>
             {timeSlots.map(time => {
               const appointmentsForSlot = getAppointmentsForTimeSlot(time);
+              const isCurrentSlot = isCurrentTimeSlot(time);
+              
               return (
-                <div key={time} className="flex min-h-[80px] border-b border-gray-200">
-                  <div className="w-24 p-3 bg-gray-50 text-gray-600 text-sm flex items-center">
+                <div 
+                  key={time} 
+                  className={`flex min-h-[80px] border-b border-gray-200 relative
+                    ${isCurrentSlot ? 'bg-yellow-50' : ''}`}
+                >
+                  <div className={`w-24 p-3 ${isCurrentSlot ? 'bg-yellow-100 font-medium' : 'bg-gray-50'} text-gray-600 text-sm flex items-center`}>
                     {time}
+                    {isCurrentSlot && (
+                      <span className="ml-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                    )}
                   </div>
-                  <div className="flex-1 p-2 flex flex-wrap gap-2">
+                  <div className="flex-1 p-2 flex flex-wrap gap-2 relative">
+                    {isCurrentSlot && <CurrentTimeIndicator />}
+                    
                     {appointmentsForSlot.length > 0 ? (
                       appointmentsForSlot.map(apt => (
-                        <div 
-                          key={apt._id}
-                          onClick={() => handleAppointmentClick(apt)}
-                          className="flex-1 min-w-[250px] max-w-[300px] bg-white rounded-lg shadow-sm p-3 border-l-4 border-l-[#CE145B] cursor-pointer hover:-translate-y-0.5 hover:shadow-md transition-all"
-                        >
-                          <div className="flex justify-between mb-2">
-                            <span className="font-semibold text-gray-800">
-                              {apt.user_details?.name || "Customer"}
-                            </span>
-                            <span className="text-sm text-gray-600">
-                              {apt.ist_start_time} - {apt.ist_end_time}
-                            </span>
-                          </div>
-                          <div>
-                            {apt.services && apt.services.length > 1 ? (
-                              <div className="text-[#CE145B] mb-1">{apt.services[0].name}+</div>
-                            ) : (
-                              <div className="text-[#CE145B] mb-1">{apt.services?.[0]?.name || "Service"}</div>
-                            )}
-                            
-                            <div className="text-gray-600">Stylist: {apt.stylist || "Any Available"}</div>
-                            <div className="mt-2">
-                              <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${getStatusColor(apt.status)}`}>
-                                {apt.status.toUpperCase()}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
+                        <AppointmentCard key={apt._id} appointment={apt} />
                       ))
                     ) : (
                       <div className="flex items-center justify-center w-full p-2 text-gray-400 text-sm">
@@ -483,18 +646,18 @@ const SalonSchedule = () => {
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-4">
-                    <img
-                      src={selectedAppointment?.profileImage || "/api/placeholder/64/64"}
-                      alt={selectedAppointment.user_details?.name || "Customer"}
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
+                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-xl font-semibold">
+                      {selectedAppointment.customer_name?.[0] || '?'}
+                    </div>
                     <div>
                       <h2 className="text-xl font-semibold text-gray-900">
-                        {selectedAppointment.user_details?.name || "Customer"}
+                        {selectedAppointment.customer_name}
                       </h2>
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${getStatusColor(selectedAppointment.status)}`}>
-                        {selectedAppointment.status.toUpperCase()}
-                      </span>
+                      <div className="flex gap-2 mt-1">
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedAppointment.status)}`}>
+                          {selectedAppointment.status?.toUpperCase() || 'PENDING'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <button 
@@ -516,13 +679,13 @@ const SalonSchedule = () => {
                     <div className="flex items-center gap-2 text-gray-700">
                       <Phone size={16} className="text-[#CE145B]" />
                       <a href={`tel:${selectedAppointment.user_details?.phone_number}`} className="hover:text-[#CE145B]">
-                      {selectedAppointment.user_details?.phone_number || "N/A"}
+                      {selectedAppointment.user_details?.phone_number || "Not available"}
                       </a>
                     </div>
                     <div className="flex items-center gap-2 text-gray-700">
                       <Mail size={16} className="text-[#CE145B]" />
-                      <a href={`mailto:${selectedAppointment?.email}`} className="hover:text-[#CE145B]">
-                        {selectedAppointment?.email || "N/A"}
+                      <a href={`mailto:${selectedAppointment.user_details?.email}`} className="hover:text-[#CE145B]">
+                        {selectedAppointment.user_details?.email || "Not available"}
                       </a>
                     </div>
                   </div>
@@ -543,14 +706,33 @@ const SalonSchedule = () => {
                       <span>{selectedAppointment.ist_start_time} - {selectedAppointment.ist_end_time}</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-700">
+                      <Clock size={16} className="text-[#CE145B]" />
+                      <span>Duration: {selectedAppointment.total_duration} minutes</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-700">
                       <User size={16} className="text-[#CE145B]" />
                       <span>Stylist: {selectedAppointment?.stylist || "Any Available"}</span>
                     </div>
-                    {selectedAppointment?.lastVisit && (
-                      <div className="mt-2 bg-gray-50 p-2 rounded text-sm">
-                        <p className="text-gray-600">
-                          Last visit: {new Date(selectedAppointment?.lastVisit).toLocaleDateString()}
-                        </p>
+                    
+                    {/* Appointment Timing Status */}
+                    {isToday(date) && (
+                      <div className="mt-2 p-2 rounded text-sm">
+                        {selectedAppointment.startTimeDate > currentTime ? (
+                          <div className="bg-blue-50 p-2 rounded text-blue-800 flex items-center gap-2">
+                            <Clock size={16} />
+                            <span>Upcoming - Starts in {Math.ceil((selectedAppointment.startTimeDate - currentTime) / (1000 * 60))} minutes</span>
+                          </div>
+                        ) : selectedAppointment.endTimeDate < currentTime ? (
+                          <div className="bg-gray-50 p-2 rounded text-gray-800 flex items-center gap-2">
+                            <CheckCircle size={16} />
+                            <span>Completed {Math.ceil((currentTime - selectedAppointment.endTimeDate) / (1000 * 60))} minutes ago</span>
+                          </div>
+                        ) : (
+                          <div className="bg-green-50 p-2 rounded text-green-800 flex items-center gap-2">
+                            <Clock size={16} />
+                            <span>In Progress - Ends in {Math.ceil((selectedAppointment.endTimeDate - currentTime) / (1000 * 60))} minutes</span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -561,33 +743,69 @@ const SalonSchedule = () => {
                 {/* Services & Payment */}
                 <div className="mb-6">
                   <h3 className="text-sm font-medium text-gray-500 mb-3">Services & Payment</h3>
-                  <div className="space-y-3">
-                    {selectedAppointment.services && selectedAppointment.services.map((service, index) => (
-                      <div key={index} className="flex justify-between text-gray-700">
-                        <span>{service.name}</span>
-                        <span>₹{service.price}</span>
+                  <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                    <div className="space-y-3">
+                      {selectedAppointment.services && selectedAppointment.services.map((service, index) => (
+                        <div key={index} className="flex justify-between text-gray-700">
+                          <span className="font-medium">{service.name}</span>
+                          <div className="text-right">
+                            <div>₹{service.price.toLocaleString()}</div>
+                            <div className="text-xs text-gray-500">{service.duration} min</div>
+                          </div>
+                        </div>
+                      ))}
+                      <hr className="my-2 border-gray-200" />
+                      <div className="flex justify-between font-bold text-gray-900">
+                        <span>Total</span>
+                        <span>₹{selectedAppointment.total_price?.toLocaleString()}</span>
                       </div>
-                    ))}
-                    <hr className="my-2 border-gray-200" />
-                    <div className="flex justify-between font-medium">
-                      <span>Total</span>
-                      <span>₹{selectedAppointment.total_price}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CreditCard size={16} className="text-[#CE145B]" />
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(selectedAppointment.payment_details?.payment_status || 'pending')}`}>
-                        {(selectedAppointment.payment_details?.payment_status || 'pending').toUpperCase()}
-                      </span>
+                  </div>
+                  
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-gray-800 mb-2">Payment Details</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Payment ID</span>
+                        <span className="font-mono">{selectedAppointment.payment_details?.payment_id || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Status</span>
+                        <span className={`font-medium ${selectedAppointment.payment_status === 'completed' ? 'text-green-600' : 'text-yellow-600'}`}>
+                          {selectedAppointment.payment_status?.toUpperCase() || 'PENDING'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Method</span>
+                        <span>Online</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <hr className="my-6 border-gray-200" />
 
+                {/* Booking Details */}
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium text-gray-500 mb-3">Booking Details</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Booking ID</span>
+                        <span className="font-mono">{selectedAppointment._id}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Booked On</span>
+                        <span>{new Date(selectedAppointment.booking_date).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Notes */}
                 <div className="mb-6">
                   <h3 className="text-sm font-medium text-gray-500 mb-3">Notes</h3>
-                  <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="bg-gray-50 p-4 rounded-lg">
                     <p className="text-gray-700">{selectedAppointment?.notes || 'No notes available'}</p>
                   </div>
                 </div>
@@ -599,13 +817,32 @@ const SalonSchedule = () => {
                   <button className="w-full px-4 py-2 bg-[#CE145B] text-white rounded-lg hover:bg-[#CE145B]/90 transition-colors">
                     Edit Appointment
                   </button>
-                  <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    Cancel Appointment
-                  </button>
+                  {selectedAppointment.status !== 'cancelled' && (
+                    <button 
+                      onClick={() => handleStatusUpdate(selectedAppointment._id, 'cancelled')}
+                      className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel Appointment
+                    </button>
+                  )}
                 </div>
-                <button className="w-full mt-2 px-4 py-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
-                  Mark as Completed
-                </button>
+                
+                {selectedAppointment.status !== 'completed' && (
+                  <button 
+                    onClick={() => handleStatusUpdate(selectedAppointment._id, 'completed')}
+                    className="w-full mt-2 px-4 py-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                  >
+                    Mark as Completed
+                  </button>
+                )}
+                
+                {selectedAppointment.status === 'completed' && (
+                  <button 
+                    className="w-full mt-2 px-4 py-2 border border-green-300 text-green-600 rounded-lg hover:bg-green-50 transition-colors"
+                  >
+                    Send Feedback Request
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -613,11 +850,12 @@ const SalonSchedule = () => {
       )}
 
       {/* Add Appointment Button (Fixed) */}
-      <button className="fixed bottom-6 right-6 bg-[#CE145B] text-white rounded-full p-4 shadow-lg hover:bg-[#CE145B]/90 transition-all hover:scale-105">
+      <button className="fixed bottom-6 right-6 bg-[#CE145B] text-white rounded-full p-4 shadow-lg hover:bg-[#CE145B]/90 transition-all hover:scale-105 flex items-center justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
+        <span className="ml-2 hidden md:inline">New Appointment</span>
       </button>
     </div>
   );
