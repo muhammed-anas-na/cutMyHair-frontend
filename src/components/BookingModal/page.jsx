@@ -64,11 +64,13 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
         const fetchedSlots = response.data.data.timeSlots.map((slot, index) => ({
           id: index + 1,
           time: slot.formattedTime,
+          rawTime: slot.formattedTime, // Store the original time format
+          displayTime: formatTo12HourIST(slot.formattedTime), // Pre-format for display
           availableSeats: slot.availableSeats,
         }));
         setTimeSlots(fetchedSlots);
         if (fetchedSlots.length > 0 && !selectedTime) {
-          setSelectedTime(fetchedSlots[0].time);
+          setSelectedTime(fetchedSlots[0].rawTime);
         }
       } 
       // Default case - no slots available but salon is open
@@ -202,6 +204,10 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
 
   const confirmBooking = async (paymentResponse) => {
     try {
+      // Find the display time from the selected raw time
+      const selectedSlot = timeSlots.find(slot => slot.rawTime === selectedTime);
+      const displayTimeForBooking = selectedSlot ? selectedSlot.displayTime : formatTo12HourIST(selectedTime);
+      
       const bookingData = {
         salon_id: salonData?.salon_id,
         salon_name: salonData?.name,
@@ -213,7 +219,7 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
           duration: service.duration,
         })),
         appointment_date: getISODateString(),
-        scheduled_start_time: formatTo12HourIST(selectedTime),
+        scheduled_start_time: displayTimeForBooking,
         total_price: totalPrice,
         total_duration: totalDuration,
         payment_details: {
@@ -242,7 +248,13 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
   const displayTimeSlots = showAllSlots 
     ? timeSlots 
     : timeSlots.slice(0, initialSlotsToShow);
-  console.log(selectedTime);
+    
+  // Find the display time for the selected time (for confirmation screens)
+  const getSelectedDisplayTime = () => {
+    const slot = timeSlots.find(s => s.rawTime === selectedTime);
+    return slot ? slot.displayTime : (selectedTime ? formatTo12HourIST(selectedTime) : '');
+  };
+  
   return (
     <div
       className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity duration-300 
@@ -288,7 +300,7 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
                   <div>
                     <p className="text-gray-500 text-sm">Date & Time</p>
                     <p className="font-medium">{formattedDate}</p>
-                    <p className="font-medium">{selectedTime}</p>
+                    <p className="font-medium">{getSelectedDisplayTime()}</p>
                   </div>
                 </div>
                 <div className="flex items-start mb-3">
@@ -380,13 +392,12 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
                       <>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                           {displayTimeSlots.map((slot) => (
-                            
                             <button
                               key={slot.id}
-                              className={`px-4 py-2 rounded-lg border ${selectedTime === slot.time ? 'bg-pink-100 border-pink-300' : 'border-gray-300'}`}
-                              onClick={() => setSelectedTime(formatTo12HourIST(slot.time))}
+                              className={`px-4 py-2 rounded-lg border ${selectedTime === slot.rawTime ? 'bg-pink-100 border-pink-300' : 'border-gray-300'}`}
+                              onClick={() => setSelectedTime(slot.rawTime)}
                             >
-                              {formatTo12HourIST(slot.time)}
+                              {slot.displayTime}
                             </button>
                           ))}
                         </div>
