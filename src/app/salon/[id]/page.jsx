@@ -14,7 +14,7 @@ import { OWNER_GET_SALON_DETAILS_BY_ID_FN } from '@/services/ownerService';
 import { checkIfOpenToday } from '@/helpers';
 import SalonImageSlider from '../ImageSlider';
 import VerificationPopup from '@/components/VerificationPopUp/page';
-import BookingModal from '../../../components/BookingModal/page'; // Make sure this import exists
+import BookingModal from '../../../components/BookingModal/page';
 
 const SalonDetailPage = ({ params }) => {
   const unwrappedParams = use(params);
@@ -24,7 +24,7 @@ const SalonDetailPage = ({ params }) => {
   const [salon, setSalon] = useState();
   const [selectedServices, setSelectedServices] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false); // Added state for booking modal
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isVerificationPopupOpen, setIsVerificationPopupOpen] = useState(false);
   // Tabs available in the salon detail page
@@ -108,12 +108,13 @@ const SalonDetailPage = ({ params }) => {
   const totalPrice = getTotalPrice();
 
   return (
-    <div className="bg-white min-h-screen pb-24 max-w-6xl mx-auto w-full">
+    <div className="bg-white min-h-screen pb-24">
       {/* Header with back button and search */}
       <VerificationPopup 
         isOpen={isVerificationPopupOpen} 
         onClose={() => setIsVerificationPopupOpen(false)} 
       />
+
       <div className="sticky top-0 z-20 bg-white shadow-sm px-4 py-3 flex items-center justify-between">
         <Link href="/home">
           <div className="p-2 hover:bg-gray-100 rounded-full transition-colors">
@@ -132,128 +133,131 @@ const SalonDetailPage = ({ params }) => {
         </div>
       </div>
 
-      {/* Salon Image */}
-      <div className="relative max-h-60 overflow-hidden">
-        <SalonImageSlider
-          images={salon?.images || []}
-          altText={salon?.name || "Salon image"}
-        />
-        <motion.button
-          className="absolute top-3 right-3 p-2.5 bg-white rounded-full shadow-md"
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setIsFavorite(!isFavorite)}
-        >
-          <Heart className={`w-5 h-5 ${isFavorite ? 'text-[#CE145B] fill-[#CE145B]' : 'text-gray-500'}`} />
-        </motion.button>
-      </div>
-
-      {/* Salon Info */}
-      <div className="p-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">{salon?.name}</h1>
-          <div className="flex items-center text-sm">
-            {checkIfOpenToday(salon) === true ? (
-              <span className="text-green-500 font-medium">Open Now</span>
-            ) : (
-              <span className="text-red-500 font-medium">Closed</span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center mt-1">
-          <div className="flex items-center">
-            <span className="text-lg font-medium">4.8</span>
-            <Star className="w-4 h-4 text-yellow-500 ml-1 fill-yellow-500" />
-          </div>
-          <span className="text-gray-500 text-sm ml-1">(reviews {salon?.reviews?.length || 0})</span>
-        </div>
-
-        <p className="text-gray-600 text-sm mt-1">{salon?.address}</p>
-
-        <div className="flex mt-3 gap-3">
+      {/* Main Content Container */}
+      <div className="max-w-4xl mx-auto"> 
+        {/* Salon Image - Fixed height with proper object fit */}
+        <div className="relative h-60 w-full overflow-hidden">
+          <SalonImageSlider
+            images={salon?.images || []}
+            altText={salon?.name || "Salon image"}
+          />
           <motion.button
-            className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg px-4 py-2.5 flex-1 transition-colors"
-            whileTap={{ scale: 0.98 }}
+            className="absolute top-3 right-3 p-2.5 bg-white rounded-full shadow-md"
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsFavorite(!isFavorite)}
           >
-            <a href={`tel:+91${salon?.contact_phone}`} className="flex items-center">
-              <Phone className="w-4 h-4 mr-2 text-[#CE145B]" />
-              <span className="text-sm font-medium">Call</span>
-            </a>
-          </motion.button>
-          <motion.button
-            className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg px-4 py-2.5 flex-1 transition-colors"
-            whileTap={{ scale: 0.98 }}
-          >
-            <a
-              href={`http://localhost:3000/directions?latitude=${salon?.location?.coordinates?.[1]}&&longitude=${salon?.location?.coordinates?.[0]}&&name=${salon?.name}&&locationText=${salon?.location_text}`}
-              className="flex items-center"
-            >
-              <MapPin className="w-4 h-4 mr-2 text-[#CE145B]" />
-              <span className="text-sm font-medium">Direction</span>
-            </a>
+            <Heart className={`w-5 h-5 ${isFavorite ? 'text-[#CE145B] fill-[#CE145B]' : 'text-gray-500'}`} />
           </motion.button>
         </div>
 
-        {/* Gender Selection */}
-        <div className="flex flex-wrap items-center gap-2 mt-4">
-          <label className="flex items-center bg-gray-50 px-3 py-1.5 rounded-full">
-            <input type="radio" name="gender" defaultChecked className="mr-2 accent-[#CE145B]" />
-            <span className="text-sm">Male</span>
-          </label>
-          <label className="flex items-center bg-gray-50 px-3 py-1.5 rounded-full">
-            <input type="radio" name="gender" className="mr-2 accent-[#CE145B]" />
-            <span className="text-sm">Female</span>
-          </label>
-          <div className="ml-auto flex items-center bg-[#F3FCF7] px-3 py-1.5 rounded-full cursor-pointer" onClick={() => setIsVerificationPopupOpen(true)}>
-            <div className="mr-2 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-              <Info className="w-3 h-3 text-white" />
-            </div>
-            <span className="text-xs sm:text-sm text-green-600">Verified by Cut My Hair</span>
-            <ChevronRight className="w-4 h-4 text-green-600 ml-1" />
-          </div>
-        </div>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="border-b sticky top-16 z-10 bg-white">
-        <div className="flex">
-          {tabs.map(tab => (
-            <button
-              key={tab}
-              className={`flex-1 py-3 text-center relative transition-colors ${activeTab === tab ? 'text-[#CE145B] font-medium' : 'text-gray-500'
-                }`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-              {activeTab === tab && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#CE145B]"
-                  initial={false}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
+        {/* Salon Info */}
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-semibold text-gray-900">{salon?.name}</h1>
+            <div className="flex items-center text-sm">
+              {checkIfOpenToday(salon) === true ? (
+                <span className="text-green-500 font-medium">Open Now</span>
+              ) : (
+                <span className="text-red-500 font-medium">Closed</span>
               )}
-            </button>
-          ))}
-        </div>
-      </div>
+            </div>
+          </div>
 
-      {/* Services Section */}
-      {activeTab === 'Services' && <Service
-        salon={salon}
-        expandedCategory={expandedCategory}
-        isServiceSelected={isServiceSelected}
-        addService={addService}
-        removeService={removeService}
-        toggleCategory={toggleCategory}
-        handleServiceClick={handleServiceClick}
-      />}
-      {activeTab === 'Gallery' && <SalonGallery
-        galleryImages={salon?.images}
-      />}
-      {activeTab === 'Stylists' && <SalonStylists stylist={salon?.stylist} />}
-      {activeTab === 'About' && <SalonAbout salon={salon} />}
-      {activeTab === 'Rating' && <SalonReviews reviews={salon?.reviews || []} />}
+          <div className="flex items-center mt-1">
+            <div className="flex items-center">
+              <span className="text-lg font-medium">4.8</span>
+              <Star className="w-4 h-4 text-yellow-500 ml-1 fill-yellow-500" />
+            </div>
+            <span className="text-gray-500 text-sm ml-1">(reviews {salon?.reviews?.length || 0})</span>
+          </div>
+
+          <p className="text-gray-600 text-sm mt-1">{salon?.address}</p>
+
+          <div className="flex mt-3 gap-3">
+            <motion.button
+              className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg px-4 py-2.5 flex-1 transition-colors"
+              whileTap={{ scale: 0.98 }}
+            >
+              <a href={`tel:+91${salon?.contact_phone}`} className="flex items-center">
+                <Phone className="w-4 h-4 mr-2 text-[#CE145B]" />
+                <span className="text-sm font-medium">Call</span>
+              </a>
+            </motion.button>
+            <motion.button
+              className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg px-4 py-2.5 flex-1 transition-colors"
+              whileTap={{ scale: 0.98 }}
+            >
+              <a
+                href={`http://localhost:3000/directions?latitude=${salon?.location?.coordinates?.[1]}&&longitude=${salon?.location?.coordinates?.[0]}&&name=${salon?.name}&&locationText=${salon?.location_text}`}
+                className="flex items-center"
+              >
+                <MapPin className="w-4 h-4 mr-2 text-[#CE145B]" />
+                <span className="text-sm font-medium">Direction</span>
+              </a>
+            </motion.button>
+          </div>
+
+          {/* Gender Selection */}
+          <div className="flex flex-wrap items-center gap-2 mt-4">
+            <label className="flex items-center bg-gray-50 px-3 py-1.5 rounded-full">
+              <input type="radio" name="gender" defaultChecked className="mr-2 accent-[#CE145B]" />
+              <span className="text-sm">Male</span>
+            </label>
+            <label className="flex items-center bg-gray-50 px-3 py-1.5 rounded-full">
+              <input type="radio" name="gender" className="mr-2 accent-[#CE145B]" />
+              <span className="text-sm">Female</span>
+            </label>
+            <div className="ml-auto flex items-center bg-[#F3FCF7] px-3 py-1.5 rounded-full cursor-pointer" onClick={() => setIsVerificationPopupOpen(true)}>
+              <div className="mr-2 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                <Info className="w-3 h-3 text-white" />
+              </div>
+              <span className="text-xs sm:text-sm text-green-600">Verified by Cut My Hair</span>
+              <ChevronRight className="w-4 h-4 text-green-600 ml-1" />
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="border-b sticky top-16 z-10 bg-white">
+          <div className="flex">
+            {tabs.map(tab => (
+              <button
+                key={tab}
+                className={`flex-1 py-3 text-center relative transition-colors ${activeTab === tab ? 'text-[#CE145B] font-medium' : 'text-gray-500'
+                  }`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab}
+                {activeTab === tab && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#CE145B]"
+                    initial={false}
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Services Section */}
+        {activeTab === 'Services' && <Service
+          salon={salon}
+          expandedCategory={expandedCategory}
+          isServiceSelected={isServiceSelected}
+          addService={addService}
+          removeService={removeService}
+          toggleCategory={toggleCategory}
+          handleServiceClick={handleServiceClick}
+        />}
+        {activeTab === 'Gallery' && <SalonGallery
+          galleryImages={salon?.images}
+        />}
+        {activeTab === 'Stylists' && <SalonStylists stylist={salon?.stylist} />}
+        {activeTab === 'About' && <SalonAbout salon={salon} />}
+        {activeTab === 'Rating' && <SalonReviews reviews={salon?.reviews || []} />}
+      </div>
       
       {/* Service Detail Modal */}
       <AnimatePresence>
@@ -361,26 +365,28 @@ const SalonDetailPage = ({ params }) => {
             initial={{ y: 100 }}
             animate={{ y: 0 }}
             exit={{ y: 100 }}
-            className="fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-4 flex items-center justify-between shadow-lg z-40"
+            className="fixed bottom-0 left-0 right-0 bg-gray-900 text-white z-40"
           >
-            <div>
-              <div className="flex items-center">
-                <div className="w-5 h-5 bg-[#CE145B] rounded-full flex items-center justify-center mr-2 text-xs font-bold">
-                  {selectedServices.length}
+            <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+              <div>
+                <div className="flex items-center">
+                  <div className="w-5 h-5 bg-[#CE145B] rounded-full flex items-center justify-center mr-2 text-xs font-bold">
+                    {selectedServices.length}
+                  </div>
+                  <span className="text-sm">
+                    service for <span className="font-semibold">₹ {totalPrice}</span>
+                  </span>
                 </div>
-                <span className="text-sm">
-                  service for <span className="font-semibold">₹ {totalPrice}</span>
-                </span>
               </div>
+              <motion.button
+                className="bg-white text-gray-900 px-5 py-2 rounded-md font-medium flex items-center"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleBookingClick}
+              >
+                Next <ChevronRight className="w-4 h-4 ml-1" />
+              </motion.button>
             </div>
-            <motion.button
-              className="bg-white text-gray-900 px-5 py-2 rounded-md font-medium flex items-center"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={handleBookingClick} // Add onClick handler for opening booking modal
-            >
-              Next <ChevronRight className="w-4 h-4 ml-1" />
-            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>

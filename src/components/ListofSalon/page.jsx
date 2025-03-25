@@ -3,7 +3,7 @@
 import { useLocation } from '@/context/LocationContext';
 import SalonCard from "../SalonCard/page";
 import SalonFeedback from '../SalonReview/page';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from "next/navigation";
 import { MapPin, Scissors, RotateCcw, Search, Star, ChevronRight, Gift, Clock, Percent } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,7 +13,48 @@ export default function ListOfSalon({favorites, salons, loading, error, onRetry,
   const { latitude, longitude, locationText } = useLocation();
   const [selectedSalon, setSelectedSalon] = useState();
   const [activeCategory, setActiveCategory] = useState('All');
+  const [filteredSalons, setFilteredSalons] = useState([]);
   const router = useRouter();
+  
+  useEffect(() => {
+    // Filter salons based on the selected category
+    if (activeCategory === 'All') {
+      setFilteredSalons(salons);
+    } else {
+      // Filter salons that have the selected category
+      const filtered = salons.filter(salon => {
+        // Check if salon has categories array
+        if (!salon.categories || salon.categories.length === 0) {
+          return false;
+        }
+        
+        // Check if salon has the selected category
+        return salon.categories.some(category => 
+          category.name.toLowerCase() === activeCategory.toLowerCase()
+        );
+      });
+      
+      // If no salons match the category, also check services
+      if (filtered.length === 0) {
+        const filteredByService = salons.filter(salon => {
+          // Check if salon has services array
+          if (!salon.services || salon.services.length === 0) {
+            return false;
+          }
+          
+          // Check if any service matches the selected category
+          return salon.services.some(service => 
+            service.name.toLowerCase().includes(activeCategory.toLowerCase()) ||
+            (service.category_id && service.category_id.toLowerCase().includes(activeCategory.toLowerCase()))
+          );
+        });
+        
+        setFilteredSalons(filteredByService);
+      } else {
+        setFilteredSalons(filtered);
+      }
+    }
+  }, [activeCategory, salons]);
   
   if (loading) {
     return (
@@ -88,65 +129,68 @@ export default function ListOfSalon({favorites, salons, loading, error, onRetry,
     );
   }
 
-  if (salons.length === 0 && !loading) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4 }}
-        className="p-6 text-center rounded-lg border border-gray-100 shadow-sm my-4 mx-auto max-w-md"
-      >
-        <motion.div
-          initial={{ y: -10 }}
-          animate={{ y: 0 }}
-          transition={{ 
-            duration: 0.5,
-            type: "spring"
-          }}
-          className="mb-5 flex justify-center"
-        >
-          <div className="p-3 bg-pink-50 rounded-full">
-            <Scissors size={32} className="text-[#CE145B]" />
-          </div>
-        </motion.div>
+  // if (filteredSalons.length === 0 && !loading) {
+  //   return (
+  //     <motion.div 
+  //       initial={{ opacity: 0 }}
+  //       animate={{ opacity: 1 }}
+  //       transition={{ duration: 0.4 }}
+  //       className="p-6 text-center rounded-lg border border-gray-100 shadow-sm my-4 mx-auto max-w-md"
+  //     >
+  //       <motion.div
+  //         initial={{ y: -10 }}
+  //         animate={{ y: 0 }}
+  //         transition={{ 
+  //           duration: 0.5,
+  //           type: "spring"
+  //         }}
+  //         className="mb-5 flex justify-center"
+  //       >
+  //         <div className="p-3 bg-pink-50 rounded-full">
+  //           <Scissors size={32} className="text-[#CE145B]" />
+  //         </div>
+  //       </motion.div>
         
-        <h3 className="font-medium text-xl mb-2 text-[#CE145B]">
-          No available salons
-        </h3>
+  //       <h3 className="font-medium text-xl mb-2 text-[#CE145B]">
+  //         No available salons
+  //       </h3>
         
-        <p className="text-gray-600 mb-5 flex items-center justify-center gap-1">
-          <MapPin size={16} className="text-[#CE145B]" />
-          We couldn't find any salons near {locationText}
-        </p>
+  //       <p className="text-gray-600 mb-2">
+  //         {activeCategory !== 'All' 
+  //           ? `We couldn't find any salons offering ${activeCategory} services`
+  //           : `We couldn't find any salons near ${locationText}`}
+  //       </p>
         
-        <div className="space-y-3 max-w-xs mx-auto">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full flex items-center justify-center gap-2 bg-[#CE145B] rounded-md py-3 px-4 text-white hover:bg-[#B01050] transition-colors shadow-sm"
-            onClick={() => onRetry && onRetry()}
-          >
-            <RotateCcw size={16} />
-            Refresh search
-          </motion.button>
+  //       <div className="space-y-3 max-w-xs mx-auto">
+  //         {activeCategory !== 'All' && (
+  //           <motion.button
+  //             whileHover={{ scale: 1.02 }}
+  //             whileTap={{ scale: 0.98 }}
+  //             className="w-full flex items-center justify-center gap-2 bg-[#CE145B] rounded-md py-3 px-4 text-white hover:bg-[#B01050] transition-colors shadow-sm"
+  //             onClick={() => setActiveCategory('All')}
+  //           >
+  //             <Scissors size={16} />
+  //             View all salons
+  //           </motion.button>
+  //         )}
           
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full flex items-center justify-center gap-2 bg-white border border-[#CE145B] rounded-md py-3 px-4 text-[#CE145B] hover:bg-pink-50 transition-colors"
-            onClick={onOpenLocationModal}
-          >
-            <Search size={16} />
-            Try different location
-          </motion.button>
+  //         <motion.button
+  //           whileHover={{ scale: 1.02 }}
+  //           whileTap={{ scale: 0.98 }}
+  //           className="w-full flex items-center justify-center gap-2 bg-white border border-[#CE145B] rounded-md py-3 px-4 text-[#CE145B] hover:bg-pink-50 transition-colors"
+  //           onClick={onOpenLocationModal}
+  //         >
+  //           <Search size={16} />
+  //           Try different location
+  //         </motion.button>
           
-          <p className="text-sm text-gray-500 mt-4 px-2">
-            Popular nearby areas may have more salon options available
-          </p>
-        </div>
-      </motion.div>
-    );
-  }
+  //         <p className="text-sm text-gray-500 mt-4 px-2">
+  //           Popular nearby areas may have more salon options available
+  //         </p>
+  //       </div>
+  //     </motion.div>
+  //   );
+  // }
 
   const handleSalonSelect = (value) => {
     // setSelectedSalon(value);
@@ -291,9 +335,13 @@ export default function ListOfSalon({favorites, salons, loading, error, onRetry,
       <div className="mb-4">
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-lg font-semibold flex items-center gap-1">
-            <span>Best salons near you</span>
+            {activeCategory === 'All' ? (
+              <span>Best salons near you</span>
+            ) : (
+              <span>Salons offering {activeCategory}</span>
+            )}
             <div className="text-xs bg-[#FEF0F5] text-[#CE145B] px-2 py-0.5 rounded-full ml-2">
-              {salons.length}
+              {filteredSalons.length}
             </div>
           </h2>
           <Link href="/all-salons" className="text-sm text-[#CE145B] flex items-center">
@@ -302,7 +350,7 @@ export default function ListOfSalon({favorites, salons, loading, error, onRetry,
         </div>
         
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {salons.map((salon, index) => (
+          {filteredSalons.map((salon, index) => (
             <motion.div
               key={salon.salon_id}
               initial={{ opacity: 0, y: 20 }}
@@ -330,9 +378,6 @@ export default function ListOfSalon({favorites, salons, loading, error, onRetry,
         }
       `}</style>
     </div> 
-
-
-
   );
 }
 

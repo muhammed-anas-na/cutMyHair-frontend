@@ -12,6 +12,7 @@ import { useLocation } from '@/context/LocationContext';
 import LocationModal from '@/components/LocationModal/page';
 import { GET_NEAREST_SALON_FN } from '@/services/userService';
 import { useAuth } from '@/context/AuthContext';
+import Footer from '@/components/LandingPage/Footer/page';
 
 const Home = () => {
   const [isMapView, setIsMapView] = useState(false);
@@ -108,6 +109,8 @@ const Home = () => {
         isOpen={isLocationModalOpen} 
         onClose={() => setIsLocationModalOpen(false)} 
       />
+
+      <Footer/>
     </div>
   );
 };
