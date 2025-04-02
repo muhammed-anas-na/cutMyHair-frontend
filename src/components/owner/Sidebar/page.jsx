@@ -1,18 +1,33 @@
 'use client';
-// app/components/owner/Sidebar.jsx
-import React, { useState } from 'react';
+// app/components/owner/Sidebar/page.jsx
+import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import {
     Home, Users, Calendar, Briefcase,
     BarChart2, Bell, Settings, ChevronDown,
     Sun, Moon, ChevronLeft, ChevronRight,
+    Menu, X
 } from 'lucide-react';
 
-const Sidebar = ({ isDarkMode, setIsDarkMode }) => {
+const Sidebar = ({ isDarkMode, setIsDarkMode, isVisible, setIsVisible, isMobileView }) => {
     const router = useRouter();
     const pathname = usePathname();
     const [isExpanded, setIsExpanded] = useState(true);
     const [isIncomeExpanded, setIsIncomeExpanded] = useState(false);
+
+    // Synchronize sidebar expansion state with visibility
+    useEffect(() => {
+        if (!isVisible && isExpanded && !isMobileView) {
+            setIsExpanded(false);
+        } else if (isVisible && !isExpanded && !isMobileView) {
+            setIsExpanded(true);
+        }
+        
+        // For mobile, ensure the sidebar is always fully expanded when visible
+        if (isMobileView && isVisible) {
+            setIsExpanded(true);
+        }
+    }, [isVisible, isExpanded, isMobileView]);
 
     const navItems = [
         { id: '/owner/dashboard', label: 'Dashboard', icon: Home },
@@ -29,23 +44,44 @@ const Sidebar = ({ isDarkMode, setIsDarkMode }) => {
         }
     ];
 
+    const toggleSidebar = () => {
+        // Force toggle using function form to ensure the latest state is used
+        setIsVisible(prev => !prev);
+        
+        // For mobile, always make sure sidebar is expanded when visible
+        if (isMobileView && !isVisible) {
+            setIsExpanded(true);
+        }
+    };
+
+    const toggleExpand = () => {
+        setIsExpanded(!isExpanded);
+    };
+
+    const handleNavigation = (route) => {
+        router.push(route);
+        if (isMobileView) {
+            setIsVisible(false);
+        }
+    };
+
     const MenuItem = ({ item }) => (
         <div className="space-y-1">
             <button
                 onClick={() => {
-                    router.push(item.id);
+                    handleNavigation(item.id);
                     if (item.id === '/owner/income') {
                         setIsIncomeExpanded(!isIncomeExpanded);
                     }
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors
-          ${pathname === item.id ? 'bg-[#FFDBD7] text-[#CE145B]' : 'hover:bg-gray-100'}
-          ${!isExpanded ? 'justify-center' : ''}`}
+                    ${pathname === item.id ? 'bg-[#FFDBD7] text-[#CE145B]' : 'hover:bg-gray-100'}
+                    ${!isExpanded ? 'justify-center' : ''}`}
             >
                 {React.createElement(item.icon, { size: 20 })}
                 {isExpanded && (
                     <div className="flex-1 flex items-center justify-between">
-                        <span>{item.label}</span>
+                        <span className="whitespace-nowrap">{item.label}</span>
                         {item.hasSubmenu && <ChevronDown size={16} />}
                     </div>
                 )}
@@ -55,9 +91,9 @@ const Sidebar = ({ isDarkMode, setIsDarkMode }) => {
                     {item.submenu.map((subItem) => (
                         <button
                             key={subItem}
-                            onClick={() => router.push(`/owner/income/${subItem.toLowerCase()}`)}
+                            onClick={() => handleNavigation(`/owner/income/${subItem.toLowerCase()}`)}
                             className={`w-full text-left py-2 px-4 rounded-lg transition-colors
-                ${pathname === `/owner/income/${subItem.toLowerCase()}` ? 'bg-[#FFDBD7] text-[#CE145B]' : 'hover:bg-gray-100'}`}
+                                ${pathname === `/owner/income/${subItem.toLowerCase()}` ? 'bg-[#FFDBD7] text-[#CE145B]' : 'hover:bg-gray-100'}`}
                         >
                             {subItem}
                         </button>
@@ -67,75 +103,108 @@ const Sidebar = ({ isDarkMode, setIsDarkMode }) => {
         </div>
     );
 
+    // Sidebar overlay for mobile
+    const SidebarOverlay = () => (
+        isVisible && isMobileView && (
+            <div 
+                className="fixed inset-0 bg-black bg-opacity-50 z-30"
+                onClick={toggleSidebar}
+            />
+        )
+    );
+
     return (
-        <div className={`h-screen border-r flex flex-col bg-white transition-all ${isExpanded ? 'w-64' : 'w-20'}`}>
-            <div className="p-4 border-b flex items-center justify-between">
-                {isExpanded ? (
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-black rounded-full" />
-                        <span className="font-semibold">Salon</span>
-                    </div>
-                ) : (
-                    <div className="w-8 h-8 bg-black rounded-full mx-auto" />
-                )}
-                <button onClick={() => setIsExpanded(!isExpanded)} className="p-1 hover:bg-gray-100 rounded">
-                    {isExpanded ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-                </button>
-            </div>
+        <>
+            <SidebarOverlay />
 
-            <div className="flex-1 py-4 space-y-1">
-                {isExpanded && <div className="px-4 text-sm text-gray-500 mb-2">MAIN</div>}
-                {navItems.map((item) => (
-                    <MenuItem key={item.id} item={item} />
-                ))}
-            </div>
-
-            <div className="p-4 space-y-4">
-                <div className="space-y-1">
-                    {isExpanded && <div className="px-4 text-sm text-gray-500 mb-2">SETTINGS</div>}
-                    <button
-                        onClick={() => router.push('/owner/notifications')}
-                        className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors
-              ${pathname === '/owner/notifications' ? 'bg-[#FFDBD7] text-[#CE145B]' : 'hover:bg-gray-100'}
-              ${!isExpanded ? 'justify-center' : ''}`}
-                    >
-                        <Bell size={20} />
-                        {isExpanded && <span>Notification</span>}
-                    </button>
-                    <button
-                        onClick={() => router.push('/owner/settings')}
-                        className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors
-              ${pathname === '/owner/settings' ? 'bg-[#FFDBD7] text-[#CE145B]' : 'hover:bg-gray-100'}
-              ${!isExpanded ? 'justify-center' : ''}`}
-                    >
-                        <Settings size={20} />
-                        {isExpanded && (
-                            <div className="flex-1 flex items-center justify-between">
-                                <span>Settings</span>
-                                <ChevronDown size={16} />
-                            </div>
-                        )}
-                    </button>
+            {/* Sidebar container */}
+            <aside 
+                className={`h-screen flex flex-col bg-white transition-all duration-300 overflow-hidden
+                    ${isExpanded ? 'w-64' : 'w-20'} 
+                    ${isMobileView ? 'fixed left-0 top-0 z-40 shadow-xl' : 'sticky top-0'} 
+                    ${isVisible ? 'translate-x-0' : isMobileView ? '-translate-x-full' : 'md:translate-x-0 md:w-0'}`}
+            >
+                <div className="p-4 border-b flex items-center justify-between">
+                    {isExpanded ? (
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-black rounded-full flex-shrink-0" />
+                            <span className="font-semibold truncate">Salon</span>
+                        </div>
+                    ) : (
+                        <div className="w-8 h-8 bg-black rounded-full mx-auto flex-shrink-0" />
+                    )}
+                    
+                    {!isMobileView ? (
+                        <button 
+                            onClick={toggleExpand} 
+                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                        >
+                            {isExpanded ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={toggleSidebar} 
+                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                        >
+                            <X size={20} />
+                        </button>
+                    )}
                 </div>
 
-                {isExpanded && (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg flex items-center justify-between">
+                <div className="flex-1 py-4 space-y-1 overflow-y-auto scrollbar-hide">
+                    {isExpanded && <div className="px-4 text-sm text-gray-500 mb-2">MAIN</div>}
+                    {navItems.map((item) => (
+                        <MenuItem key={item.id} item={item} />
+                    ))}
+                </div>
+
+                <div className="p-4 space-y-4 border-t">
+                    <div className="space-y-1">
+                        {isExpanded && <div className="px-4 text-sm text-gray-500 mb-2">SETTINGS</div>}
                         <button
-                            onClick={() => setIsDarkMode(false)}
-                            className={`p-2 rounded ${!isDarkMode ? 'bg-white shadow' : ''}`}
+                            onClick={() => handleNavigation('/owner/notifications')}
+                            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors
+                                ${pathname === '/owner/notifications' ? 'bg-[#FFDBD7] text-[#CE145B]' : 'hover:bg-gray-100'}
+                                ${!isExpanded ? 'justify-center' : ''}`}
                         >
-                            <Sun size={16} />
+                            <Bell size={20} />
+                            {isExpanded && <span>Notification</span>}
                         </button>
                         <button
-                            onClick={() => setIsDarkMode(true)}
-                            className={`p-2 rounded ${isDarkMode ? 'bg-white shadow' : ''}`}
+                            onClick={() => handleNavigation('/owner/settings')}
+                            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors
+                                ${pathname === '/owner/settings' ? 'bg-[#FFDBD7] text-[#CE145B]' : 'hover:bg-gray-100'}
+                                ${!isExpanded ? 'justify-center' : ''}`}
                         >
-                            <Moon size={16} />
+                            <Settings size={20} />
+                            {isExpanded && (
+                                <div className="flex-1 flex items-center justify-between">
+                                    <span>Settings</span>
+                                    <ChevronDown size={16} />
+                                </div>
+                            )}
                         </button>
                     </div>
-                )}
-            </div>
-        </div>
+
+                    {isExpanded && (
+                        <div className="px-4 py-3 bg-gray-50 rounded-lg flex items-center justify-between">
+                            <button
+                                onClick={() => setIsDarkMode(false)}
+                                className={`p-2 rounded ${!isDarkMode ? 'bg-white shadow' : ''}`}
+                            >
+                                <Sun size={16} />
+                            </button>
+                            <button
+                                onClick={() => setIsDarkMode(true)}
+                                className={`p-2 rounded ${isDarkMode ? 'bg-white shadow' : ''}`}
+                            >
+                                <Moon size={16} />
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </aside>
+        </>
     );
 };
 

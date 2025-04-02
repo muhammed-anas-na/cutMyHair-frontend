@@ -10,10 +10,9 @@ export const formatTo12HourIST = (time) => {
     const displayHours = adjustedHours % 12 || 12;
   
     return `${displayHours}:${adjustedMinutes.toString().padStart(2, "0")} ${period}`;
-  };
+};
 
-
-  export const checkIfOpenToday = (salon) => {
+export const checkIfOpenToday = (salon) => {
     if (!salon || !salon.working_hours) return false;
   
     const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -49,4 +48,4 @@ export const formatTo12HourIST = (time) => {
     const closingTimeInMinutes = (closingHour * 60 + closingMinute) + istOffsetMinutes; // 630 + 330 = 960 (16:00 IST)
   
     return currentTimeInMinutes >= openingTimeInMinutes && currentTimeInMinutes < closingTimeInMinutes;
-  };
+};

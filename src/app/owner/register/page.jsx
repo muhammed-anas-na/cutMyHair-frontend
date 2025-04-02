@@ -317,19 +317,6 @@ export default function OwnerRegister() {
                         )
                     }
 
-                    {/* <div className="flex gap-3 justify-evenly my-8">
-                        <div className="flex items-center gap-4">
-                            <div className="h-14 w-14 rounded-full bg-white flex items-center justify-center cursor-pointer">
-                                <Instagram className="w-6 h-6 text-[#B62B62]" />
-                            </div>
-                            <div className="h-14 w-14 rounded-full bg-white flex items-center justify-center cursor-pointer">
-                                <Facebook className="w-6 h-6 text-[#B62B62]" />
-                            </div>
-                            <div className="h-14 w-14 rounded-full bg-white flex items-center justify-center cursor-pointer">
-                                <Twitter className="w-6 h-6 text-[#B62B62]" />
-                            </div>
-                        </div>
-                    </div> */}
                 </div>
             </div>
         </div>

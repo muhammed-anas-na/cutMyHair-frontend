@@ -1,4 +1,3 @@
-// components/Footer.jsx
 import Link from 'next/link';
 import Image from 'next/image';
 import { Twitter, Facebook, Instagram, Globe } from 'lucide-react';
@@ -6,33 +5,33 @@ import { Twitter, Facebook, Instagram, Globe } from 'lucide-react';
 const Footer = () => {
   // Company links
   const companyLinks = [
-    { label: 'About us', href: '/about-us' },
-    { label: 'Terms & conditions', href: '/terms' },
-    { label: 'Privacy policy', href: '/privacy' },
-    { label: 'Anti-discrimination policy', href: '/anti-discrimination' },
-    { label: 'UC impact', href: '/impact' },
-    { label: 'Careers', href: '/careers' },
+    { label: 'About Us', href: '/about-us' },
+    { label: 'Terms & Conditions', href: '/terms-and-conditions' },
+    { label: 'Privacy Policy', href: '/privacy-policy' },
+    { label: 'Cancellation Policy', href: '/cancelation-policy' },
+    { label: 'Contact Us', href: '/contact-us' },
   ];
 
   // Customers links
   const customerLinks = [
-    { label: 'UC reviews', href: '/reviews' },
-    { label: 'Categories near you', href: '/categories' },
-    { label: 'Blogs', href: '/blogs' },
-    { label: 'Contact us', href: '/contact' },
+    { label: 'Salon Reviews', href: '/reviews' },
+    { label: 'Find Salons', href: '/salons' },
+    { label: 'Book Appointment', href: '/book' },
+    { label: 'Services', href: '/services' },
   ];
 
   // Partners links
   const partnerLinks = [
-    { label: 'Register as a professional', href: '/owner/register' },
+    { label: 'Register Your Salon', href: 'owner/login' },
+    { label: 'Salon Dashboard', href: '/salon/dashboard' },
   ];
 
   // Social media links
   const socialLinks = [
-    { icon: <Twitter size={20} />, href: 'https://twitter.com/urbancompany' },
-    { icon: <Facebook size={20} />, href: 'https://facebook.com/urbancompany' },
-    { icon: <Instagram size={20} />, href: 'https://instagram.com/urbancompany' },
-    { icon: <Globe size={20} />, href: 'https://urbancompany.com' },
+    { icon: <Twitter size={20} />, href: 'https://twitter.com/salonbookingplatform' },
+    { icon: <Facebook size={20} />, href: 'https://facebook.com/salonbookingplatform' },
+    { icon: <Instagram size={20} />, href: 'https://instagram.com/salonbookingplatform' },
+    { icon: <Globe size={20} />, href: 'https://salonbookingplatform.com' },
   ];
 
   return (
@@ -42,17 +41,17 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           {/* Logo section */}
           <div>
-            {/* <Link href="/" className="inline-block mb-6">
+            {/* <div className="inline-block mb-6">
               <div className="flex items-center">
-                <div className="h-10 w-10 bg-black rounded flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">UC</span>
+                <div className="h-10 w-10 bg-[#CE145B] rounded flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">SB</span>
                 </div>
                 <div className="ml-2">
-                  <p className="font-bold text-gray-900 leading-tight">Urban</p>
-                  <p className="font-bold text-gray-900 leading-tight -mt-1">Company</p>
+                  <p className="font-bold text-gray-900 leading-tight">Salon</p>
+                  <p className="font-bold text-gray-900 leading-tight -mt-1">Booking</p>
                 </div>
               </div>
-            </Link> */}
+            </div> */}
             <img src='white-logo.png'/>
           </div>
 
@@ -62,7 +61,7 @@ const Footer = () => {
             <ul className="space-y-3">
               {companyLinks.map((link, index) => (
                 <li key={index}>
-                  <Link href={link.href} className="text-gray-600 hover:text-gray-900 text-sm">
+                  <Link href={link.href} className="text-gray-600 hover:text-[#CE145B] text-sm">
                     {link.label}
                   </Link>
                 </li>
@@ -72,11 +71,11 @@ const Footer = () => {
 
           {/* For customers section */}
           <div>
-            <h3 className="font-bold text-gray-900 mb-4">For customers</h3>
+            <h3 className="font-bold text-gray-900 mb-4">For Customers</h3>
             <ul className="space-y-3">
               {customerLinks.map((link, index) => (
                 <li key={index}>
-                  <Link href={link.href} className="text-gray-600 hover:text-gray-900 text-sm">
+                  <Link href={link.href} className="text-gray-600 hover:text-[#CE145B] text-sm">
                     {link.label}
                   </Link>
                 </li>
@@ -87,11 +86,11 @@ const Footer = () => {
           {/* For partners and social sections */}
           <div>
             <div className="mb-8">
-              <h3 className="font-bold text-gray-900 mb-4">For partners</h3>
+              <h3 className="font-bold text-gray-900 mb-4">For Salon Partners</h3>
               <ul className="space-y-3">
                 {partnerLinks.map((link, index) => (
                   <li key={index}>
-                    <Link href={link.href} className="text-gray-600 hover:text-gray-900 text-sm">
+                    <Link href={link.href} className="text-gray-600 hover:text-[#CE145B] text-sm">
                       {link.label}
                     </Link>
                   </li>
@@ -100,13 +99,13 @@ const Footer = () => {
             </div>
 
             <div>
-              <h3 className="font-bold text-gray-900 mb-4">Social links</h3>
+              <h3 className="font-bold text-gray-900 mb-4">Social Links</h3>
               <div className="flex space-x-3">
                 {socialLinks.map((link, index) => (
                   <a 
                     key={index} 
                     href={link.href} 
-                    className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-gray-900 hover:border-gray-400 transition-colors"
+                    className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-[#CE145B] hover:border-[#CE145B] transition-colors"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Follow us on social media ${index + 1}`}
@@ -120,26 +119,26 @@ const Footer = () => {
             {/* App Store and Play Store */}
             <div className="mt-6 space-y-3">
               <a 
-                href="https://apps.apple.com/app/urbancompany" 
+                href="https://apps.apple.com/app/salonbookingplatform" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block"
               >
                 <Image 
-                  src="/images/app-store-badge.png"
+                  src="/app-store.png"
                   alt="Download on the App Store"
                   width={140}
                   height={42}
                 />
               </a>
               <a 
-                href="https://play.google.com/store/apps/details?id=urbancompany" 
+                href="https://play.google.com/store/apps/details?id=salonbookingplatform" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block"
               >
                 <Image 
-                  src="/images/google-play-badge.png"
+                  src="/play-store.png"
                   alt="Get it on Google Play"
                   width={140}
                   height={42}
@@ -151,7 +150,7 @@ const Footer = () => {
 
         {/* Copyright line */}
         <div className="pt-6 border-t border-gray-200 text-sm text-gray-500 text-center md:text-left">
-          © Copyright 2024 Urban Company. All rights reserved. | CIN: U74140DL2014PTC274413
+          © Copyright 2024 Salon Booking Platform. All rights reserved.
         </div>
       </div>
     </footer>

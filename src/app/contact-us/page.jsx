@@ -1,4 +1,3 @@
-// pages/contact.js
 'use client';
 import { useState } from 'react';
 import Head from 'next/head';
@@ -25,20 +24,23 @@ export default function Contact() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // TODO: Implement form submission logic
+    console.log('Form submitted:', formData);
+    alert('Thank you for your message. We will get back to you soon!');
   };
 
   return (
     <>
       <Head>
-        <title>Contact Us - Cut My Hair.in</title>
-        <meta name="description" content="Contact Cut My Hair.in for all your salon booking inquiries" />
+        <title>Contact Us - Salon Booking Platform</title>
+        <meta name="description" content="Contact our Salon Booking Platform for support and inquiries" />
       </Head>
-        <Header/>
+      <Header/>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex flex-col lg:flex-row">
           {/* Contact Form Section */}
           <div className="w-full lg:w-1/2 lg:pr-12">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8">Contact us</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-8">Contact Us</h1>
             
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
@@ -52,7 +54,7 @@ export default function Contact() {
                   value={formData.fullName}
                   onChange={handleChange}
                   placeholder="Enter full name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CE145B] focus:border-transparent"
                   required
                 />
               </div>
@@ -68,7 +70,7 @@ export default function Contact() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Enter your email address"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CE145B] focus:border-transparent"
                   required
                 />
               </div>
@@ -82,7 +84,7 @@ export default function Contact() {
                     name="phoneCode"
                     value={formData.phoneCode}
                     onChange={handleChange}
-                    className="px-3 py-3 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="px-3 py-3 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-[#CE145B] focus:border-transparent"
                   >
                     <option value="+91">+91</option>
                     <option value="+1">+1</option>
@@ -97,7 +99,7 @@ export default function Contact() {
                     value={formData.phoneNumber}
                     onChange={handleChange}
                     placeholder="Phone Number"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-[#CE145B] focus:border-transparent"
                     required
                   />
                 </div>
@@ -114,7 +116,7 @@ export default function Contact() {
                   onChange={handleChange}
                   placeholder="Enter message"
                   rows="4"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CE145B] focus:border-transparent"
                   required
                 />
               </div>
@@ -122,7 +124,7 @@ export default function Contact() {
               <div>
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-md text-white font-medium transition-colors"
+                  className="px-6 py-3 bg-[#CE145B] hover:bg-[#a10f46] rounded-md text-white font-medium transition-colors"
                 >
                   Submit
                 </button>
@@ -135,50 +137,50 @@ export default function Contact() {
             <div className="space-y-6">
               {/* Need help card */}
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-3">Need help?</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-3">Need Help?</h2>
                 <p className="text-gray-600 mb-4">
-                  For any immediate help regarding your bookings, please log-in and visit our Help Center. 
-                  You will be able to get instant resolution through our chat support.
+                  For immediate assistance with your salon bookings, please log in and visit our Help Center. 
+                  You can get instant support through our chat service.
                 </p>
-                <a href="#" className="text-purple-600 font-medium flex items-center hover:text-purple-800 transition-colors">
+                <a href="#" className="text-[#CE145B] font-medium flex items-center hover:text-[#a10f46] transition-colors">
                   Open Help Center <ChevronRight size={18} className="ml-1" />
                 </a>
               </div>
               
               {/* Still facing issues card */}
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-3">Still facing issues?</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-3">Still Facing Issues?</h2>
                 <p className="text-gray-600">
-                  If you&apos;ve already tried chatting with us and are not satisfied with the resolution - 
-                  please send us an email on resolve@cutmyhair.in. We will get back to you within 24-48 hours.
+                  If you&apos;ve already tried our chat support and aren&apos;t satisfied, 
+                  please email us at support@salonbookingplatform.com. We&apos;ll respond within 24-48 hours.
                 </p>
               </div>
               
               {/* Media inquiries card */}
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-3">Media inquiries</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-3">Media Inquiries</h2>
                 <p className="text-gray-600">
-                  For media inquiries, you can send us an email on press@cutmyhair.in
+                  For media-related questions, email press@salonbookingplatform.com
                 </p>
               </div>
               
               {/* Helpline info card */}
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-3">What is our helpline number?</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-3">Our Support Approach</h2>
                 <p className="text-gray-600">
-                  We have switched from a customer care phone number to a fast, simple-to-use chat based support. 
-                  Just open our Help Center, select your issue, and initiate a chat with us.
+                  We&apos;ve replaced traditional phone support with a quick, efficient chat-based system. 
+                  Open our Help Center, select your issue, and start a chat with our support team.
                 </p>
               </div>
               
               {/* Office addresses card */}
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-3">Our office addresses</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-3">Our Locations</h2>
                 <p className="text-gray-600">
-                  You can view a list of all our office addresses by clicking below
+                  View our office addresses and service locations
                 </p>
-                <a href="#" className="text-purple-600 font-medium flex items-center hover:text-purple-800 transition-colors mt-2">
-                  View addresses <ChevronRight size={18} className="ml-1" />
+                <a href="#" className="text-[#CE145B] font-medium flex items-center hover:text-[#a10f46] transition-colors mt-2">
+                  View Addresses <ChevronRight size={18} className="ml-1" />
                 </a>
               </div>
             </div>

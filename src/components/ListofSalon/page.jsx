@@ -8,14 +8,25 @@ import { useRouter } from "next/navigation";
 import { MapPin, Scissors, RotateCcw, Search, Star, ChevronRight, Gift, Clock, Percent } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useSearchParams } from "next/navigation";
 
 export default function ListOfSalon({favorites, salons, loading, error, onRetry, onOpenLocationModal }) {
   const { latitude, longitude, locationText } = useLocation();
   const [selectedSalon, setSelectedSalon] = useState();
   const [activeCategory, setActiveCategory] = useState('All');
   const [filteredSalons, setFilteredSalons] = useState([]);
+  const searchParams = useSearchParams();
   const router = useRouter();
-  
+
+  useEffect(() => {
+    // Check if there's a selected_category in the URL query parameters
+    const categoryFromUrl = searchParams.get('selected_category');
+    if (categoryFromUrl) {
+      // Decode the URL parameter and set it as active category
+      setActiveCategory(decodeURIComponent(categoryFromUrl));
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     // Filter salons based on the selected category
     if (activeCategory === 'All') {
@@ -129,71 +140,7 @@ export default function ListOfSalon({favorites, salons, loading, error, onRetry,
     );
   }
 
-  // if (filteredSalons.length === 0 && !loading) {
-  //   return (
-  //     <motion.div 
-  //       initial={{ opacity: 0 }}
-  //       animate={{ opacity: 1 }}
-  //       transition={{ duration: 0.4 }}
-  //       className="p-6 text-center rounded-lg border border-gray-100 shadow-sm my-4 mx-auto max-w-md"
-  //     >
-  //       <motion.div
-  //         initial={{ y: -10 }}
-  //         animate={{ y: 0 }}
-  //         transition={{ 
-  //           duration: 0.5,
-  //           type: "spring"
-  //         }}
-  //         className="mb-5 flex justify-center"
-  //       >
-  //         <div className="p-3 bg-pink-50 rounded-full">
-  //           <Scissors size={32} className="text-[#CE145B]" />
-  //         </div>
-  //       </motion.div>
-        
-  //       <h3 className="font-medium text-xl mb-2 text-[#CE145B]">
-  //         No available salons
-  //       </h3>
-        
-  //       <p className="text-gray-600 mb-2">
-  //         {activeCategory !== 'All' 
-  //           ? `We couldn't find any salons offering ${activeCategory} services`
-  //           : `We couldn't find any salons near ${locationText}`}
-  //       </p>
-        
-  //       <div className="space-y-3 max-w-xs mx-auto">
-  //         {activeCategory !== 'All' && (
-  //           <motion.button
-  //             whileHover={{ scale: 1.02 }}
-  //             whileTap={{ scale: 0.98 }}
-  //             className="w-full flex items-center justify-center gap-2 bg-[#CE145B] rounded-md py-3 px-4 text-white hover:bg-[#B01050] transition-colors shadow-sm"
-  //             onClick={() => setActiveCategory('All')}
-  //           >
-  //             <Scissors size={16} />
-  //             View all salons
-  //           </motion.button>
-  //         )}
-          
-  //         <motion.button
-  //           whileHover={{ scale: 1.02 }}
-  //           whileTap={{ scale: 0.98 }}
-  //           className="w-full flex items-center justify-center gap-2 bg-white border border-[#CE145B] rounded-md py-3 px-4 text-[#CE145B] hover:bg-pink-50 transition-colors"
-  //           onClick={onOpenLocationModal}
-  //         >
-  //           <Search size={16} />
-  //           Try different location
-  //         </motion.button>
-          
-  //         <p className="text-sm text-gray-500 mt-4 px-2">
-  //           Popular nearby areas may have more salon options available
-  //         </p>
-  //       </div>
-  //     </motion.div>
-  //   );
-  // }
-
   const handleSalonSelect = (value) => {
-    // setSelectedSalon(value);
     router.push(`/salon/${value.salon_id}`)
   };
   
@@ -232,8 +179,6 @@ export default function ListOfSalon({favorites, salons, loading, error, onRetry,
       buttonText: "Get Card"
     }
   ];
-
-  // Main UI with additional styling to match the screenshot
   return (
     <div className="px-4 sm:px-6 pb-24">
       {/* Horizontally Scrollable Promotional Banners - with hidden scrollbar */}
