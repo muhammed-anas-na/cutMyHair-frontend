@@ -27,10 +27,12 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
 
   useEffect(() => {
     if (isOpen) {
+      if (typeof window === 'undefined') return;
       setIsAnimating(true);
       document.body.style.overflow = 'hidden';
       updateFormattedDate();
     } else {
+      if (typeof window === 'undefined') return;
       document.body.style.overflow = 'unset';
       setBookingSuccess(false);
       setBookingDetails(null);
@@ -38,6 +40,7 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
     }
 
     return () => {
+      if (typeof window === 'undefined') return;
       document.body.style.overflow = 'unset';
     };
   }, [isOpen, selectedDate, customDate]);

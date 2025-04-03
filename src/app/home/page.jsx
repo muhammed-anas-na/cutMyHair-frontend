@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { Suspense } from 'react'; // Add this import
 import BookingModal from '@/components/BookingModal/page';
 import SalonCard from "@/components/SalonCard/page";
 import Navigation from "@/components/Navigation/page";
@@ -20,9 +21,10 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-  const [favorites , setFavorites] = useState([]);
+  const [favorites, setFavorites] = useState([]);
   const { latitude, longitude, locationText } = useLocation();
-  const {user_id} = useAuth(); 
+  const { user_id } = useAuth();
+
   useEffect(() => {
     const fetchSalons = async () => {
       setLoading(true);
@@ -34,15 +36,14 @@ const Home = () => {
           
           if (response?.data?.data?.salons && Array.isArray(response.data.data.salons)) {
             setSalons(response.data.data.salons);
-            if(response.data.data?.favorites){
-              setFavorites(response.data.data?.favorites)
+            if (response.data.data?.favorites) {
+              setFavorites(response.data.data?.favorites);
             }
           } else {
             console.error("Unexpected API response structure:", response);
             setError('Invalid data format received from server.');
           }
         } else {
-          // Show location modal if no location is set
           setIsLocationModalOpen(true);
         }
       } catch (err) {
@@ -62,7 +63,6 @@ const Home = () => {
     } else {
       setLoading(true);
       setError('');
-      // Re-fetch salons
       fetchSalons();
     }
   };
@@ -84,21 +84,25 @@ const Home = () => {
         
         <div className="max-w-6xl mx-auto w-full">
           {isMapView ? (
-            <SalonMap 
-              salons={salons}
-              loading={loading}
-              error={error}
-              onRetry={handleRetry}
-            />
+            <Suspense fallback={<div>Loading map...</div>}>
+              <SalonMap 
+                salons={salons}
+                loading={loading}
+                error={error}
+                onRetry={handleRetry}
+              />
+            </Suspense>
           ) : (
-            <ListOfSalon 
-              favorites={favorites}
-              salons={salons}
-              loading={loading}
-              error={error}
-              onRetry={handleRetry}
-              onOpenLocationModal={() => setIsLocationModalOpen(true)}
-            />
+            <Suspense fallback={<div>Loading salon list...</div>}>
+              <ListOfSalon 
+                favorites={favorites}
+                salons={salons}
+                loading={loading}
+                error={error}
+                onRetry={handleRetry}
+                onOpenLocationModal={() => setIsLocationModalOpen(true)}
+              />
+            </Suspense>
           )}
         </div>
       </div>
@@ -110,7 +114,7 @@ const Home = () => {
         onClose={() => setIsLocationModalOpen(false)} 
       />
 
-      <Footer/>
+      <Footer />
     </div>
   );
 };

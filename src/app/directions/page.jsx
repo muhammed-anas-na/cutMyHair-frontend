@@ -50,6 +50,7 @@ const DirectionsContent = () => {
 
   // Initialize map when component mounts
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (!mapContainerRef.current || mapRef.current) return;
 
     mapboxgl.accessToken = 'pk.eyJ1IjoicWlmeSIsImEiOiJjbTc2OGlvZ2IwNjNnMm5wejhybXNhbXd3In0.oiEiHV6rkY5IlL6qGJwkRA';

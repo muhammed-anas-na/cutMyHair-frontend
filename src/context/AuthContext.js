@@ -58,6 +58,7 @@ export const AuthProvider = ({ children }) => {
     
     // If user is not authenticated and trying to access protected routes
     if (!authState.isAuthenticated && 
+        pathname !== '/' && 
         pathname !== '/login' && 
         pathname !== '/register' && 
         pathname !== '/home' && 
@@ -90,7 +91,7 @@ export const AuthProvider = ({ children }) => {
     // Remove from localStorage
     localStorage.removeItem('user_id');
     localStorage.removeItem('access_token');
-    
+    localStorage.removeItem('')
     // Remove default header
     delete axios.defaults.headers.common['Authorization'];
     

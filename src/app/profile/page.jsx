@@ -4,12 +4,19 @@ import Image from 'next/image';
 import { Calendar, Settings, Palette, Info, Mail, Star, LogOut, ChevronRight } from 'lucide-react';
 import Navigation from '@/components/Navigation/page';
 import Header from '@/components/Header/page';
+import { useRouter } from 'next/navigation';
 
+import { useAuth } from '@/context/AuthContext';
 const Profile = () => {
+  const {logout} = useAuth();
+  const router = useRouter();
   const menuItems = [
     {
       icon: <Calendar className="w-6 h-6 text-gray-500" />,
       label: 'Your Bookings History',
+      onClick: ()=>{
+        router.push('/bookings')
+      },
       href: '/bookings'
     },
     {
@@ -26,11 +33,17 @@ const Profile = () => {
     {
       icon: <Info className="w-6 h-6 text-gray-500" />,
       label: 'About Us',
+      onClick: ()=>{
+        router.push('/about-us')
+      },
       href: '/about'
     },
     {
       icon: <Mail className="w-6 h-6 text-gray-500" />,
       label: 'Contact Us',
+      onClick: ()=>{
+        router.push('/contact-us')
+      },
       href: '/contact'
     },
     {
@@ -42,9 +55,16 @@ const Profile = () => {
       icon: <LogOut className="w-6 h-6 text-gray-500" />,
       label: 'Log Out',
       href: '/logout',
+      onClick: ()=>{
+        handleLogout()
+      },
       className: 'text-red-500'
     }
   ];
+
+  function handleLogout(){
+    logout();
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 mb-16">
@@ -74,6 +94,7 @@ const Profile = () => {
           <div className="bg-white rounded-lg shadow-sm">
             {menuItems.map((item, index) => (
               <button
+                onClick={item?.onClick}
                 key={index}
                 className={`w-full flex items-center justify-between p-4 
                   ${index !== menuItems.length - 1 ? 'border-b' : ''} 

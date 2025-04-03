@@ -22,10 +22,10 @@ function SalonMap({ salons, loading, error }) {
  
   // Initialize map when component mounts
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (!mapContainerRef.current || mapRef.current) return;
     
     mapboxgl.accessToken = 'pk.eyJ1IjoicWlmeSIsImEiOiJjbTc2OGlvZ2IwNjNnMm5wejhybXNhbXd3In0.oiEiHV6rkY5IlL6qGJwkRA';
-    
     try {
       const map = new mapboxgl.Map({
         container: mapContainerRef.current,
@@ -164,6 +164,7 @@ function SalonMap({ salons, loading, error }) {
 
       
       try {
+        if (typeof window === 'undefined') return;
         // Create a DOM element
         const el = document.createElement('div');
         el.className = 'mapboxgl-marker salon-marker';

@@ -10,12 +10,14 @@ const SalonGallery = ({ galleryImages = [] }) => {
 
   // Open fullscreen viewer
   const openFullscreen = (image, index) => {
+    if (typeof window === 'undefined') return;
     setSelectedImage({ url: image, index });
     document.body.style.overflow = 'hidden'; // Prevent background scrolling
   };
 
   // Close fullscreen viewer
   const closeFullscreen = () => {
+    if (typeof window === 'undefined') return;
     setSelectedImage(null);
     document.body.style.overflow = 'auto'; // Restore scrolling
   };

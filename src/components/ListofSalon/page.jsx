@@ -255,7 +255,7 @@ export default function ListOfSalon({favorites, salons, loading, error, onRetry,
       </div>
       
       {/* Quick Filters - Horizontally scrollable with hidden scrollbar */}
-      <div className="mb-4 overflow-x-auto -mx-1 px-1 flex space-x-2 pb-2 scrollbar-hide">
+      {/* <div className="mb-4 overflow-x-auto -mx-1 px-1 flex space-x-2 pb-2 scrollbar-hide">
         <button className="flex-shrink-0 flex items-center gap-1 text-xs bg-[#FEF0F5] text-[#CE145B] px-3 py-1.5 rounded-full font-medium">
           <Star size={12} />
           Top Rated
@@ -274,7 +274,7 @@ export default function ListOfSalon({favorites, salons, loading, error, onRetry,
         <button className="flex-shrink-0 flex items-center gap-1 text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full font-medium">
           Most Popular
         </button>
-      </div>
+      </div> */}
       
       {/* Best Salons Section with improved layout */}
       <div className="mb-4">

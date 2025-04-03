@@ -10,6 +10,7 @@ const SalonStylists = ({ stylists = [] }) => {
 
   // Open stylist detail modal
   const openStylistDetail = (stylist) => {
+    if ( typeof window === 'undefined') return;
     setSelectedStylist(stylist);
     setExpandedBio(false);
     document.body.style.overflow = 'hidden';
@@ -17,6 +18,7 @@ const SalonStylists = ({ stylists = [] }) => {
 
   // Close stylist detail modal
   const closeStylistDetail = () => {
+    if (typeof window === 'undefined') return;
     setSelectedStylist(null);
     document.body.style.overflow = 'auto';
   };

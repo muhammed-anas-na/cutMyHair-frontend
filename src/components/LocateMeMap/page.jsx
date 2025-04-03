@@ -71,6 +71,7 @@ function LocateMeMap({ onLocationSelect }) {
   // Create a marker at the specified coordinates
   const createMarker = (lng, lat) => {
     // Remove existing marker if any
+    if (typeof window === 'undefined') return;
     if (markerRef.current) {
       markerRef.current.remove();
     }

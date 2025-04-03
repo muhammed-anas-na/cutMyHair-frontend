@@ -11,20 +11,20 @@ const formatTime = (timeString) => {
     if (timeString) {
       // Handle full date string like "Sat Mar 22 2025 14:00:00 GMT+0530 (India Standard Time)"
       const date = new Date(timeString);
-      
+
       if (!isNaN(date.getTime())) {
         // Format to 12-hour time (e.g., "2:00 PM")
         let hours = date.getHours();
         const minutes = date.getMinutes();
         const ampm = hours >= 12 ? 'PM' : 'AM';
-        
+
         // Convert hours from 24-hour to 12-hour format
         hours = hours % 12;
         hours = hours ? hours : 12; // the hour '0' should be '12'
-        
+
         // Format minutes with leading zero if needed
         const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
-        
+
         return `${hours}:${formattedMinutes} ${ampm}`;
       }
     }
@@ -77,27 +77,27 @@ const BookingConfirmation = ({ params }) => {
 
   const getDirectionsUrl = () => {
     if (!bookingDetails) return '';
-    
+
     const { location, salon_name, location_text } = bookingDetails;
-    
+
     // Check if location coordinates exist
     if (location && location.coordinates && location.coordinates.length === 2) {
       const [longitude, latitude] = location.coordinates;
       const encodedName = encodeURIComponent(salon_name || 'Salon');
       const encodedLocation = encodeURIComponent(location_text || '');
-      
+
       return `http://localhost:3000/directions?latitude=${latitude}&&longitude=${longitude}&&name=${encodedName}&&locationText=${encodedLocation}`;
     }
-    
+
     // Fallback to Google Maps with salon name if no coordinates
     return `https://maps.google.com/?q=${encodeURIComponent(salon_name || 'Salon')}`;
   };
 
   const shareBooking = () => {
     if (!bookingDetails) return;
-    
+
     const shareText = `My booking at ${bookingDetails.salon_name} on ${formatDate(bookingDetails.appointment_date)} at ${formatTime(bookingDetails.scheduled_start_time)}`;
-    
+
     if (navigator.share) {
       navigator.share({
         title: 'My Salon Booking',
@@ -112,25 +112,26 @@ const BookingConfirmation = ({ params }) => {
         })
         .catch(err => console.error('Error copying to clipboard:', err));
     }
-    
+
     setShowShareMenu(false);
   };
 
   const downloadBookingDetails = () => {
+    if (!bookingDetails || typeof window === 'undefined') return;
     if (!bookingDetails) return;
-    
+
     const bookingText = `
-Booking Details
---------------
-Booking ID: ${bookingDetails._id}
-Date: ${formatDate(bookingDetails.appointment_date)}
-Time: ${formatTime(bookingDetails.scheduled_start_time)}
-Salon: ${bookingDetails.salon_name}
-Services: ${bookingDetails.services.map(s => s.name).join(', ')}
-Total Amount: ₹${bookingDetails.total_price}
-Status: ${bookingDetails.status}
-`;
-    
+      Booking Details
+      --------------
+      Booking ID: ${bookingDetails._id}
+      Date: ${formatDate(bookingDetails.appointment_date)}
+      Time: ${formatTime(bookingDetails.scheduled_start_time)}
+      Salon: ${bookingDetails.salon_name}
+      Services: ${bookingDetails.services.map(s => s.name).join(', ')}
+      Total Amount: ₹${bookingDetails.total_price}
+      Status: ${bookingDetails.status}
+      `;
+
     const blob = new Blob([bookingText], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -180,14 +181,14 @@ Status: ${bookingDetails.status}
           <h1 className="text-xl font-semibold">Booking Details</h1>
         </div>
         <div className="flex items-center gap-2">
-          <button 
+          <button
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             onClick={downloadBookingDetails}
           >
             <Download className="w-5 h-5 text-gray-600" />
           </button>
           <div className="relative">
-            <button 
+            <button
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               onClick={() => setShowShareMenu(!showShareMenu)}
             >
@@ -196,7 +197,7 @@ Status: ${bookingDetails.status}
             {showShareMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20">
                 <div className="py-1">
-                  <button 
+                  <button
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={shareBooking}
                   >
@@ -211,28 +212,26 @@ Status: ${bookingDetails.status}
 
       {/* Confirmation Message */}
       <div className="p-6">
-        <div className={`p-4 rounded-lg mb-6 flex items-center gap-3 ${
-          bookingDetails.status === 'confirmed' ? 'bg-cyan-50 text-cyan-800' : 
-          bookingDetails.status === 'completed' ? 'bg-green-50 text-green-800' : 
-          'bg-gray-50 text-gray-800'
-        }`}>
-          <CheckCircle className={`w-6 h-6 flex-shrink-0 ${
-            bookingDetails.status === 'confirmed' ? 'text-cyan-500' : 
-            bookingDetails.status === 'completed' ? 'text-green-500' : 
-            'text-gray-500'
-          }`} />
+        <div className={`p-4 rounded-lg mb-6 flex items-center gap-3 ${bookingDetails.status === 'confirmed' ? 'bg-cyan-50 text-cyan-800' :
+            bookingDetails.status === 'completed' ? 'bg-green-50 text-green-800' :
+              'bg-gray-50 text-gray-800'
+          }`}>
+          <CheckCircle className={`w-6 h-6 flex-shrink-0 ${bookingDetails.status === 'confirmed' ? 'text-cyan-500' :
+              bookingDetails.status === 'completed' ? 'text-green-500' :
+                'text-gray-500'
+            }`} />
           <div>
             <p className="font-medium">
               {bookingDetails.status === 'confirmed' ? 'Your booking has been confirmed!' :
-               bookingDetails.status === 'completed' ? 'Your appointment has been completed.' :
-               `Booking status: ${bookingDetails.status}`}
+                bookingDetails.status === 'completed' ? 'Your appointment has been completed.' :
+                  `Booking status: ${bookingDetails.status}`}
             </p>
             <p className="text-sm mt-1 opacity-90">
               {bookingDetails.status === 'confirmed' ? 'We\'ll remind you before your appointment.' : ''}
             </p>
           </div>
         </div>
-        
+
         {/* Booking ID */}
         <div className="text-center mb-6">
           <span className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full">
@@ -242,7 +241,7 @@ Status: ${bookingDetails.status}
 
         {/* QR Code */}
         <div className="w-48 h-48 mx-auto mb-6 relative bg-gray-100 rounded-lg flex items-center justify-center">
-          <img 
+          <img
             src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(generateQRData())}`}
             alt="Booking QR Code"
             className="w-full h-full object-cover rounded-lg"
@@ -251,11 +250,10 @@ Status: ${bookingDetails.status}
 
         {/* Status Badge */}
         <div className="text-center mb-8">
-          <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-medium capitalize ${
-            bookingDetails.status === 'confirmed' ? 'bg-cyan-100 text-cyan-800' : 
-            bookingDetails.status === 'completed' ? 'bg-green-100 text-green-800' : 
-            'bg-gray-100 text-gray-800'
-          }`}>
+          <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-medium capitalize ${bookingDetails.status === 'confirmed' ? 'bg-cyan-100 text-cyan-800' :
+              bookingDetails.status === 'completed' ? 'bg-green-100 text-green-800' :
+                'bg-gray-100 text-gray-800'
+            }`}>
             {bookingDetails.status}
           </span>
         </div>
@@ -299,8 +297,8 @@ Status: ${bookingDetails.status}
             </div>
             <a
               href={getDirectionsUrl()}
-              target="_blank" 
-              rel="noopener noreferrer" 
+              target="_blank"
+              rel="noopener noreferrer"
               className="bg-pink-100 text-pink-700 text-sm px-3 py-1.5 rounded-lg hover:bg-pink-200 transition-colors flex items-center gap-1"
             >
               <MapPin className="w-4 h-4" />
@@ -360,14 +358,14 @@ Status: ${bookingDetails.status}
 
         {/* Actions */}
         <div className="flex gap-4 mb-8">
-          <a 
+          <a
             href={`tel:${bookingDetails.contact_phone || ''}`}
             className="flex-1 bg-pink-500 text-white rounded-lg py-3 font-medium hover:bg-pink-600 transition-colors flex items-center justify-center gap-2"
           >
             <PhoneCall className="w-5 h-5" />
             Contact Salon
           </a>
-          <Link 
+          <Link
             href={`/bookings/${bookingDetails._id}/cancel`}
             className="flex-1 border border-gray-300 text-gray-700 rounded-lg py-3 font-medium hover:bg-gray-50 transition-colors flex items-center justify-center"
           >

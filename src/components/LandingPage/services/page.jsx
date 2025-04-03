@@ -98,6 +98,7 @@ const ServicesSection = () => {
 
   // Handle scrolling for new services
   const scrollNewServices = (direction) => {
+    if (typeof window === 'undefined') return;
     const container = document.getElementById('new-services-container');
     const scrollAmount = direction === 'right' ? 300 : -300;
     container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
@@ -113,6 +114,7 @@ const ServicesSection = () => {
 
   // Handle scrolling for booked services
   const scrollBookedServices = (direction) => {
+    if (typeof window === 'undefined') return;
     const container = document.getElementById('booked-services-container');
     const scrollAmount = direction === 'right' ? 300 : -300;
     container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
@@ -128,11 +130,13 @@ const ServicesSection = () => {
 
   // Check if at start or end of scroll
   const isAtStart = (containerId) => {
+    if (typeof window === 'undefined') return;
     const container = document.getElementById(containerId);
     return container ? container.scrollLeft <= 10 : true;
   };
 
   const isAtEnd = (containerId) => {
+    if (typeof window === 'undefined') return;
     const container = document.getElementById(containerId);
     if (!container) return true;
     
@@ -153,6 +157,7 @@ const ServicesSection = () => {
             id="new-services-container"
             className="flex overflow-x-auto gap-4 pb-4 hide-scrollbar"
             onScroll={() => {
+              if (typeof window === 'undefined') return;
               setScrollPosition({
                 ...scrollPosition,
                 new: document.getElementById('new-services-container').scrollLeft
@@ -210,6 +215,7 @@ const ServicesSection = () => {
             id="booked-services-container"
             className="flex overflow-x-auto gap-4 pb-4 hide-scrollbar"
             onScroll={() => {
+              if (typeof window === 'undefined') return;
               setScrollPosition({
                 ...scrollPosition,
                 booked: document.getElementById('booked-services-container').scrollLeft
