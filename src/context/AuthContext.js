@@ -61,11 +61,17 @@ export const AuthProvider = ({ children }) => {
         pathname !== '/' && 
         pathname !== '/login' && 
         pathname !== '/register' && 
-        pathname !== '/home' && 
+        pathname !== '/home' &&
+        pathname !== '/about-us' &&
+        pathname !== '/contact-us' &&
+        pathname !== '/cancelation-policy' &&
+        pathname !== '/privacy-policy' &&
+        pathname !== '/report-issue' &&
+        pathname !== '/terms-and-conditions' &&  
         !pathname.startsWith('/owner/') &&
         !pathname.startsWith('/blogs') &&
         !pathname.startsWith('/blogs/')) {
-      router.replace('/login');
+        router.replace('/login');
     }
   }, [authState.isAuthenticated, authState.isLoading, pathname, router]);
 
