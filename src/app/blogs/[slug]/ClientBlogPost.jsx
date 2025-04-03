@@ -2,13 +2,28 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 export default function ClientBlogPost({ blogData, slug }) {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const { title, description, image, imageAlt, category, createdAt } = blogData;
+  
+  // Format dates for display and metadata
+  const formattedDate = new Date(createdAt).toLocaleDateString('en-US', { 
+    month: 'long', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
+  const isoDate = new Date(createdAt).toISOString();
+  
+  // Format category for display (Hair-Care -> Hair Care)
+  const categoryDisplayName = category
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 
   const handleSubscribe = (e) => {
     e.preventDefault();
@@ -30,27 +45,9 @@ export default function ClientBlogPost({ blogData, slug }) {
   };
 
   const copyToClipboard = () => {
-    if (typeof window !== 'undefined') {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
-    }
+    navigator.clipboard.writeText(window.location.href);
+    alert('Link copied to clipboard!');
   };
-
-  const { title, description, image, imageAlt, category, createdAt } = blogData;
-  
-  // Format dates for display and metadata
-  const formattedDate = new Date(createdAt).toLocaleDateString('en-US', { 
-    month: 'long', 
-    day: 'numeric', 
-    year: 'numeric' 
-  });
-  const isoDate = new Date(createdAt).toISOString();
-  
-  // Format category for display (Hair-Care -> Hair Care)
-  const categoryDisplayName = category
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
 
   return (
     <div className="bg-white min-h-screen">
@@ -116,12 +113,13 @@ export default function ClientBlogPost({ blogData, slug }) {
 
       {/* Featured image with semantic HTML and optimized attributes */}
       <figure className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] mb-8 overflow-hidden">
-        <Image 
+        <img 
           src={image} 
           alt={imageAlt || title}
-          fill
           className="object-cover md:object-contain w-full h-full hover:scale-105 transition-transform duration-700"
-          priority
+          width="1200"
+          height="630"
+          loading="eager"
         />
         {imageAlt && <figcaption className="sr-only">{imageAlt}</figcaption>}
       </figure>

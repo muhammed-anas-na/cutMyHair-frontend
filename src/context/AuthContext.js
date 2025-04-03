@@ -62,7 +62,9 @@ export const AuthProvider = ({ children }) => {
         pathname !== '/login' && 
         pathname !== '/register' && 
         pathname !== '/home' && 
-        !pathname.startsWith('/owner/')) {
+        !pathname.startsWith('/owner/') &&
+        !pathname.startsWith('/blogs') &&
+        !pathname.startsWith('/blogs/')) {
       router.replace('/login');
     }
   }, [authState.isAuthenticated, authState.isLoading, pathname, router]);
