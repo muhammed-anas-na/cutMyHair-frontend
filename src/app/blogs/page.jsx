@@ -65,7 +65,7 @@ export default async function BlogsPage() {
   try {
     // Fetch blog data on the server
     const response = await GET_BLOGS_FN();
-    const blogsData = response.data.blogs || [];
+    const blogsData = response?.data?.blogs || [];
     
     // Format the blog data
     const formattedBlogs = blogsData.map(blog => ({
