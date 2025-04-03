@@ -1,7 +1,7 @@
 'use client';
 import { useAuth } from "@/context/AuthContext";
 import { OWNER_SEND_OTP_FN, OWNER_VERIFY_OTP_FN } from "@/services/ownerService"; 
-import { Facebook, Instagram, Twitter } from "lucide-react";
+import { Facebook, Instagram, Twitter, Scissors, Calendar, Users, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from "react";
@@ -21,6 +21,7 @@ export default function OwnerRegister() {
     const inputRefs = useRef([]);
     const router = useRouter();
     const { login } = useAuth();
+    
     // Timer for resend OTP
     useEffect(() => {
         let interval;
@@ -49,7 +50,8 @@ export default function OwnerRegister() {
         setPhoneError("");
         return true;
     };
-       // Validate name
+    
+    // Validate name
     const validateName = () => {
     if (!name.trim()) {
         setNameError("Name is required");
@@ -177,18 +179,34 @@ export default function OwnerRegister() {
         }
     };
 
+    // Handle name change
+    const handleNameChange = (e) => {
+        setName(e.target.value);
+        setNameError("");
+    };
+
     // Handle resend OTP
-    const handleResendOtp = () => {
+    const handleResendOtp = async () => {
         if (!resendDisabled) {
-            // Implement OTP resend logic here
-            setResendDisabled(true);
-            setTimer(30);
-            // Reset OTP fields
-            setOtp(["", "", "", ""]);
-            setOtpError("");
-            // Focus first input
-            if (inputRefs.current[0]) {
-                inputRefs.current[0].focus();
+            setIsLoading(true);
+            try {
+                const response = await OWNER_SEND_OTP_FN(phoneNumber, 'register');
+                if (response.status === 200) {
+                    setResendDisabled(true);
+                    setTimer(30);
+                    setOtp(["", "", "", ""]);
+                    setOtpError("");
+                    if (inputRefs.current[0]) {
+                        inputRefs.current[0].focus();
+                    }
+                } else {
+                    setOtpError(response.data?.message || "Failed to resend OTP. Please try again.");
+                }
+            } catch (error) {
+                console.error("Failed to resend OTP:", error);
+                setOtpError(error.response?.data?.message || "Failed to resend OTP. Please try again later.");
+            } finally {
+                setIsLoading(false);
             }
         }
     };
@@ -204,119 +222,297 @@ export default function OwnerRegister() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F6D7D3]">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                <div className="md:w-1/2">
+        <div className="min-h-screen bg-gradient-to-br from-pink-50 to-[#F6D7D3]">
+            <div className="flex flex-col md:flex-row min-h-screen">
+                {/* Left side - Image & Info */}
+                <div className="md:w-1/2 relative hidden md:block">
                     <img
                         src="../register-image.png"
-                        alt="CoverImage"
-                        className="w-full h-auto md:object-cover md:h-screen"
+                        alt="Salon Business"
+                        className="absolute inset-0 w-full h-full object-cover"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#CE145B]/40 to-transparent flex flex-col justify-center px-10">
+                        <div className="max-w-md">
+                            <h2 className="text-4xl font-bold text-white mb-6">Grow your salon business with us</h2>
+                            <div className="space-y-6 text-white">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-white/20 p-2 rounded-full">
+                                        <Calendar size={24} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-lg">Simplified Booking Management</h3>
+                                        <p className="text-white/90 text-sm">Handle appointments effortlessly</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-white/20 p-2 rounded-full">
+                                        <Users size={24} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-lg">Expand Your Customer Base</h3>
+                                        <p className="text-white/90 text-sm">Reach thousands of potential clients</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-white/20 p-2 rounded-full">
+                                        <Scissors size={24} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-lg">Showcase Your Services</h3>
+                                        <p className="text-white/90 text-sm">Display your best work and specialties</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div className="flex flex-col gap-3 mx-10 md:w-1/2 md:px-20 md:justify-center">
-                    <h1 className="font-bold text-4xl md:text-5xl">Register</h1>
-
-                    <p className="font-extralight md:text-lg">
-                        {isOtpView 
-                            ? "Enter the OTP sent to your mobile number."
-                            : "Register using your mobile number to continue."}
-                    </p>
+                
+                {/* Mobile Header with Value Props */}
+                <div className="md:hidden">
+                    <div className="h-48 relative">
+                        <img
+                            src="../register-image.png"
+                            alt="Salon Business"
+                            className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-b from-[#CE145B]/40 to-transparent">
+                            <div className="p-6">
+                                <h2 className="text-2xl font-bold text-white">Salon Owner Portal</h2>
+                                <p className="text-white/90 mt-1">Grow your business with cutmyhair.in</p>
+                            </div>
+                        </div>
+                    </div>
                     
-                    {!isOtpView ? (
-                        <div className="flex flex-col gap-1">
-                            <input
-                                type="text"
-                                placeholder="Enter Name"
-                                value={name}
-                                onChange={(e)=>{
-                                    setName(e.target.value)
-                                }}
-                                maxLength={10}
-                                className={`p-3 rounded-md md:text-lg ${
-                                    phoneError ? 'border-2 border-red-500' : ''
-                                }`}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Enter mobile Number"
-                                value={phoneNumber}
-                                onChange={handlePhoneChange}
-                                maxLength={10}
-                                className={`p-3 rounded-md md:text-lg ${
-                                    phoneError ? 'border-2 border-red-500' : ''
-                                }`}
-                            />
-                            {phoneError && (
-                                <p className="text-red-500 text-sm">{phoneError}</p>
-                            )}
+                    {/* Mobile Value Props */}
+                    <div className="bg-white px-4 py-3 shadow-md mt-4 mx-4 rounded-xl flex justify-between">
+                        <div className="text-center">
+                            <Calendar size={20} className="text-[#CE145B] mx-auto mb-1" />
+                            <span className="text-xs font-medium">Bookings</span>
                         </div>
-                    ) : (
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
-                                <span>OTP sent to: {phoneNumber}</span>
-                                <button 
-                                    onClick={handleEditPhone}
-                                    className="text-[#CE145B] font-medium hover:underline"
-                                >
-                                    Edit
-                                </button>
-                            </div>
-                            <div className="flex gap-2 justify-center">
-                                {otp.map((digit, index) => (
+                        <div className="text-center">
+                            <Users size={20} className="text-[#CE145B] mx-auto mb-1" />
+                            <span className="text-xs font-medium">Clients</span>
+                        </div>
+                        <div className="text-center">
+                            <Scissors size={20} className="text-[#CE145B] mx-auto mb-1" />
+                            <span className="text-xs font-medium">Services</span>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Right side - Form */}
+                <div className="flex-1 flex flex-col justify-center px-4 sm:px-8 md:px-12 lg:px-16 py-8 md:py-0">
+                    <div className="max-w-md w-full mx-auto">
+                        <div className="mb-8">
+                            <h1 className="font-bold text-3xl sm:text-4xl mb-3 text-gray-900">
+                                {isOtpView ? "Verify your number" : "Salon Owner Registration"}
+                            </h1>
+                            <p className="text-gray-600">
+                                {isOtpView 
+                                    ? "Enter the 4-digit code sent to your mobile number."
+                                    : "Join our platform to showcase your salon and manage bookings easily."}
+                            </p>
+                        </div>
+                        
+                        {/* Registration Form */}
+                        {!isOtpView ? (
+                            <div className="space-y-5">
+                                <div className="space-y-2">
+                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                                        Owner Name
+                                    </label>
                                     <input
-                                        key={index}
+                                        id="name"
                                         type="text"
-                                        maxLength={4}
-                                        value={digit}
-                                        ref={(el) => (inputRefs.current[index] = el)}
-                                        onChange={(e) => handleOtpChange(index, e.target.value)}
-                                        onKeyDown={(e) => handleKeyDown(index, e)}
-                                        onPaste={(e) => {
-                                            e.preventDefault();
-                                            const pastedText = e.clipboardData.getData("text");
-                                            handleOtpChange(index, pastedText);
-                                        }}
-                                        className={`w-14 h-14 text-center rounded-md border-2 
-                                            ${otpError ? 'border-red-500' : 'border-gray-300'} 
-                                            focus:border-[#CE145B] focus:outline-none text-lg`}
+                                        placeholder="Enter your full name"
+                                        value={name}
+                                        onChange={handleNameChange}
+                                        className={`w-full px-4 py-3 rounded-lg border ${
+                                            nameError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-[#CE145B]'
+                                        } focus:border-[#CE145B] focus:outline-none focus:ring-2 focus:ring-opacity-20 transition-colors`}
+                                        disabled={isLoading}
                                     />
-                                ))}
-                            </div>
-                            {otpError && (
-                                <p className="text-red-500 text-sm text-center">{otpError}</p>
-                            )}
-                            <div className="flex justify-center gap-1 text-sm">
-                                <span>Didn't receive OTP?</span>
+                                    {nameError && (
+                                        <p className="text-red-500 text-sm mt-1">{nameError}</p>
+                                    )}
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                                        Mobile Number
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <span className="text-gray-500">+91</span>
+                                        </div>
+                                        <input
+                                            id="phone"
+                                            type="text"
+                                            placeholder="Enter 10-digit number"
+                                            value={phoneNumber}
+                                            onChange={handlePhoneChange}
+                                            maxLength={10}
+                                            className={`w-full pl-12 pr-4 py-3 rounded-lg border ${
+                                                phoneError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-[#CE145B]'
+                                            } focus:border-[#CE145B] focus:outline-none focus:ring-2 focus:ring-opacity-20 transition-colors`}
+                                            disabled={isLoading}
+                                        />
+                                    </div>
+                                    {phoneError && (
+                                        <p className="text-red-500 text-sm mt-1">{phoneError}</p>
+                                    )}
+                                </div>
+                                
+                                {/* Business Benefits Preview */}
+                                <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mt-6">
+                                    <h3 className="font-medium text-gray-800 flex items-center gap-2 mb-3">
+                                        <CheckCircle size={18} className="text-[#CE145B]" />
+                                        <span>What you'll get</span>
+                                    </h3>
+                                    <ul className="space-y-2 text-sm text-gray-600">
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-[#CE145B] mt-0.5">•</span>
+                                            <span>Dedicated salon profile to showcase your work</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-[#CE145B] mt-0.5">•</span>
+                                            <span>Easy-to-use booking management system</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-[#CE145B] mt-0.5">•</span>
+                                            <span>Exposure to thousands of potential customers</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                
                                 <button 
-                                    onClick={handleResendOtp}
-                                    className={`${
-                                        resendDisabled 
-                                            ? 'text-gray-400 cursor-not-allowed' 
-                                            : 'text-[#CE145B] hover:underline'
-                                    } font-medium`}
-                                    disabled={resendDisabled}
+                                    onClick={handleSendOtp}
+                                    disabled={isLoading}
+                                    className={`w-full py-3 px-4 rounded-lg ${
+                                        isLoading 
+                                            ? 'bg-gray-400 cursor-not-allowed' 
+                                            : 'bg-[#CE145B] hover:bg-[#B0124F] active:bg-[#9E1046]'
+                                    } text-white font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#CE145B] focus:ring-opacity-50`}
                                 >
-                                    {resendDisabled ? `Resend in ${timer}s` : 'Resend OTP'}
+                                    {isLoading ? (
+                                        <span className="flex items-center justify-center">
+                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Sending...
+                                        </span>
+                                    ) : "Send OTP"}
                                 </button>
+                                
+                                <div className="text-center pt-2">
+                                    <p className="text-gray-600">
+                                        Already have an account?{" "}
+                                        <Link href="/owner/login" className="text-[#CE145B] hover:underline font-medium">
+                                            Login here
+                                        </Link>
+                                    </p>
+                                </div>
                             </div>
+                        ) : (
+                            /* OTP Verification View */
+                            <div className="space-y-6">
+                                <div className="bg-gray-50 p-4 rounded-lg flex items-center justify-between">
+                                    <span className="text-gray-700">
+                                        <span className="font-medium">OTP sent to:</span> +91 {phoneNumber}
+                                    </span>
+                                    <button 
+                                        onClick={handleEditPhone}
+                                        className="text-[#CE145B] hover:text-[#B0124F] font-medium hover:underline"
+                                        disabled={isLoading}
+                                    >
+                                        Edit
+                                    </button>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Enter 4-digit OTP
+                                    </label>
+                                    <div className="flex gap-2 sm:gap-3">
+                                        {otp.map((digit, index) => (
+                                            <input
+                                                key={index}
+                                                type="text"
+                                                maxLength={4}
+                                                value={digit}
+                                                ref={(el) => (inputRefs.current[index] = el)}
+                                                onChange={(e) => handleOtpChange(index, e.target.value)}
+                                                onKeyDown={(e) => handleKeyDown(index, e)}
+                                                onPaste={(e) => {
+                                                    e.preventDefault();
+                                                    const pastedText = e.clipboardData.getData("text");
+                                                    handleOtpChange(index, pastedText);
+                                                }}
+                                                className={`w-full h-12 sm:h-14 text-center rounded-lg border-2 
+                                                    ${otpError ? 'border-red-500' : 'border-gray-300'} 
+                                                    focus:border-[#CE145B] focus:outline-none focus:ring-2 focus:ring-[#CE145B] focus:ring-opacity-20 text-lg font-medium transition-colors`}
+                                                disabled={isLoading}
+                                            />
+                                        ))}
+                                    </div>
+                                    {otpError && (
+                                        <p className="text-red-500 text-sm mt-1">{otpError}</p>
+                                    )}
+                                </div>
+                                
+                                <div className="flex justify-center">
+                                    <button 
+                                        onClick={handleResendOtp}
+                                        className={`text-sm ${
+                                            resendDisabled || isLoading
+                                                ? 'text-gray-400 cursor-not-allowed' 
+                                                : 'text-[#CE145B] hover:text-[#B0124F] hover:underline'
+                                        } font-medium`}
+                                        disabled={resendDisabled || isLoading}
+                                    >
+                                        {resendDisabled ? `Resend OTP in ${timer}s` : 'Resend OTP'}
+                                    </button>
+                                </div>
+                                
+                                <button 
+                                    onClick={handleSendOtp}
+                                    disabled={isLoading}
+                                    className={`w-full py-3 px-4 rounded-lg ${
+                                        isLoading 
+                                            ? 'bg-gray-400 cursor-not-allowed' 
+                                            : 'bg-[#CE145B] hover:bg-[#B0124F] active:bg-[#9E1046]'
+                                    } text-white font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#CE145B] focus:ring-opacity-50`}
+                                >
+                                    {isLoading ? (
+                                        <span className="flex items-center justify-center">
+                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Verifying...
+                                        </span>
+                                    ) : "Verify OTP"}
+                                </button>
+                                
+                                <p className="text-center text-sm text-gray-500">
+                                    After verification, you'll be able to set up your salon profile and start accepting bookings.
+                                </p>
+                            </div>
+                        )}
+                        
+                        {/* Footer */}
+                        <div className="mt-10 pt-6 border-t border-gray-200">
+                            <p className="text-center text-xs text-gray-500">
+                                &copy; {new Date().getFullYear()} Cut My Hair. All rights reserved.
+                            </p>
+                            <p className="text-center text-xs text-gray-500 mt-1">
+                                By registering, you agree to our Terms of Service and Privacy Policy.
+                            </p>
                         </div>
-                    )}
-
-                    <button 
-                        onClick={handleSendOtp}
-                        className="p-3 rounded-md bg-[#CE145B] text-white font-bold md:text-lg hover:bg-opacity-90 transition-colors"
-                    >
-                        {isOtpView ? "Verify OTP" : "Send OTP"}
-                    </button>
-
-                    {
-                        !isOtpView && (
-                            <div className="text-center mb-5">
-                                <Link href={'/owner/login'} className="">New to our platform?</Link>
-                            </div>
-                        )
-                    }
-
+                    </div>
                 </div>
             </div>
         </div>
