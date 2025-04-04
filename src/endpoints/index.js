@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8000/api';
+const BASE_URL = 'https://cutmyhair-backend.onrender.com/api';
 const OWNER_BASE_URL = `${BASE_URL}/owner`;
 const USER_BASE_URL = `${BASE_URL}/users`;
 const BLOG_BASE_URL = `${BASE_URL}/blogs`;
