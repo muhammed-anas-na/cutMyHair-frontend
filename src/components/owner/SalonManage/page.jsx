@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { PlusCircle, Scissors, ArrowRight } from 'lucide-react';
+import { PlusCircle, Scissors, ArrowRight, ImageOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { GET_OWNER_SALON_FN } from '@/services/ownerService';
@@ -44,70 +44,76 @@ const SalonManagement = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-5">
-      {/* Header */}
-      <div className="bg-[#CE145B] rounded-xl p-6 mb-8 text-white">
-        <h1 className="text-2xl font-semibold mb-2">Salon Management</h1>
-        <p className="opacity-90">Manage your salon portfolio and create new locations</p>
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-5 pb-12">
+      {/* Header - Enhanced for better mobile visibility */}
+      <div className="bg-[#CE145B] rounded-lg sm:rounded-xl p-5 sm:p-6 mb-6 sm:mb-8 text-white shadow-md">
+        <h1 className="text-xl sm:text-2xl font-bold mb-2">Salon Management</h1>
+        <p className="text-sm sm:text-base opacity-90">Manage your salon portfolio and create new locations</p>
       </div>
 
       {loading && (
         <div className="flex justify-center my-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#CE145B]"></div>
+          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-2 border-b-2 border-[#CE145B]"></div>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-100 p-4 rounded-lg mb-6">
-          <p className="text-red-700">{error}</p>
+        <div className="bg-red-100 p-4 rounded-lg mb-6 shadow-sm">
+          <p className="text-red-700 text-sm sm:text-base">{error}</p>
         </div>
       )}
 
       {!loading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Add New Salon Card */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+          {/* Add New Salon Card - Improved visibility and touch targets */}
           <div 
             onClick={handleCreateNew}
-            className="h-96 border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-[#CE145B] hover:bg-pink-50 transition-colors group"
+            className="min-h-48 sm:min-h-64 md:h-80 border-2 border-dashed border-gray-300 rounded-xl p-5 sm:p-6 flex flex-col items-center justify-center cursor-pointer hover:border-[#CE145B] hover:bg-pink-50 transition-colors group shadow-sm hover:shadow-md"
           >
-            <PlusCircle size={48} className="text-gray-400 group-hover:text-[#CE145B] mb-4" />
-            <h2 className="text-xl font-semibold text-gray-600 group-hover:text-[#CE145B] mb-2">
+            <PlusCircle size={40} className="text-gray-400 group-hover:text-[#CE145B] mb-4" />
+            <h2 className="text-lg sm:text-xl font-bold text-gray-600 group-hover:text-[#CE145B] mb-2 text-center">
               Add New Salon
             </h2>
-            <p className="text-gray-500 text-center max-w-sm">
+            <p className="text-sm sm:text-base text-gray-500 text-center max-w-xs">
               Create a new salon location and start managing appointments
             </p>
           </div>
 
-          {/* Dynamically render salon cards */}
+          {/* Dynamically render salon cards - Improved for mobile usability */}
           {salons.map((salon) => (
             <div 
               key={salon.salon_id}
               onClick={() => handleSalonDetails(salon.salon_id)}
-              className="h-96 bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+              className="min-h-48 sm:min-h-64 md:h-80 bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
             >
-              <div className="relative h-48">
-                <img
-                  src={salon.images && salon.images.length > 0 ? salon.images[0] : null}
-                  alt={salon.name}
-                  className="w-full h-full object-cover"
-           
-                />
-                <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full flex items-center gap-1">
-                  <span className="text-[#CE145B]">{salon.rating || "New"}</span>
+              <div className="relative h-40 sm:h-44 md:h-48 bg-gray-100">
+                {salon.images && salon.images.length > 0 ? (
+                  <img
+                    src={salon.images[0]}
+                    alt={salon.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100">
+                    <ImageOff size={32} className="text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-500">No image available</p>
+                  </div>
+                )}
+                <div className="absolute top-3 right-3 bg-white px-3 py-1 rounded-full flex items-center gap-1 text-sm shadow-sm">
+                  <span className="text-[#CE145B] font-medium">{salon.rating || "New"}</span>
                   {salon.rating > 0 && <span className="text-yellow-400">★</span>}
                 </div>
               </div>
 
-              <div className="p-6">
+              <div className="p-5">
                 <div className="flex items-center gap-2 mb-2">
-                  <Scissors size={20} className="text-[#CE145B]" />
-                  <h3 className="text-xl font-semibold text-gray-800">
+                  <Scissors size={18} className="text-[#CE145B]" />
+                  <h3 className="text-lg font-bold text-gray-800 line-clamp-1">
                     {salon.name}
                   </h3>
                 </div>
                 
-                <p className="text-gray-600 mb-4">{salon.location_text || salon.address}</p>
+                <p className="text-sm text-gray-600 mb-4 line-clamp-2">{salon.location_text || salon.address}</p>
                 
                 <div className="flex items-center text-[#CE145B] group">
                   <span className="font-medium">View Details</span>
@@ -120,12 +126,12 @@ const SalonManagement = () => {
             </div>
           ))}
 
-          {/* Show message if no salons */}
+          {/* Show message if no salons - Enhanced visibility */}
           {salons.length === 0 && (
-            <div className="bg-yellow-50 p-6 rounded-lg col-span-1 flex flex-col items-center justify-center text-center">
+            <div className="bg-yellow-50 p-5 sm:p-6 rounded-xl col-span-1 flex flex-col items-center justify-center text-center shadow-sm min-h-48 sm:min-h-64">
               <Scissors className="w-12 h-12 text-[#CE145B] mb-4" />
-              <h2 className="text-xl font-semibold mb-2">No Salons Found</h2>
-              <p className="text-gray-600 mb-4">You haven't added any salons yet. Use the "Add New Salon" option to get started.</p>
+              <h2 className="text-lg sm:text-xl font-bold mb-2">No Salons Found</h2>
+              <p className="text-sm sm:text-base text-gray-600 mb-4">You haven't added any salons yet. Use the "Add New Salon" option to get started.</p>
             </div>
           )}
         </div>
