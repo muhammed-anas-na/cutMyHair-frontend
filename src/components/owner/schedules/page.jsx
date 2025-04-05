@@ -480,17 +480,17 @@ const SalonSchedule = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-5 bg-white rounded-xl shadow-sm">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-5 py-4 sm:py-5 bg-white rounded-lg sm:rounded-xl shadow-sm">
       {/* Header */}
-      <div className="bg-[#CE145B] rounded-xl p-5 mb-6 text-white">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+      <div className="bg-[#CE145B] rounded-lg sm:rounded-xl p-4 sm:p-5 mb-4 sm:mb-6 text-white">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
           <div>
-            <h1 className="text-2xl font-semibold m-0">Salon Dashboard</h1>
-            <p className="mt-1 opacity-90">
+            <h1 className="text-xl sm:text-2xl font-semibold m-0">Salon Dashboard</h1>
+            <p className="mt-1 opacity-90 text-sm sm:text-base">
               {isToday(date) ? 'Today\'s Schedule' : `Schedule for ${formatDateDisplay(date)}`}
             </p>
             {isToday(date) && (
-              <p className="text-white bg-white bg-opacity-20 px-2 py-1 rounded-md mt-2 text-sm inline-block">
+              <p className="text-white bg-white bg-opacity-20 px-2 py-1 rounded-md mt-2 text-xs sm:text-sm inline-block">
                 Current Time: {currentTime.toLocaleTimeString('en-US', {
                   hour: '2-digit',
                   minute: '2-digit',
@@ -503,42 +503,42 @@ const SalonSchedule = () => {
         </div>
         
         {currentSalon && (
-          <div className="flex flex-wrap gap-4 mt-4">
-            <div className="bg-white bg-opacity-10 p-3 rounded-lg text-center">
-              <span className="block text-2xl font-semibold">{appointments.length || 0}</span>
-              <span className="text-sm opacity-90">{isToday(date) ? "Today's Appointments" : "Appointments"}</span>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+            <div className="bg-white bg-opacity-10 p-2 sm:p-3 rounded-lg text-center">
+              <span className="block text-lg sm:text-2xl font-semibold">{appointments.length || 0}</span>
+              <span className="text-xs sm:text-sm opacity-90 truncate">{isToday(date) ? "Today's Appointments" : "Appointments"}</span>
             </div>
-            <div className="bg-white bg-opacity-10 p-3 rounded-lg text-center">
-              <span className="block text-2xl font-semibold">
+            <div className="bg-white bg-opacity-10 p-2 sm:p-3 rounded-lg text-center">
+              <span className="block text-lg sm:text-2xl font-semibold">
                 {appointments.filter(apt => apt.status === 'completed').length || 0}
               </span>
-              <span className="text-sm opacity-90">Completed</span>
+              <span className="text-xs sm:text-sm opacity-90 truncate">Completed</span>
             </div>
-            <div className="bg-white bg-opacity-10 p-3 rounded-lg text-center">
-              <span className="block text-2xl font-semibold">
+            <div className="bg-white bg-opacity-10 p-2 sm:p-3 rounded-lg text-center col-span-2 sm:col-span-1">
+              <span className="block text-lg sm:text-2xl font-semibold">
                 ₹{appointments.reduce((total, apt) => total + (apt.total_price || 0), 0).toLocaleString()}
               </span>
-              <span className="text-sm opacity-90">Total Revenue</span>
+              <span className="text-xs sm:text-sm opacity-90 truncate">Total Revenue</span>
             </div>
           </div>
         )}
       </div>
-
+  
       {/* Filters */}
-      <div className="bg-gray-50 rounded-xl p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-3">
+      <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <button 
             onClick={handlePreviousDay}
             className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 text-[#CE145B]"
             disabled={loading}
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={18} />
           </button>
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-600">
+          <div className="flex flex-col items-center sm:items-start">
+            <span className="text-xs sm:text-sm text-gray-600">
               {isToday(date) ? 'Today' : ''}
             </span>
-            <span className="font-semibold text-gray-800">
+            <span className="font-semibold text-gray-800 text-sm sm:text-base">
               {formatDateDisplay(date)}
             </span>
           </div>
@@ -547,14 +547,14 @@ const SalonSchedule = () => {
             className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 text-[#CE145B]"
             disabled={loading}
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={18} />
           </button>
         </div>
-        <div className="flex gap-3 w-full md:w-auto">
+        <div className="flex gap-2 w-full sm:w-auto">
           <select 
             value={selectedStylist}
             onChange={(e) => setSelectedStylist(e.target.value)}
-            className="p-2 border rounded-lg bg-white text-gray-800 min-w-[150px]"
+            className="p-2 text-sm border rounded-lg bg-white text-gray-800 flex-1 sm:min-w-[150px]"
             disabled={loading || !currentSalon}
           >
             <option value="all">All Stylists</option>
@@ -565,7 +565,7 @@ const SalonSchedule = () => {
           <select
             value={selectedService}
             onChange={(e) => setSelectedService(e.target.value)}
-            className="p-2 border rounded-lg bg-white text-gray-800 min-w-[150px]"
+            className="p-2 text-sm border rounded-lg bg-white text-gray-800 flex-1 sm:min-w-[150px]"
             disabled={loading}
           >
             <option value="all">All Services</option>
@@ -575,7 +575,7 @@ const SalonSchedule = () => {
           </select>
         </div>
       </div>
-
+  
       {/* Content Area */}
       {loading ? (
         <LoadingState />
@@ -587,13 +587,13 @@ const SalonSchedule = () => {
         <EmptyState />
       ) : (
         /* Timeline */
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-          <div className="flex p-3 bg-gray-50 border-b border-gray-200 font-semibold">
-            <div className="w-24">Time</div>
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <div className="flex p-2 sm:p-3 bg-gray-50 border-b border-gray-200 font-medium text-sm">
+            <div className="w-16 sm:w-24">Time</div>
             <div className="flex-1">Appointments</div>
           </div>
           
-          <div>
+          <div className="overflow-x-auto">
             {timeSlots.map(time => {
               const appointmentsForSlot = getAppointmentsForTimeSlot(time);
               const isCurrentSlot = isCurrentTimeSlot(time);
@@ -601,16 +601,16 @@ const SalonSchedule = () => {
               return (
                 <div 
                   key={time} 
-                  className={`flex min-h-[80px] border-b border-gray-200 relative
+                  className={`flex min-h-[70px] sm:min-h-[80px] border-b border-gray-200 relative
                     ${isCurrentSlot ? 'bg-yellow-50' : ''}`}
                 >
-                  <div className={`w-24 p-3 ${isCurrentSlot ? 'bg-yellow-100 font-medium' : 'bg-gray-50'} text-gray-600 text-sm flex items-center`}>
+                  <div className={`w-16 sm:w-24 p-2 sm:p-3 ${isCurrentSlot ? 'bg-yellow-100 font-medium' : 'bg-gray-50'} text-gray-600 text-xs sm:text-sm flex items-center`}>
                     {time}
                     {isCurrentSlot && (
                       <span className="ml-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                     )}
                   </div>
-                  <div className="flex-1 p-2 flex flex-wrap gap-2 relative">
+                  <div className="flex-1 p-1 sm:p-2 overflow-x-auto flex gap-2 relative">
                     {isCurrentSlot && <CurrentTimeIndicator />}
                     
                     {appointmentsForSlot.length > 0 ? (
@@ -618,7 +618,7 @@ const SalonSchedule = () => {
                         <AppointmentCard key={apt._id} appointment={apt} />
                       ))
                     ) : (
-                      <div className="flex items-center justify-center w-full p-2 text-gray-400 text-sm">
+                      <div className="flex items-center justify-center w-full p-2 text-gray-400 text-xs sm:text-sm">
                         Available
                       </div>
                     )}
@@ -626,35 +626,35 @@ const SalonSchedule = () => {
                 </div>
               );
             })}
-
+  
             {/* No appointments message if filtered to none */}
             {hasAppointments && !anyAppointmentsForDay && (
-              <div className="p-8 text-center text-gray-500">
+              <div className="p-6 sm:p-8 text-center text-gray-500 text-sm">
                 No appointments match your current filters.
               </div>
             )}
           </div>
         </div>
       )}
-
+  
       {/* Slide-over Panel */}
       {isDetailOpen && selectedAppointment && (
         <div className="fixed inset-0 bg-black bg-opacity-25 z-50 flex justify-end">
-          <div className="w-full max-w-xl bg-white shadow-lg h-full overflow-hidden animate-slide-in-right">
+          <div className="w-full max-w-md sm:max-w-xl bg-white shadow-lg h-full overflow-hidden animate-slide-in-right">
             <div className="h-full flex flex-col">
               {/* Header */}
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-xl font-semibold">
+              <div className="p-4 sm:p-6 border-b border-gray-200">
+                <div className="flex justify-between items-start mb-3 sm:mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-lg sm:text-xl font-semibold">
                       {selectedAppointment.customer_name?.[0] || '?'}
                     </div>
                     <div>
-                      <h2 className="text-xl font-semibold text-gray-900">
+                      <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
                         {selectedAppointment.customer_name}
                       </h2>
                       <div className="flex gap-2 mt-1">
-                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedAppointment.status)}`}>
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(selectedAppointment.status)}`}>
                           {selectedAppointment.status?.toUpperCase() || 'PENDING'}
                         </span>
                       </div>
@@ -669,67 +669,67 @@ const SalonSchedule = () => {
                   </button>
                 </div>
               </div>
-
+  
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6">
                 {/* Contact Information */}
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-500 mb-3">Contact Information</h3>
+                <div className="mb-4 sm:mb-6">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-2 sm:mb-3">Contact Information</h3>
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-gray-700">
-                      <Phone size={16} className="text-[#CE145B]" />
-                      <a href={`tel:${selectedAppointment.user_details?.phone_number}`} className="hover:text-[#CE145B]">
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <Phone size={16} className="text-[#CE145B] flex-shrink-0" />
+                      <a href={`tel:${selectedAppointment.user_details?.phone_number}`} className="hover:text-[#CE145B] truncate">
                       {selectedAppointment.user_details?.phone_number || "Not available"}
                       </a>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-700">
-                      <Mail size={16} className="text-[#CE145B]" />
-                      <a href={`mailto:${selectedAppointment.user_details?.email}`} className="hover:text-[#CE145B]">
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <Mail size={16} className="text-[#CE145B] flex-shrink-0" />
+                      <a href={`mailto:${selectedAppointment.user_details?.email}`} className="hover:text-[#CE145B] truncate">
                         {selectedAppointment.user_details?.email || "Not available"}
                       </a>
                     </div>
                   </div>
                 </div>
-
-                <hr className="my-6 border-gray-200" />
-
+  
+                <hr className="my-4 sm:my-6 border-gray-200" />
+  
                 {/* Appointment Details */}
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-500 mb-3">Appointment Details</h3>
+                <div className="mb-4 sm:mb-6">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-2 sm:mb-3">Appointment Details</h3>
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-gray-700">
-                      <Calendar size={16} className="text-[#CE145B]" />
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <Calendar size={16} className="text-[#CE145B] flex-shrink-0" />
                       <span>{formatDateDisplay(date)}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-700">
-                      <Clock size={16} className="text-[#CE145B]" />
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <Clock size={16} className="text-[#CE145B] flex-shrink-0" />
                       <span>{selectedAppointment.ist_start_time} - {selectedAppointment.ist_end_time}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-700">
-                      <Clock size={16} className="text-[#CE145B]" />
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <Clock size={16} className="text-[#CE145B] flex-shrink-0" />
                       <span>Duration: {selectedAppointment.total_duration} minutes</span>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-700">
-                      <User size={16} className="text-[#CE145B]" />
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <User size={16} className="text-[#CE145B] flex-shrink-0" />
                       <span>Stylist: {selectedAppointment?.stylist || "Any Available"}</span>
                     </div>
                     
                     {/* Appointment Timing Status */}
                     {isToday(date) && (
-                      <div className="mt-2 p-2 rounded text-sm">
+                      <div className="mt-2 p-2 rounded text-xs sm:text-sm">
                         {selectedAppointment.startTimeDate > currentTime ? (
                           <div className="bg-blue-50 p-2 rounded text-blue-800 flex items-center gap-2">
-                            <Clock size={16} />
+                            <Clock size={16} className="flex-shrink-0" />
                             <span>Upcoming - Starts in {Math.ceil((selectedAppointment.startTimeDate - currentTime) / (1000 * 60))} minutes</span>
                           </div>
                         ) : selectedAppointment.endTimeDate < currentTime ? (
                           <div className="bg-gray-50 p-2 rounded text-gray-800 flex items-center gap-2">
-                            <CheckCircle size={16} />
+                            <CheckCircle size={16} className="flex-shrink-0" />
                             <span>Completed {Math.ceil((currentTime - selectedAppointment.endTimeDate) / (1000 * 60))} minutes ago</span>
                           </div>
                         ) : (
                           <div className="bg-green-50 p-2 rounded text-green-800 flex items-center gap-2">
-                            <Clock size={16} />
+                            <Clock size={16} className="flex-shrink-0" />
                             <span>In Progress - Ends in {Math.ceil((selectedAppointment.endTimeDate - currentTime) / (1000 * 60))} minutes</span>
                           </div>
                         )}
@@ -737,16 +737,16 @@ const SalonSchedule = () => {
                     )}
                   </div>
                 </div>
-
-                <hr className="my-6 border-gray-200" />
-
+  
+                <hr className="my-4 sm:my-6 border-gray-200" />
+  
                 {/* Services & Payment */}
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-500 mb-3">Services & Payment</h3>
-                  <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                    <div className="space-y-3">
+                <div className="mb-4 sm:mb-6">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-2 sm:mb-3">Services & Payment</h3>
+                  <div className="bg-gray-50 p-3 sm:p-4 rounded-lg mb-3 sm:mb-4">
+                    <div className="space-y-2 sm:space-y-3">
                       {selectedAppointment.services && selectedAppointment.services.map((service, index) => (
-                        <div key={index} className="flex justify-between text-gray-700">
+                        <div key={index} className="flex justify-between text-xs sm:text-sm text-gray-700">
                           <span className="font-medium">{service.name}</span>
                           <div className="text-right">
                             <div>₹{service.price.toLocaleString()}</div>
@@ -755,72 +755,72 @@ const SalonSchedule = () => {
                         </div>
                       ))}
                       <hr className="my-2 border-gray-200" />
-                      <div className="flex justify-between font-bold text-gray-900">
+                      <div className="flex justify-between font-bold text-gray-900 text-xs sm:text-sm">
                         <span>Total</span>
                         <span>₹{selectedAppointment.total_price?.toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-gray-800 mb-2">Payment Details</h4>
+                  <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                    <h4 className="font-medium text-gray-800 mb-2 text-xs sm:text-sm">Payment Details</h4>
                     <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-xs">
                         <span className="text-gray-600">Payment ID</span>
                         <span className="font-mono">{selectedAppointment.payment_details?.payment_id || 'N/A'}</span>
                       </div>
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-xs">
                         <span className="text-gray-600">Status</span>
                         <span className={`font-medium ${selectedAppointment.payment_status === 'completed' ? 'text-green-600' : 'text-yellow-600'}`}>
                           {selectedAppointment.payment_status?.toUpperCase() || 'PENDING'}
                         </span>
                       </div>
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-xs">
                         <span className="text-gray-600">Method</span>
                         <span>Online</span>
                       </div>
                     </div>
                   </div>
                 </div>
-
-                <hr className="my-6 border-gray-200" />
-
+  
+                <hr className="my-4 sm:my-6 border-gray-200" />
+  
                 {/* Booking Details */}
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-500 mb-3">Booking Details</h3>
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="mb-4 sm:mb-6">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-2 sm:mb-3">Booking Details</h3>
+                  <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                     <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-xs">
                         <span className="text-gray-600">Booking ID</span>
-                        <span className="font-mono">{selectedAppointment._id}</span>
+                        <span className="font-mono text-right truncate ml-2">{selectedAppointment._id}</span>
                       </div>
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-xs">
                         <span className="text-gray-600">Booked On</span>
-                        <span>{new Date(selectedAppointment.booking_date).toLocaleString()}</span>
+                        <span className="text-right">{new Date(selectedAppointment.booking_date).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
                 </div>
-
+  
                 {/* Notes */}
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-500 mb-3">Notes</h3>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-gray-700">{selectedAppointment?.notes || 'No notes available'}</p>
+                <div className="mb-4 sm:mb-6">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-2 sm:mb-3">Notes</h3>
+                  <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                    <p className="text-xs sm:text-sm text-gray-700">{selectedAppointment?.notes || 'No notes available'}</p>
                   </div>
                 </div>
               </div>
-
+  
               {/* Action Buttons */}
-              <div className="p-6 border-t border-gray-200">
+              <div className="p-4 sm:p-6 border-t border-gray-200">
                 <div className="grid grid-cols-2 gap-2">
-                  <button className="w-full px-4 py-2 bg-[#CE145B] text-white rounded-lg hover:bg-[#CE145B]/90 transition-colors">
+                  <button className="w-full px-3 py-2 text-xs sm:text-sm bg-[#CE145B] text-white rounded-lg hover:bg-[#CE145B]/90 transition-colors">
                     Edit Appointment
                   </button>
                   {selectedAppointment.status !== 'cancelled' && (
                     <button 
                       onClick={() => handleStatusUpdate(selectedAppointment._id, 'cancelled')}
-                      className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       Cancel Appointment
                     </button>
@@ -830,7 +830,7 @@ const SalonSchedule = () => {
                 {selectedAppointment.status !== 'completed' && (
                   <button 
                     onClick={() => handleStatusUpdate(selectedAppointment._id, 'completed')}
-                    className="w-full mt-2 px-4 py-2 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                    className="w-full mt-2 px-3 py-2 text-xs sm:text-sm border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
                   >
                     Mark as Completed
                   </button>
@@ -838,7 +838,7 @@ const SalonSchedule = () => {
                 
                 {selectedAppointment.status === 'completed' && (
                   <button 
-                    className="w-full mt-2 px-4 py-2 border border-green-300 text-green-600 rounded-lg hover:bg-green-50 transition-colors"
+                    className="w-full mt-2 px-3 py-2 text-xs sm:text-sm border border-green-300 text-green-600 rounded-lg hover:bg-green-50 transition-colors"
                   >
                     Send Feedback Request
                   </button>
@@ -848,15 +848,6 @@ const SalonSchedule = () => {
           </div>
         </div>
       )}
-
-      {/* Add Appointment Button (Fixed) */}
-      <button className="fixed bottom-6 right-6 bg-[#CE145B] text-white rounded-full p-4 shadow-lg hover:bg-[#CE145B]/90 transition-all hover:scale-105 flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-        <span className="ml-2 hidden md:inline">New Appointment</span>
-      </button>
     </div>
   );
 };

@@ -2,7 +2,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { LocationProvider } from "@/context/LocationContext";
-
+import { SpeedInsights } from "@vercel/speed-insights/next"
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -47,9 +47,13 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      
       <AuthProvider>
         <LocationProvider>
-          <body className={`${inter.variable} antialiased`}>{children}</body>
+          <body className={`${inter.variable} antialiased`}>
+            {children}
+            <SpeedInsights/>
+          </body>
         </LocationProvider>
       </AuthProvider>
     </html>
