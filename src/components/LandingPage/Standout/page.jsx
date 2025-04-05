@@ -1,5 +1,6 @@
 // components/FeaturesGrid.jsx
 import Image from 'next/image';
+import Link from 'next/link';
 
 const FeaturesGrid = () => {
   return (
@@ -37,20 +38,21 @@ const FeaturesGrid = () => {
           {/* Happy Customers Card */}
           <div className="bg-gray-100 rounded-2xl p-6 sm:p-8 flex flex-col h-full">
             <div className="flex flex-col h-full justify-center items-center text-center">
-              <h3 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-gray-800">Satisfied Customers</h3>
+              <h3 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-gray-800">Genuine Salons</h3>
               <div className="mb-2">
-                <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800">10k+</span>
+                <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800">0</span>
               </div>
-              <p className="text-gray-600 text-base sm:text-lg">Happy clients served</p>
+              <p className="text-gray-600 text-base sm:text-lg">Our team has physically visited the location, verified parking options, accessibility features, and the overall ambiance of the salon.</p>
             </div>
           </div>
 
           {/* Premium Products Card */}
           <div className="bg-gray-900 rounded-2xl p-6 sm:p-8 text-white md:col-span-2 lg:col-span-1 flex flex-col">
             <h3 className="text-xl sm:text-2xl font-semibold mb-4">
-              Premium Products
+              Cut My Hair Verification
             </h3>
-            <p className="text-white/90 mb-6">We use only high-quality, salon-grade products for all our services</p>
+            <p className="text-white/90 mb-6">Our seal of quality assurance guarantees an exceptional salon experience.</p>
+            <p>Pricing is transparent with no hidden costs, and service times are accurately represented based on actual observations.</p>
             <div className="mt-auto">
               <Image
                 src="/image01.jpg"
@@ -71,11 +73,12 @@ const FeaturesGrid = () => {
               <p className="text-gray-600 mb-6 sm:mb-8">
                 Book your appointment in seconds and experience the transformation with our skilled stylists and premium services.
               </p>
-              <button 
+              <Link 
+                href={'/home'}
                 className="bg-[#CE145B] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-colors hover:bg-[#A61049] focus:ring-2 focus:ring-[#CE145B] focus:ring-offset-2"
               >
                 Book Now
-              </button>
+              </Link>
             </div>
           </div>
         </div>
