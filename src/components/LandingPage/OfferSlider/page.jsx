@@ -18,7 +18,7 @@ const OffersSlider = () => {
       cta: 'Book now',
       ctaType: 'book',
       bgColor: 'bg-gray-100',
-      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=869&q=80',
+      image: 'slider-images/monsoon.png',
     },
     {
       id: 2,
@@ -29,7 +29,7 @@ const OffersSlider = () => {
       ctaType: 'book',
       bgColor: 'bg-gray-800',
       textColor: 'text-white',
-      image: 'https://images.unsplash.com/photo-1618221118493-9cfa1a1c00da?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1632&q=80',
+      image: 'slider-images/keratin.png',
     },
     {
       id: 3,
@@ -41,7 +41,7 @@ const OffersSlider = () => {
       bgColor: 'bg-gray-900',
       textColor: 'text-white',
       accentColor: 'text-orange-500',
-      image: 'image05.jpg',
+      image: 'slider-images/bridal.png',
     }
   ];
 

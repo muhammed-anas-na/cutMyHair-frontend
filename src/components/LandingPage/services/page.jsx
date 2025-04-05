@@ -11,38 +11,38 @@ const ServicesSection = () => {
   });
   
   // New and trending salon services
-  const newServices = [
-    {
-      id: 1,
-      title: 'Keratin Treatment',
-      image: 'https://images.unsplash.com/photo-1625596170753-7a372761a82d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80',
-    },
-    {
-      id: 2,
-      title: 'Balayage Highlights',
-      image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
-    },
-    {
-      id: 3,
-      title: 'Aromatherapy Massage',
-      image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
-    },
-    {
-      id: 4,
-      title: 'Hair Studio for Women',
-      image: 'https://images.unsplash.com/photo-1560869713-da86bd4b9d13?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
-    },
-    {
-      id: 5,
-      title: 'Beard Grooming',
-      image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1469&q=80',
-    },
-    {
-      id: 6,
-      title: 'Bridal Makeup',
-      image: 'https://images.unsplash.com/photo-1558002038-bb0237f1bf4d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
-    },
-  ];
+  // const newServices = [
+  //   {
+  //     id: 1,
+  //     title: 'Keratin Treatment',
+  //     image: 'https://images.unsplash.com/photo-1625596170753-7a372761a82d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80',
+  //   },
+  //   {
+  //     id: 2,
+  //     title: 'Balayage Highlights',
+  //     image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
+  //   },
+  //   {
+  //     id: 3,
+  //     title: 'Aromatherapy Massage',
+  //     image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
+  //   },
+  //   {
+  //     id: 4,
+  //     title: 'Hair Studio for Women',
+  //     image: 'https://images.unsplash.com/photo-1560869713-da86bd4b9d13?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
+  //   },
+  //   {
+  //     id: 5,
+  //     title: 'Beard Grooming',
+  //     image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1469&q=80',
+  //   },
+  //   {
+  //     id: 6,
+  //     title: 'Bridal Makeup',
+  //     image: 'https://images.unsplash.com/photo-1558002038-bb0237f1bf4d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
+  //   },
+  // ];
 
   // Most booked salon services
   const bookedServices = [
@@ -51,48 +51,47 @@ const ServicesSection = () => {
       title: 'Haircut & Styling (includes wash & blow dry)',
       rating: 4.79,
       reviews: '9.9K',
-      price: '₹599',
-      image: 'https://images.unsplash.com/photo-1632904227468-be9a58f5b716?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
+      image: 'most-booked-service/haircut.png',
     },
     {
       id: 2,
       title: 'Full Hair Coloring (includes color protection)',
       rating: 4.81,
       reviews: '2.6K',
-      price: '₹1,499',
-      image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
+      
+      image: 'most-booked-service/hair-coloring.png',
     },
     {
       id: 3,
-      title: 'Style Consultation',
+      title: 'Beard Styling(shaving, trimming, shaping)',
       rating: 4.80,
       reviews: '1K',
-      price: '₹149',
-      image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
+     
+      image: 'most-booked-service/beard.png',
     },
     {
       id: 4,
-      title: 'Manicure & Pedicure',
+      title: 'Bridal Makeover',
       rating: 4.79,
       reviews: '4.5K',
-      price: '₹849',
-      image: 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
+     
+      image: 'most-booked-service/bridal.png',
     },
     {
       id: 5,
-      title: 'Deep Conditioning Treatment',
+      title: 'Massage',
       rating: 4.78,
       reviews: '2K',
-      price: '₹799',
-      image: 'https://images.unsplash.com/photo-1584771145729-0bd9fda6868b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1473&q=80',
+    
+      image: 'most-booked-service/massage.png',
     },
     {
       id: 6,
       title: 'Facial & Skin Care',
       rating: 4.82,
       reviews: '1.5K',
-      price: '₹899',
-      image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
+     
+      image: 'most-booked-service/facial.png',
     },
   ];
 
@@ -148,11 +147,9 @@ const ServicesSection = () => {
   return (
     <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 md:px-6">
       {/* New and Trending Section */}
-      <div className="mb-12 sm:mb-16">
+      {/* <div className="mb-12 sm:mb-16">
         <h2 className="text-2xl md:text-3xl font-bold mb-6 text-gray-900">New and trending</h2>
-        
         <div className="relative">
-          {/* Services Scroll Container */}
           <div 
             id="new-services-container"
             className="flex overflow-x-auto gap-4 pb-4 hide-scrollbar"
@@ -181,7 +178,6 @@ const ServicesSection = () => {
             ))}
           </div>
           
-          {/* Left scroll button - only show if not at start */}
           {!isAtStart('new-services-container') && (
             <button 
               onClick={() => scrollNewServices('left')}
@@ -192,7 +188,6 @@ const ServicesSection = () => {
             </button>
           )}
           
-          {/* Right scroll button - only show if not at end */}
           {!isAtEnd('new-services-container') && (
             <button 
               onClick={() => scrollNewServices('right')}
@@ -203,7 +198,7 @@ const ServicesSection = () => {
             </button>
           )}
         </div>
-      </div>
+      </div> */}
       
       {/* Most Booked Services Section */}
       <div>

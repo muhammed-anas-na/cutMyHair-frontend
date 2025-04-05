@@ -5,6 +5,7 @@ import { Twitter, Facebook, Instagram, Globe } from 'lucide-react';
 const Footer = () => {
   // Company links
   const companyLinks = [
+    { label: 'Blogs', href: '/blogs' },
     { label: 'About Us', href: '/about-us' },
     { label: 'Terms & Conditions', href: '/terms-and-conditions' },
     { label: 'Privacy Policy', href: '/privacy-policy' },
@@ -30,7 +31,7 @@ const Footer = () => {
   const socialLinks = [
     { icon: <Twitter size={20} />, href: 'https://twitter.com/salonbookingplatform' },
     { icon: <Facebook size={20} />, href: 'https://facebook.com/salonbookingplatform' },
-    { icon: <Instagram size={20} />, href: 'https://instagram.com/salonbookingplatform' },
+    { icon: <Instagram size={20} />, href: 'https://instagram.com/cut_my_hair.in' },
     { icon: <Globe size={20} />, href: 'https://salonbookingplatform.com' },
   ];
 
