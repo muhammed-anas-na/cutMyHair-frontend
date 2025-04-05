@@ -1,6 +1,7 @@
 // SalonDetails.jsx (Main Component)
 'use client';
-import React, { useEffect, useState } from 'react';import { FETCH_SALON_DETAILS_BY_ID_FN } from '@/services/ownerService';
+import React, { useEffect, useState } from 'react';
+import { FETCH_SALON_DETAILS_BY_ID_FN } from '@/services/ownerService';
 
 import SalonHeader from './SalonHeader';
 import ServicesTab from './ServiceTabs';
@@ -9,7 +10,6 @@ import PhotosTab from './photos';
 import EmployeesTab from './employees';
 import DeleteConfirmModal from './DeleteModal';
 import SalonTabs from './SalonTabs';
-
 
 const SalonDetails = ({ salon_id }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -73,18 +73,75 @@ const SalonDetails = ({ salon_id }) => {
   const handleDelete = () => setShowDeleteConfirm(true);
   const handleDeleteConfirm = async () => setShowDeleteConfirm(false);
 
-  if (isLoading) return <div className="max-w-6xl mx-auto p-5 text-center"><div className="py-10">Loading salon details...</div></div>;
-  if (error || !salonData) return <div className="max-w-6xl mx-auto p-5"><div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert"><strong className="font-bold">Error: </strong><span className="block sm:inline">{error || 'Could not load salon details'}</span></div></div>;
+  if (isLoading) return (
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-5 py-8 sm:py-10">
+      <div className="flex justify-center items-center min-h-32">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#CE145B] mr-3"></div>
+        <span className="text-gray-600">Loading salon details...</span>
+      </div>
+    </div>
+  );
+  
+  if (error || !salonData) return (
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-5 py-6 sm:py-8">
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-sm" role="alert">
+        <strong className="font-bold">Error: </strong>
+        <span className="block sm:inline">{error || 'Could not load salon details'}</span>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="max-w-6xl mx-auto p-5">
-      <SalonHeader salonData={salonData} isEditing={isEditing} setIsEditing={setIsEditing} handleSave={handleSave} handleDelete={handleDelete} setSalonData={setSalonData} />
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-5 py-4 sm:py-5">
+      <SalonHeader 
+        salonData={salonData} 
+        isEditing={isEditing} 
+        setIsEditing={setIsEditing} 
+        handleSave={handleSave} 
+        handleDelete={handleDelete} 
+        setSalonData={setSalonData} 
+      />
+      
       <SalonTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-      {activeTab === 'details' && <SalonDetailsTab salonData={salonData} isEditing={isEditing} setSalonData={setSalonData} />}
-      {activeTab === 'services' && <ServicesTab salonData={salonData} setSalonData={setSalonData} isEditing={isEditing} />}
-      {activeTab === 'employees' && <EmployeesTab salonData={salonData} isEditing={isEditing} />}
-      {activeTab === 'photos' && <PhotosTab salonData={salonData} isEditing={isEditing} />}
-      <DeleteConfirmModal salonData={salonData} showDeleteConfirm={showDeleteConfirm} setShowDeleteConfirm={setShowDeleteConfirm} handleDeleteConfirm={handleDeleteConfirm} />
+      
+      <div className="mt-4 sm:mt-6">
+        {activeTab === 'details' && 
+          <SalonDetailsTab 
+            salonData={salonData} 
+            isEditing={isEditing} 
+            setSalonData={setSalonData} 
+          />
+        }
+        
+        {activeTab === 'services' && 
+          <ServicesTab 
+            salonData={salonData} 
+            setSalonData={setSalonData} 
+            isEditing={isEditing} 
+          />
+        }
+        
+        {activeTab === 'employees' && 
+          <EmployeesTab 
+            salonData={salonData} 
+            isEditing={isEditing} 
+          />
+        }
+        
+        {activeTab === 'photos' && 
+          <PhotosTab 
+            salonData={salonData} 
+            isEditing={isEditing} 
+          />
+        }
+      </div>
+      
+      <DeleteConfirmModal 
+        salonData={salonData} 
+        showDeleteConfirm={showDeleteConfirm} 
+        setShowDeleteConfirm={setShowDeleteConfirm} 
+        handleDeleteConfirm={handleDeleteConfirm} 
+      />
     </div>
   );
 };
