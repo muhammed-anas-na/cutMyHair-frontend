@@ -1,17 +1,22 @@
 import React from 'react';
-import { ArrowUpRight } from 'lucide-react';
 import { 
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
 import _ from 'lodash';
 
-const OverviewTab = ({ bookings, timeFilter }) => {
+const OverviewTab = ({ bookings, overview, timeFilter }) => {
   const primaryColor = '#CE145B';
   const secondaryColor = '#FF69B4';
   
   // Data transformation functions
   const calculateDailyRevenue = () => {
+    // Use the provided revenue data if available
+    if (overview && overview.dailyRevenue) {
+      return overview.dailyRevenue.slice(-7);
+    }
+    
+    // Otherwise, calculate from bookings
     const completedBookings = bookings.filter(b => b.status === 'completed');
     const grouped = _.groupBy(completedBookings, booking => 
       new Date(booking.appointment_date).toLocaleDateString()
@@ -41,16 +46,36 @@ const OverviewTab = ({ bookings, timeFilter }) => {
       color: status === 'completed' ? '#4CAF50' : 
              status === 'cancelled' ? '#F44336' : 
              status === 'no-show' ? '#FF9800' : 
-             status === 'confirmed' ? '#2196F3' : '#9C27B0'
+             status === 'confirmed' ? '#2196F3' : 
+             status === 'in-progress' ? '#9C27B0' : '#757575'
     }));
   };
 
   const calculateTopServices = () => {
-    const allServices = bookings.flatMap(booking => booking.services);
-    const serviceCount = _.countBy(allServices, 'name');
+    // If we have services data from the backend
+    if (overview && overview.servicePerformance) {
+      return overview.servicePerformance
+        .map(service => ({
+          name: service.name,
+          count: service.totalBookings,
+          revenue: service.revenue,
+          avgDuration: service.avgDuration
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+    }
     
-    return Object.entries(serviceCount)
-      .map(([name, count]) => ({ name, count }))
+    // Otherwise calculate from bookings
+    const allServices = bookings.flatMap(booking => booking.services);
+    const serviceGroups = _.groupBy(allServices, 'name');
+    
+    return Object.entries(serviceGroups)
+      .map(([name, services]) => ({ 
+        name, 
+        count: services.length,
+        revenue: services.reduce((sum, s) => sum + s.price, 0),
+        avgDuration: Math.round(services.reduce((sum, s) => sum + s.duration, 0) / services.length)
+      }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
   };
@@ -62,6 +87,12 @@ const OverviewTab = ({ bookings, timeFilter }) => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount);
+  };
+
+  const formatDuration = (minutes) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
   };
 
   const getFormattedDateRange = () => {
@@ -76,6 +107,11 @@ const OverviewTab = ({ bookings, timeFilter }) => {
     }
   };
 
+  const dailyRevenueData = calculateDailyRevenue();
+  const servicePopularityData = calculateServicePopularity();
+  const bookingStatusData = calculateBookingStatusDistribution();
+  const topServicesData = calculateTopServices();
+
   return (
     <div>
       <h2 className="text-lg font-medium text-gray-900 mb-5">Business Overview ({getFormattedDateRange()})</h2>
@@ -87,7 +123,7 @@ const OverviewTab = ({ bookings, timeFilter }) => {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
-                data={calculateDailyRevenue()}
+                data={dailyRevenueData}
                 margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
@@ -107,7 +143,7 @@ const OverviewTab = ({ bookings, timeFilter }) => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={calculateBookingStatusDistribution()}
+                  data={bookingStatusData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -117,11 +153,11 @@ const OverviewTab = ({ bookings, timeFilter }) => {
                   nameKey="status"
                   label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                 >
-                  {calculateBookingStatusDistribution().map((entry, index) => (
+                  {bookingStatusData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip formatter={(value, name) => [value, name]} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -134,13 +170,13 @@ const OverviewTab = ({ bookings, timeFilter }) => {
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={calculateServicePopularity()}
+              data={servicePopularityData}
               margin={{ top: 5, right: 20, left: 20, bottom: 30 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} />
               <YAxis />
-              <Tooltip />
+              <Tooltip formatter={(value) => [value, 'Bookings']} />
               <Bar dataKey="count" fill={primaryColor} />
             </BarChart>
           </ResponsiveContainer>
@@ -169,12 +205,18 @@ const OverviewTab = ({ bookings, timeFilter }) => {
                   Bookings
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Revenue
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Avg. Duration
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Popularity
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {calculateTopServices().map((service, idx) => (
+              {topServicesData.map((service, idx) => (
                 <tr key={idx}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {service.name}
@@ -182,12 +224,18 @@ const OverviewTab = ({ bookings, timeFilter }) => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {service.count}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatCurrency(service.revenue)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDuration(service.avgDuration)}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="w-full bg-gray-200 rounded-full h-2.5">
                       <div 
                         className="h-2.5 rounded-full" 
                         style={{ 
-                          width: `${(service.count / calculateTopServices()[0].count) * 100}%`,
+                          width: `${(service.count / topServicesData[0].count) * 100}%`,
                           backgroundColor: primaryColor 
                         }}
                       ></div>
@@ -229,6 +277,7 @@ const OverviewTab = ({ bookings, timeFilter }) => {
                     booking.status === 'completed' ? 'bg-green-100 text-green-800' :
                     booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
                     booking.status === 'no-show' ? 'bg-yellow-100 text-yellow-800' :
+                    booking.status === 'in-progress' ? 'bg-purple-100 text-purple-800' :
                     'bg-blue-100 text-blue-800'
                   }`}>
                     {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}

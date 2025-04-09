@@ -7,7 +7,7 @@ import {
 import { Filter, Clock, Users, TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import _ from 'lodash';
 
-const ServicesTab = ({ bookings, timeFilter }) => {
+const ServicesTab = ({ bookings, services, timeFilter }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   
   const primaryColor = '#CE145B';
@@ -21,6 +21,18 @@ const ServicesTab = ({ bookings, timeFilter }) => {
   
   // Data transformation functions
   const calculateServicePopularity = () => {
+    // Check if we have service performance data in the backend response
+    if (services && services.servicePerformance) {
+      return services.servicePerformance
+        .filter(service => selectedCategory === 'all' || service.name === selectedCategory)
+        .map(service => ({
+          name: service.name,
+          count: service.totalBookings
+        }))
+        .sort((a, b) => b.count - a.count);
+    }
+    
+    // Otherwise calculate from bookings
     const filtered = selectedCategory === 'all' 
       ? allServices 
       : allServices.filter(service => service.name === selectedCategory);
@@ -33,6 +45,18 @@ const ServicesTab = ({ bookings, timeFilter }) => {
   };
   
   const calculateServiceRevenue = () => {
+    // Use pre-calculated data if available
+    if (services && services.servicePerformance) {
+      return services.servicePerformance
+        .filter(service => selectedCategory === 'all' || service.name === selectedCategory)
+        .map(service => ({
+          name: service.name,
+          revenue: service.revenue
+        }))
+        .sort((a, b) => b.revenue - a.revenue);
+    }
+    
+    // Otherwise calculate from bookings
     const completedBookings = bookings.filter(b => b.status === 'completed');
     const servicesRevenue = {};
     
@@ -53,6 +77,20 @@ const ServicesTab = ({ bookings, timeFilter }) => {
   };
   
   const calculateServiceDuration = () => {
+    // Use pre-calculated data if available
+    if (services && services.servicePerformance) {
+      return services.servicePerformance
+        .filter(service => selectedCategory === 'all' || service.name === selectedCategory)
+        .map(service => ({
+          name: service.name,
+          avgDuration: service.avgDuration,
+          totalDuration: service.avgDuration * service.totalBookings,
+          count: service.totalBookings
+        }))
+        .sort((a, b) => b.avgDuration - a.avgDuration);
+    }
+    
+    // Otherwise calculate from bookings
     const servicesDuration = {};
     
     allServices.forEach(service => {
@@ -75,7 +113,7 @@ const ServicesTab = ({ bookings, timeFilter }) => {
         totalDuration: data.totalDuration,
         count: data.count
       }))
-      .sort((a, b) => b.totalDuration - a.totalDuration);
+      .sort((a, b) => b.avgDuration - a.avgDuration);
   };
   
   const calculateServiceTrends = () => {
@@ -84,7 +122,7 @@ const ServicesTab = ({ bookings, timeFilter }) => {
     
     bookings.forEach(booking => {
       const date = new Date(booking.appointment_date);
-      const monthYear = `${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()}`;
+      const monthYear = `${date.toLocaleString('default', { month: 'short' })}`;
       
       if (!monthlyData[monthYear]) {
         monthlyData[monthYear] = {};
@@ -112,11 +150,7 @@ const ServicesTab = ({ bookings, timeFilter }) => {
       })
       .sort((a, b) => {
         const monthsOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const [monthA, yearA] = a.month.split(' ');
-        const [monthB, yearB] = b.month.split(' ');
-        
-        if (yearA !== yearB) return parseInt(yearA) - parseInt(yearB);
-        return monthsOrder.indexOf(monthA) - monthsOrder.indexOf(monthB);
+        return monthsOrder.indexOf(a.month) - monthsOrder.indexOf(b.month);
       });
     
     return {
@@ -126,6 +160,41 @@ const ServicesTab = ({ bookings, timeFilter }) => {
   };
   
   const calculateServicePerformanceMetrics = () => {
+    // Use pre-calculated data if available
+    if (services && services.servicePerformance) {
+      return services.servicePerformance
+        .filter(service => selectedCategory === 'all' || service.name === selectedCategory)
+        .map(service => {
+          const completed = bookings.filter(b => 
+            b.status === 'completed' && 
+            b.services.some(s => s.name === service.name)
+          ).length;
+          
+          const cancelled = bookings.filter(b => 
+            (b.status === 'cancelled' || b.status === 'no-show') && 
+            b.services.some(s => s.name === service.name)
+          ).length;
+          
+          return {
+            name: service.name,
+            totalBookings: service.totalBookings,
+            completed,
+            cancelled,
+            completionRate: service.totalBookings > 0 
+              ? (completed / service.totalBookings) * 100 
+              : 0,
+            cancellationRate: service.totalBookings > 0 
+              ? (cancelled / service.totalBookings) * 100 
+              : 0,
+            revenue: service.revenue,
+            avgDuration: service.avgDuration,
+            price: service.revenue / (completed || 1) // Estimate price if completion data is available
+          };
+        })
+        .sort((a, b) => b.totalBookings - a.totalBookings);
+    }
+    
+    // Otherwise calculate from bookings
     const completedBookings = bookings.filter(b => b.status === 'completed');
     const cancelledBookings = bookings.filter(b => 
       b.status === 'cancelled' || b.status === 'no-show'
@@ -231,6 +300,16 @@ const ServicesTab = ({ bookings, timeFilter }) => {
   const servicePerformanceMetrics = calculateServicePerformanceMetrics();
   const serviceDurations = calculateServiceDuration();
   const trendData = calculateServiceTrends();
+  const servicePopularity = calculateServicePopularity();
+  const serviceRevenue = calculateServiceRevenue();
+  
+  // Handle empty data cases
+  const mostPopularService = servicePopularity.length > 0 ? servicePopularity[0] : { name: 'N/A', count: 0 };
+  const mostProfitableService = serviceRevenue.length > 0 ? serviceRevenue[0] : { name: 'N/A', revenue: 0 };
+  const longestService = serviceDurations.length > 0 ? serviceDurations[0] : { name: 'N/A', avgDuration: 0 };
+  const bestCompletionService = servicePerformanceMetrics.length > 0 ? 
+    servicePerformanceMetrics.sort((a, b) => b.completionRate - a.completionRate)[0] : 
+    { name: 'N/A', completionRate: 0 };
   
   return (
     <div>
@@ -263,7 +342,7 @@ const ServicesTab = ({ bookings, timeFilter }) => {
                 <dt className="text-sm font-medium text-gray-500 truncate">Most Popular Service</dt>
                 <dd>
                   <div className="text-lg font-medium text-gray-900">
-                    {calculateServicePopularity()[0]?.name || 'N/A'}
+                    {mostPopularService.name}
                   </div>
                 </dd>
               </dl>
@@ -271,7 +350,7 @@ const ServicesTab = ({ bookings, timeFilter }) => {
           </div>
           <div className="mt-4 text-sm">
             <span className="text-gray-500">
-              {calculateServicePopularity()[0]?.count || 0} bookings
+              {mostPopularService.count} bookings
             </span>
           </div>
         </div>
@@ -287,7 +366,7 @@ const ServicesTab = ({ bookings, timeFilter }) => {
                 <dt className="text-sm font-medium text-gray-500 truncate">Most Profitable Service</dt>
                 <dd>
                   <div className="text-lg font-medium text-gray-900">
-                    {calculateServiceRevenue()[0]?.name || 'N/A'}
+                    {mostProfitableService.name}
                   </div>
                 </dd>
               </dl>
@@ -295,7 +374,7 @@ const ServicesTab = ({ bookings, timeFilter }) => {
           </div>
           <div className="mt-4 text-sm">
             <span className="text-gray-500">
-              {formatCurrency(calculateServiceRevenue()[0]?.revenue || 0)} revenue
+              {formatCurrency(mostProfitableService.revenue)} revenue
             </span>
           </div>
         </div>
@@ -311,7 +390,7 @@ const ServicesTab = ({ bookings, timeFilter }) => {
                 <dt className="text-sm font-medium text-gray-500 truncate">Longest Service</dt>
                 <dd>
                   <div className="text-lg font-medium text-gray-900">
-                    {serviceDurations[0]?.name || 'N/A'}
+                    {longestService.name}
                   </div>
                 </dd>
               </dl>
@@ -319,7 +398,7 @@ const ServicesTab = ({ bookings, timeFilter }) => {
           </div>
           <div className="mt-4 text-sm">
             <span className="text-gray-500">
-              Avg. {formatDuration(Math.round(serviceDurations[0]?.avgDuration || 0))}
+              Avg. {formatDuration(Math.round(longestService.avgDuration))}
             </span>
           </div>
         </div>
@@ -337,7 +416,7 @@ const ServicesTab = ({ bookings, timeFilter }) => {
                 <dt className="text-sm font-medium text-gray-500 truncate">Best Completion Rate</dt>
                 <dd>
                   <div className="text-lg font-medium text-gray-900">
-                    {servicePerformanceMetrics[0]?.name || 'N/A'}
+                    {bestCompletionService.name}
                   </div>
                 </dd>
               </dl>
@@ -345,7 +424,7 @@ const ServicesTab = ({ bookings, timeFilter }) => {
           </div>
           <div className="mt-4 text-sm">
             <span className="text-gray-500">
-              {servicePerformanceMetrics[0]?.completionRate.toFixed(1) || 0}% completion
+              {bestCompletionService.completionRate.toFixed(1)}% completion
             </span>
           </div>
         </div>
@@ -359,7 +438,7 @@ const ServicesTab = ({ bookings, timeFilter }) => {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={calculateServicePopularity()}
+                data={servicePopularity}
                 margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
@@ -385,7 +464,7 @@ const ServicesTab = ({ bookings, timeFilter }) => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={calculateServiceRevenue()}
+                  data={serviceRevenue}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -397,7 +476,7 @@ const ServicesTab = ({ bookings, timeFilter }) => {
                     `${name}: ${(percent * 100).toFixed(0)}%`
                   }
                 >
-                  {calculateServiceRevenue().map((entry, index) => (
+                  {serviceRevenue.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>

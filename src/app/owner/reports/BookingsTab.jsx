@@ -6,7 +6,7 @@ import {
 import { Calendar, Users, Clock, AlertTriangle, ChevronDown, Download } from 'lucide-react';
 import _ from 'lodash';
 
-const BookingsTab = ({ bookings, timeFilter }) => {
+const BookingsTab = ({ bookings, bookingMetrics, timeFilter }) => {
   const [bookingView, setBookingView] = useState('daily');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCalendar, setShowCalendar] = useState(false);
@@ -155,6 +155,18 @@ const BookingsTab = ({ bookings, timeFilter }) => {
   };
   
   const calculateBookingStatusDistribution = () => {
+    // Use pre-calculated metrics if available
+    if (bookingMetrics) {
+      return [
+        { status: 'completed', count: bookingMetrics.completed, color: '#4CAF50' },
+        { status: 'cancelled', count: bookingMetrics.cancelled, color: '#F44336' },
+        { status: 'no-show', count: bookingMetrics.noShow, color: '#FF9800' },
+        { status: 'in-progress', count: bookings.filter(b => b.status === 'in-progress').length, color: '#9C27B0' },
+        { status: 'confirmed', count: bookings.filter(b => b.status === 'confirmed').length, color: '#2196F3' }
+      ].filter(item => item.count > 0);
+    }
+    
+    // Otherwise calculate from bookings
     const statusCount = _.countBy(bookings, 'status');
     
     return Object.entries(statusCount).map(([status, count]) => ({
@@ -169,6 +181,40 @@ const BookingsTab = ({ bookings, timeFilter }) => {
   };
   
   const calculateBookingMetrics = () => {
+    // Use pre-calculated metrics if available
+    if (bookingMetrics) {
+      const inProgress = bookings.filter(b => b.status === 'in-progress').length;
+      const confirmed = bookings.filter(b => b.status === 'confirmed').length;
+      const completionRate = bookingMetrics.total > 0 ? 
+        (bookingMetrics.completed / bookingMetrics.total) * 100 : 0;
+      const cancellationRate = bookingMetrics.total > 0 ? 
+        ((bookingMetrics.cancelled + bookingMetrics.noShow) / bookingMetrics.total) * 100 : 0;
+      
+      // Calculate average booking lead time
+      let totalLeadTime = 0;
+      bookings.forEach(booking => {
+        const bookingDate = new Date(booking.booking_date);
+        const appointmentDate = new Date(booking.appointment_date);
+        const leadTime = (appointmentDate - bookingDate) / (1000 * 60 * 60 * 24); // convert ms to days
+        totalLeadTime += leadTime;
+      });
+      const avgLeadTime = bookings.length > 0 ? totalLeadTime / bookings.length : 0;
+      
+      return {
+        total: bookingMetrics.total,
+        completed: bookingMetrics.completed,
+        cancelled: bookingMetrics.cancelled,
+        noShow: bookingMetrics.noShow,
+        inProgress,
+        confirmed,
+        completionRate,
+        cancellationRate,
+        avgLeadTime,
+        avgDuration: bookingMetrics.avgDuration
+      };
+    }
+    
+    // Otherwise calculate from bookings
     const total = bookings.length;
     const completed = bookings.filter(b => b.status === 'completed').length;
     const cancelled = bookings.filter(b => b.status === 'cancelled').length;

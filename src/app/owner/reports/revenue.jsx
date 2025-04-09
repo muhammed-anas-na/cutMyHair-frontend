@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import _ from 'lodash';
 
-const RevenueTab = ({ bookings, timeFilter }) => {
+const RevenueTab = ({ bookings, revenue, timeFilter }) => {
   const [revenueView, setRevenueView] = useState('daily'); // daily, weekly, monthly
   
   const primaryColor = '#CE145B';
@@ -16,6 +16,15 @@ const RevenueTab = ({ bookings, timeFilter }) => {
   
   // Data transformation functions
   const calculateRevenueTrend = () => {
+    // Use pre-calculated daily revenue from backend if available
+    if (revenue && revenue.dailyRevenue && revenueView === 'daily') {
+      return revenue.dailyRevenue.map(day => ({
+        date: day.date,
+        revenue: day.revenue,
+        bookings: getBookingsCountForDay(day.date)
+      }));
+    }
+    
     const completedBookings = bookings.filter(b => b.status === 'completed');
     
     if (revenueView === 'daily') {
@@ -56,9 +65,9 @@ const RevenueTab = ({ bookings, timeFilter }) => {
         revenue: data.revenue,
         bookings: data.bookings
       })).sort((a, b) => {
-        const [yearA, weekA] = a.date.split('Week ');
-        const [yearB, weekB] = b.date.split('Week ');
-        return yearA === yearB ? weekA - weekB : yearA - yearB;
+        const weekA = parseInt(a.date.split('Week ')[1]);
+        const weekB = parseInt(b.date.split('Week ')[1]);
+        return weekA - weekB;
       }).slice(-10);
     } else {
       // Group by month
@@ -73,7 +82,7 @@ const RevenueTab = ({ bookings, timeFilter }) => {
         
         if (!monthlyData[key]) {
           monthlyData[key] = {
-            label: `${monthName} ${year}`,
+            label: `${monthName}`,
             revenue: 0,
             bookings: 0
           };
@@ -88,16 +97,29 @@ const RevenueTab = ({ bookings, timeFilter }) => {
         revenue: data.revenue,
         bookings: data.bookings
       })).sort((a, b) => {
-        const [monthA, yearA] = a.date.split(' ');
-        const [monthB, yearB] = b.date.split(' ');
-        return yearA === yearB ? 
-          new Date(Date.parse(`${monthA} 1, 2000`)) - new Date(Date.parse(`${monthB} 1, 2000`)) : 
-          yearA - yearB;
+        const monthA = new Date(Date.parse(`${a.date} 1, 2000`)).getMonth();
+        const monthB = new Date(Date.parse(`${b.date} 1, 2000`)).getMonth();
+        return monthA - monthB;
       }).slice(-12);
     }
   };
 
+  const getBookingsCountForDay = (date) => {
+    return bookings.filter(b => 
+      new Date(b.appointment_date).toLocaleDateString() === date && 
+      b.status === 'completed'
+    ).length;
+  };
+
   const calculateRevenueByService = () => {
+    // Use pre-calculated service performance if available
+    if (revenue && revenue.servicePerformance) {
+      return revenue.servicePerformance.map(service => ({
+        name: service.name,
+        revenue: service.revenue
+      })).sort((a, b) => b.revenue - a.revenue);
+    }
+    
     const completedBookings = bookings.filter(b => b.status === 'completed');
     const servicesRevenue = {};
     
@@ -117,6 +139,17 @@ const RevenueTab = ({ bookings, timeFilter }) => {
   };
 
   const calculateRevenueMetrics = () => {
+    // Use pre-calculated metrics if available
+    if (revenue) {
+      return {
+        totalRevenue: revenue.totalRevenue || 0,
+        avgTicketValue: revenue.avgTicketValue || 0,
+        avgDailyRevenue: revenue.avgDailyRevenue || 0,
+        maxDailyRevenue: revenue.maxDailyRevenue || 0
+      };
+    }
+    
+    // Otherwise calculate from bookings
     const completedBookings = bookings.filter(b => b.status === 'completed');
     const totalRevenue = completedBookings.reduce((sum, booking) => sum + booking.total_price, 0);
     const avgTicketValue = completedBookings.length > 0 ? totalRevenue / completedBookings.length : 0;
@@ -178,6 +211,8 @@ const RevenueTab = ({ bookings, timeFilter }) => {
   };
 
   const metrics = calculateRevenueMetrics();
+  const revenueTrendData = calculateRevenueTrend();
+  const revenueByServiceData = calculateRevenueByService();
 
   return (
     <div>
@@ -290,7 +325,7 @@ const RevenueTab = ({ bookings, timeFilter }) => {
         <div className="h-64 lg:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
-              data={calculateRevenueTrend()}
+              data={revenueTrendData}
               margin={{ top: 10, right: 30, left: 20, bottom: 40 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
@@ -334,7 +369,7 @@ const RevenueTab = ({ bookings, timeFilter }) => {
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={calculateRevenueByService()}
+              data={revenueByServiceData}
               margin={{ top: 5, right: 20, left: 20, bottom: 30 }}
               layout="vertical"
             >
@@ -378,11 +413,21 @@ const RevenueTab = ({ bookings, timeFilter }) => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {calculateRevenueTrend().slice(0, 7).map((day, idx) => {
+              {revenueTrendData.slice(0, 7).map((day, idx) => {
                 // Calculate completion rate for this day
-                const dayBookings = bookings.filter(b => 
-                  new Date(b.appointment_date).toLocaleDateString() === day.date
-                );
+                const dayBookings = bookings.filter(b => {
+                  if (revenueView === 'daily') {
+                    return new Date(b.appointment_date).toLocaleDateString() === day.date;
+                  } else if (revenueView === 'weekly') {
+                    const date = new Date(b.appointment_date);
+                    const weekNum = getWeekNumber(date);
+                    return `Week ${weekNum}` === day.date;
+                  } else {
+                    const month = new Date(b.appointment_date).toLocaleString('default', { month: 'short' });
+                    return month === day.date;
+                  }
+                });
+                
                 const completed = dayBookings.filter(b => b.status === 'completed').length;
                 const completionRate = dayBookings.length > 0 ? (completed / dayBookings.length) * 100 : 0;
                 const avgServiceValue = day.bookings > 0 ? day.revenue / day.bookings : 0;

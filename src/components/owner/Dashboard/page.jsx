@@ -200,13 +200,13 @@ const DashboardContent = () => {
                 }
             } catch (error) {
                 console.log('Using fallback mock data:', error.message);
-                setDashboardData(mockSalons);
-                setSalons(mockSalons.map(salon => salon.name));
-                setDefaultSalon(mockSalons[0].name);
-                setDefaultSalonId(mockSalons[0].salon_id);
-                setStats(mockStats);
-                setAppointments(mockAppointments);
-                setStylists(mockStylists);
+                // setDashboardData([]);
+                // setSalons([]);
+                // setDefaultSalon([]);
+                // setDefaultSalonId(mockSalons[0].salon_id);
+                // setStats(mockStats);
+                // setAppointments(mockAppointments);
+                // setStylists(mockStylists);
                 setError(error.response?.status === 401 ? 'Authentication failed' : 'Failed to load dashboard data');
             } finally {
                 setLoading(false);

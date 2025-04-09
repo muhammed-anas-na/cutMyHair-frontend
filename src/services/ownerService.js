@@ -11,7 +11,8 @@ import {
   GET_APPOINTMENTS_OF_SALON_API,
   ADD_NEW_CATEGORY_API,
   GET_DASHBOARD_DATA_API,
-  ADD_NEW_APPOINMENT_API
+  ADD_NEW_APPOINMENT_API,
+  GET_REPORT_DATA_API
 } from '@/endpoints/index.js';
 
 // Send OTP Function for Owner
@@ -157,6 +158,14 @@ export const GET_DASHBOARD_DATA_FN=async(userId)=>{
 export const ADD_NEW_APPOINMENT_FN = async(newAppointment)=>{
   try {
     return await axiosInstance.post(ADD_NEW_APPOINMENT_API, newAppointment);
+  } catch (err) {
+    return err
+  }
+}
+
+export const GET_REPORT_DATA_FN = async(salon_id)=>{
+  try {
+    return await axiosInstance.post(GET_REPORT_DATA_API, {salon_id});
   } catch (err) {
     return err
   }

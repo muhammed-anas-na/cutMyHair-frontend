@@ -7,97 +7,46 @@ import RevenueTab from './revenue';
 import ServicesTab from './servicesTab';
 import BookingsTab from './BookingsTab';
 import _ from 'lodash';
+import { GET_REPORT_DATA_FN } from '@/services/ownerService';
 
 const SalonFinanceDashboard = () => {
   // State management
   const [timeFilter, setTimeFilter] = useState('week');
   const [dateRange, setDateRange] = useState({ start: null, end: null });
-  const [bookings, setBookings] = useState([]);
+  const [reportData, setReportData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [showFilters, setShowFilters] = useState(false);
   const [serviceFilter, setServiceFilter] = useState('all');
-
+  const [defaultSalon, setDefaultSalon] = useState('');
+  const [defaultSalonId, setDefaultSalonId] = useState('')
   const primaryColor = '#CE145B';
   const lightColor = '#FFEBF3';
 
   useEffect(() => {
-    const fetchData = async () => {
+    async function fetchData() {
       try {
         setIsLoading(true);
-        setTimeout(() => {
-          const mockBookings = generateMockData();
-          setBookings(mockBookings);
-          setIsLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error("Error fetching data:", error);
+        const response = await GET_REPORT_DATA_FN(defaultSalonId);
+        setReportData(response.data);
+        setIsLoading(false);
+        console.log('Report ==>', response.data);
+      } catch (err) {
+        console.log(err);
         setIsLoading(false);
       }
-    };
+    }
     fetchData();
-  }, [timeFilter, dateRange]);
+  }, [timeFilter, dateRange, defaultSalon, defaultSalonId]);
 
-  const generateMockData = () => {
-    const services = [
-      { name: 'Haircut', price: 45, duration: 30 },
-      { name: 'Color', price: 120, duration: 120 },
-      { name: 'Blowout', price: 35, duration: 45 },
-      { name: 'Styling', price: 65, duration: 60 },
-      { name: 'Highlights', price: 150, duration: 150 },
-      { name: 'Treatment', price: 80, duration: 40 }
-    ];
-    const statuses = ['completed', 'cancelled', 'no-show', 'confirmed', 'in-progress'];
-    const days = timeFilter === 'week' ? 7 : timeFilter === 'month' ? 30 : 90;
-    
-    return Array.from({ length: 50 + Math.random() * 80 }, (_, i) => {
-      const numberOfServices = Math.floor(Math.random() * 3) + 1;
-      const selectedServices = Array.from({ length: numberOfServices }, () => 
-        services[Math.floor(Math.random() * services.length)]
-      );
-      const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
-      const totalDuration = selectedServices.reduce((sum, service) => sum + service.duration, 0);
-      const daysAgo = Math.floor(Math.random() * days);
-      const appointmentDate = new Date();
-      appointmentDate.setDate(appointmentDate.getDate() - daysAgo);
-      const hour = 8 + Math.floor(Math.random() * 10);
-      const minute = Math.floor(Math.random() * 4) * 15;
-      const scheduledStartTime = `${hour}:${minute.toString().padStart(2, '0')}`;
-      const scheduledEndHour = hour + Math.floor(totalDuration / 60);
-      const scheduledEndMinute = (minute + totalDuration % 60) % 60;
-      const scheduledEndTime = `${scheduledEndHour}:${scheduledEndMinute.toString().padStart(2, '0')}`;
-      const status = statuses[Math.floor(Math.random() * statuses.length)];
-      
-      return {
-        _id: `booking_${i}`,
-        salon_name: "Style Studio",
-        salon_id: "salon_123",
-        user_id: `user_${Math.floor(Math.random() * 100)}`,
-        services: selectedServices,
-        appointment_date: appointmentDate,
-        scheduled_start_time: scheduledStartTime,
-        scheduled_end_time: scheduledEndTime,
-        total_price: totalPrice,
-        total_duration: totalDuration,
-        status: status,
-        booking_date: new Date(appointmentDate.getTime() - Math.random() * 7 * 24 * 60 * 60 * 1000),
-        payment_details: {
-          payment_id: `pay_${i}`,
-          order_id: `order_${i}`,
-          signature: `sig_${i}`,
-          payment_status: Math.random() > 0.1 ? "success" : "failed"
-        }
-      };
-    });
-  };
+  useEffect(()=>{
+    setDefaultSalon(localStorage.getItem('defaultSalon'))
+    setDefaultSalonId(localStorage.getItem('defaultSalonId'))
+  },[])
 
-  // Calculate key metrics
-  const completedBookings = bookings.filter(b => b.status === 'completed');
-  const totalRevenue = completedBookings.reduce((sum, b) => sum + b.total_price, 0);
-  const totalBookings = bookings.length;
-  const completionRate = totalBookings > 0 ? (completedBookings.length / totalBookings) * 100 : 0;
-  const avgServiceValue = completedBookings.length > 0 ? totalRevenue / completedBookings.length : 0;
+  function handleSalonChange(){
 
+  }
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -114,6 +63,8 @@ const SalonFinanceDashboard = () => {
   };
 
   const handleDownloadReport = () => {
+    if (!reportData) return;
+
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 10;
@@ -145,13 +96,13 @@ const SalonFinanceDashboard = () => {
     yPosition += 10;
 
     doc.setFontSize(10);
-    doc.text(`Total Revenue: ${formatCurrency(totalRevenue)}`, margin, yPosition);
+    doc.text(`Total Revenue: ${formatCurrency(reportData.overview.totalRevenue)}`, margin, yPosition);
     yPosition += 6;
-    doc.text(`Total Bookings: ${totalBookings}`, margin, yPosition);
+    doc.text(`Total Bookings: ${reportData.overview.totalBookings}`, margin, yPosition);
     yPosition += 6;
-    doc.text(`Completion Rate: ${completionRate.toFixed(1)}%`, margin, yPosition);
+    doc.text(`Completion Rate: ${reportData.overview.completionRate.toFixed(1)}%`, margin, yPosition);
     yPosition += 6;
-    doc.text(`Average Service Value: ${formatCurrency(avgServiceValue)}`, margin, yPosition);
+    doc.text(`Average Service Value: ${formatCurrency(reportData.overview.avgServiceValue)}`, margin, yPosition);
     yPosition += 10;
 
     // Revenue Section
@@ -161,21 +112,14 @@ const SalonFinanceDashboard = () => {
     doc.text('Revenue', margin, yPosition);
     yPosition += 10;
 
-    const revenueMetrics = {
-      totalRevenue,
-      avgTicketValue: avgServiceValue,
-      avgDailyRevenue: completedBookings.length > 0 ? totalRevenue / (new Set(completedBookings.map(b => new Date(b.appointment_date).toLocaleDateString())).size) : 0,
-      maxDailyRevenue: Math.max(...Object.values(_.groupBy(completedBookings, b => new Date(b.appointment_date).toLocaleDateString())).map(group => group.reduce((sum, b) => sum + b.total_price, 0)), 0)
-    };
-
     doc.setFontSize(10);
-    doc.text(`Total Revenue: ${formatCurrency(revenueMetrics.totalRevenue)}`, margin, yPosition);
+    doc.text(`Total Revenue: ${formatCurrency(reportData.revenue.totalRevenue)}`, margin, yPosition);
     yPosition += 6;
-    doc.text(`Average Ticket Value: ${formatCurrency(revenueMetrics.avgTicketValue)}`, margin, yPosition);
+    doc.text(`Average Ticket Value: ${formatCurrency(reportData.revenue.avgTicketValue)}`, margin, yPosition);
     yPosition += 6;
-    doc.text(`Average Daily Revenue: ${formatCurrency(revenueMetrics.avgDailyRevenue)}`, margin, yPosition);
+    doc.text(`Average Daily Revenue: ${formatCurrency(reportData.revenue.avgDailyRevenue)}`, margin, yPosition);
     yPosition += 6;
-    doc.text(`Highest Day Revenue: ${formatCurrency(revenueMetrics.maxDailyRevenue)}`, margin, yPosition);
+    doc.text(`Highest Day Revenue: ${formatCurrency(reportData.revenue.maxDailyRevenue)}`, margin, yPosition);
     yPosition += 10;
 
     // Services Section
@@ -185,20 +129,10 @@ const SalonFinanceDashboard = () => {
     doc.text('Services', margin, yPosition);
     yPosition += 10;
 
-    const servicePerformance = _.map(_.groupBy(bookings.flatMap(b => b.services), 'name'), (services, name) => {
-      const completed = bookings.filter(b => b.status === 'completed').flatMap(b => b.services).filter(s => s.name === name);
-      return {
-        name,
-        totalBookings: services.length,
-        revenue: completed.reduce((sum, s) => sum + s.price, 0),
-        avgDuration: services.reduce((sum, s) => sum + s.duration, 0) / services.length
-      };
-    }).sort((a, b) => b.totalBookings - a.totalBookings);
-
     doc.setFontSize(10);
     doc.text('Top Services:', margin, yPosition);
     yPosition += 6;
-    servicePerformance.slice(0, 5).forEach(service => {
+    reportData.services.servicePerformance.slice(0, 5).forEach(service => {
       doc.text(`${service.name}: ${service.totalBookings} bookings, ${formatCurrency(service.revenue)}, Avg. Duration: ${formatDuration(Math.round(service.avgDuration))}`, margin + 5, yPosition);
       yPosition += 6;
     });
@@ -211,13 +145,7 @@ const SalonFinanceDashboard = () => {
     doc.text('Bookings', margin, yPosition);
     yPosition += 10;
 
-    const bookingMetrics = {
-      total: totalBookings,
-      completed: completedBookings.length,
-      cancelled: bookings.filter(b => b.status === 'cancelled').length,
-      noShow: bookings.filter(b => b.status === 'no-show').length,
-      avgDuration: bookings.reduce((sum, b) => sum + b.total_duration, 0) / totalBookings
-    };
+    const bookingMetrics = reportData.bookingMetrics;
 
     doc.setFontSize(10);
     doc.text(`Total Bookings: ${bookingMetrics.total}`, margin, yPosition);
@@ -235,13 +163,13 @@ const SalonFinanceDashboard = () => {
     checkPageBreak(40);
     doc.text('Recent Bookings (Sample):', margin, yPosition);
     yPosition += 6;
-    bookings.slice(0, 5).forEach(booking => {
+    reportData.bookings.slice(0, 5).forEach(booking => {
       const dateStr = new Date(booking.appointment_date).toLocaleDateString();
       doc.text(`Booking #${booking._id.slice(-5)}: ${dateStr}, ${booking.scheduled_start_time}, ${formatCurrency(booking.total_price)}, ${booking.status}`, margin + 5, yPosition);
       yPosition += 6;
     });
 
-    doc.save(`Salon_Financial_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+    doc.save(`Salon_Financial_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   const getFormattedDateRange = () => {
@@ -251,10 +179,43 @@ const SalonFinanceDashboard = () => {
     return 'Custom range';
   };
 
-  const renderOverviewTab = () => <OverviewTab bookings={bookings} timeFilter={timeFilter} />;
-  const renderRevenueTab = () => <RevenueTab bookings={bookings} timeFilter={timeFilter} />;
-  const renderServicesTab = () => <ServicesTab bookings={bookings} timeFilter={timeFilter} />;
-  const renderBookingsTab = () => <BookingsTab bookings={bookings} timeFilter={timeFilter} />;
+  const renderOverviewTab = () => <OverviewTab 
+    bookings={reportData?.bookings || []} 
+    overview={reportData?.overview || {}} 
+    timeFilter={timeFilter} 
+  />;
+  
+  const renderRevenueTab = () => <RevenueTab 
+    bookings={reportData?.bookings || []} 
+    revenue={reportData?.revenue || {}} 
+    timeFilter={timeFilter} 
+  />;
+  
+  const renderServicesTab = () => <ServicesTab 
+    bookings={reportData?.bookings || []} 
+    services={reportData?.services || {}} 
+    timeFilter={timeFilter} 
+  />;
+  
+  const renderBookingsTab = () => <BookingsTab 
+    bookings={reportData?.bookings || []} 
+    bookingMetrics={reportData?.bookingMetrics || {}} 
+    timeFilter={timeFilter} 
+  />;
+
+  // If there's no report data yet, show only loading
+  if (isLoading && !reportData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: primaryColor }}></div>
+      </div>
+    );
+  }
+
+  const totalRevenue = reportData?.overview?.totalRevenue || 0;
+  const totalBookings = reportData?.overview?.totalBookings || 0;
+  const completionRate = reportData?.overview?.completionRate || 0;
+  const avgServiceValue = reportData?.overview?.avgServiceValue || 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -328,7 +289,18 @@ const SalonFinanceDashboard = () => {
           </div>
         </div>
       )}
-
+          <div className="mt-2">
+                                <select
+                                    value={defaultSalon}
+                                    onChange={handleSalonChange}
+                                    className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white"
+                                >
+                                  <option value={defaultSalonId}>{defaultSalon}</option>
+                                    {/* {salons.map((salon, index) => (
+                                        <option key={index} value={salon}>{salon}</option>
+                                    ))} */}
+                                </select>
+                            </div>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
