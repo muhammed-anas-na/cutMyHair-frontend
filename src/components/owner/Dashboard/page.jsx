@@ -1,25 +1,30 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-    Users, CalendarCheck, 
-    MoreVertical, TrendingUp, TrendingDown, Clock,
-    MapPin, Zap, Filter, ChevronDown, Menu, X,
-    DollarSign, Bell
+    Users, CalendarCheck, MoreVertical, TrendingUp, TrendingDown, Clock,
+    MapPin, Zap, Filter, ChevronDown, Menu, X, DollarSign, Bell, PlusCircle, Search
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { ADD_NEW_APPOINMENT_FN, GET_DASHBOARD_DATA_FN } from '@/services/ownerService';
 
-// Stats Card Component with improved design
+// Simple debounce function
+const debounce = (func, wait) => {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
+    };
+};
+
+// Stats Card Component
 const StatsCard = ({ title, value, change, type, icon: Icon }) => {
     const getTypeStyles = () => {
         switch(type) {
-            case 'customers':
-                return { bg: 'bg-blue-50', text: 'text-blue-500' };
-            case 'bookings':
-                return { bg: 'bg-purple-50', text: 'text-purple-500' };
-            case 'revenue':
-                return { bg: 'bg-green-50', text: 'text-green-500' };
-            default:
-                return { bg: 'bg-gray-50', text: 'text-gray-500' };
+            case 'customers': return { bg: 'bg-blue-50', text: 'text-blue-500' };
+            case 'bookings': return { bg: 'bg-purple-50', text: 'text-purple-500' };
+            case 'revenue': return { bg: 'bg-green-50', text: 'text-green-500' };
+            default: return { bg: 'bg-gray-50', text: 'text-gray-500' };
         }
     };
 
@@ -37,22 +42,20 @@ const StatsCard = ({ title, value, change, type, icon: Icon }) => {
                 </div>
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
-                {change.direction === 'up' ? (
+                {change?.direction === 'up' ? (
                     <TrendingUp className="text-green-500 flex-shrink-0" size={14} />
                 ) : (
                     <TrendingDown className="text-red-500 flex-shrink-0" size={14} />
                 )}
-                <span className={`text-xs sm:text-sm truncate ${
-                    change.direction === 'up' ? 'text-green-500' : 'text-red-500'
-                }`}>
-                    {change.value} {change.text}
+                <span className={`text-xs sm:text-sm truncate ${change?.direction === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+                    {change?.value || '0%'} {change?.text || 'change'}
                 </span>
             </div>
         </div>
     );
 };
 
-// Upcoming Appointment Card Component
+// Appointment Card Component
 const AppointmentCard = ({ customer, service, time, stylist, location }) => (
     <div className="flex items-center py-3 border-b border-gray-100 last:border-0">
         <div className="flex-shrink-0 mr-3">
@@ -88,110 +91,264 @@ const AppointmentCard = ({ customer, service, time, stylist, location }) => (
 const DashboardContent = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [dateRange, setDateRange] = useState('This Week');
-    const [currentLocation, setCurrentLocation] = useState('Downtown Salon');
+    const [defaultSalon, setDefaultSalon] = useState('');
+    const [defaultSalonId, setDefaultSalonId] = useState('');
     const [showNewBookingForm, setShowNewBookingForm] = useState(false);
-    
-    // Filter appointments based on selected date range
-    const filterAppointmentsByDate = (appointments, selectedRange) => {
-        const today = new Date();
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay());
-        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const [selectedServices, setSelectedServices] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [dashboardData, setDashboardData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [bookingLoading, setBookingLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [salons, setSalons] = useState([]);
+    const [stylists, setStylists] = useState([]);
+    const [selectedStylist, setSelectedStylist] = useState('Any');
+
+    // Mock data
+    const mockStats = [
+        { title: 'Total Customers', value: '259', change: { direction: 'up', value: '12%', text: 'vs last period' }, type: 'customers', icon: Users },
+        { title: 'Total Bookings', value: '183', change: { direction: 'up', value: '8%', text: 'vs last period' }, type: 'bookings', icon: CalendarCheck },
+        { title: 'Total Revenue', value: '$4,320', change: { direction: 'up', value: '15%', text: 'vs last period' }, type: 'revenue', icon: DollarSign }
+    ];
+
+    const mockAppointments = [
+        { customer: { name: 'Emma Johnson', image: '' }, service: 'Haircut & Style', time: '10:00 AM', stylist: 'Maria Garcia', location: 'Downtown Salon' },
+        { customer: { name: 'Michael Smith', image: '' }, service: 'Color Treatment', time: '11:30 AM', stylist: 'John Davis', location: 'Downtown Salon' },
+        { customer: { name: 'Sophia Lee', image: '' }, service: 'Spa Manicure', time: '2:15 PM', stylist: 'Aisha Patel', location: 'Downtown Salon' }
+    ];
+
+    const mockSalons = [
+        {
+            name: 'Downtown Salon',
+            salon_id: 'mock1',
+            services: [
+                { name: 'Haircut', service_id: 's1' },
+                { name: 'Blow Dry', service_id: 's2' },
+                { name: 'Color', service_id: 's3' }
+            ]
+        },
+        {
+            name: 'Uptown Spa & Salon',
+            salon_id: 'mock2',
+            services: [
+                { name: 'Haircut', service_id: 's4' },
+                { name: 'Men\'s Cut', service_id: 's5' },
+                { name: 'Color', service_id: 's6' }
+            ]
+        }
+    ];
+
+    const mockStylists = ['Maria Garcia', 'John Davis', 'Aisha Patel'];
+
+    const [stats, setStats] = useState(mockStats);
+    const [appointments, setAppointments] = useState(mockAppointments);
+    const { user_id } = useAuth();
+
+    // Get services for current salon
+    const getServicesForCurrentSalon = () => {
+        if (!dashboardData || !defaultSalon) return [];
+        const currentSalon = dashboardData.find(salon => salon.name === defaultSalon);
+        if (!currentSalon) return [];
         
-        // This is a simplified filter that would be more sophisticated in a real app
-        switch(selectedRange) {
-            case 'Today':
-                return appointments.filter(app => app.date === today.toDateString());
-            case 'This Week':
-                return appointments;
-            case 'This Month':
-                return appointments;
-            default:
-                return appointments;
-        }
-    };
-    
-    // Sample statistics based on selected date range
-    const stats = [
-        {
-            title: 'Total Customers',
-            value: dateRange === 'Today' ? '42' : dateRange === 'This Week' ? '2,689' : '10,450',
-            change: { value: '8.5%', direction: 'up', text: 'vs previous period' },
-            type: 'customers',
-            icon: Users
-        },
-        {
-            title: 'Total Bookings',
-            value: dateRange === 'Today' ? '8' : dateRange === 'This Week' ? '193' : '845',
-            change: { value: '5.2%', direction: 'up', text: 'vs previous period' },
-            type: 'bookings',
-            icon: CalendarCheck
-        },
-        {
-            title: 'Total Revenue',
-            value: dateRange === 'Today' ? '$820' : dateRange === 'This Week' ? '$8,920' : '$36,780',
-            change: { value: '3.1%', direction: 'down', text: 'vs previous period' },
-            type: 'revenue',
-            icon: DollarSign
-        }
-    ];
-    
-    // Upcoming appointments with dates for filtering
-    const allAppointments = [
-        // { 
-        //     customer: { name: 'Emma Thompson', image: '' },
-        //     service: 'Hair Coloring',
-        //     time: '2:30 PM',
-        //     stylist: 'Sarah Johnson',
-        //     location: 'Downtown Salon',
-        //     date: new Date().toDateString()
-        // },
-        // { 
-        //     customer: { name: 'Michael Chen', image: '' },
-        //     service: 'Men\'s Haircut',
-        //     time: '3:45 PM',
-        //     stylist: 'David Wilson',
-        //     location: 'Downtown Salon',
-        //     date: new Date().toDateString()
-        // },
-        // { 
-        //     customer: { name: 'Sophia Martinez', image: '' },
-        //     service: 'Manicure & Pedicure',
-        //     time: '4:15 PM',
-        //     stylist: 'Lisa Brown',
-        //     location: 'Downtown Salon',
-        //     date: new Date().toDateString()
-        // },
-        // { 
-        //     customer: { name: 'James Miller', image: '' },
-        //     service: 'Beard Trim',
-        //     time: '5:00 PM',
-        //     stylist: 'Mark Davis',
-        //     location: 'Downtown Salon',
-        //     date: new Date().toDateString()
-        // }
-    ];
-    
-    // Filter appointments based on date range
-    const filteredAppointments = filterAppointmentsByDate(allAppointments, dateRange);
-    
-    // Quick action to handle new booking
-    const handleNewBooking = () => {
-        setShowNewBookingForm(true);
+        return currentSalon.services.filter(service => 
+            service.name && 
+            typeof service.name === 'string' && 
+            service.name.trim().length > 2 &&
+            service.service_id
+        );
     };
 
+    // Get filtered services
+    const filteredServices = getServicesForCurrentSalon().filter(
+        service => service.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Fetch initial data
+    useEffect(() => {
+        async function fetchData() {
+            setLoading(true);
+            setError(null);
+            try {
+                const response = await GET_DASHBOARD_DATA_FN(user_id);
+                if (!response?.data?.success) {
+                    throw new Error('Invalid API response format');
+                }
+                
+                const responseData = response.data;
+                const salonData = responseData.data || [];
+                
+                if (Array.isArray(salonData) && salonData.length > 0) {
+                    setDashboardData(salonData);
+                    const salonNames = salonData.map(salon => salon.name);
+                    setSalons(salonNames);
+
+                    const storedSalon = localStorage.getItem('defaultSalon');
+                    const storedSalonId = localStorage.getItem('defaultSalonId');
+                    if (storedSalon && storedSalonId && salonNames.includes(storedSalon)) {
+                        setDefaultSalon(storedSalon);
+                        setDefaultSalonId(storedSalonId);
+                    } else if (salonNames.length > 0) {
+                        setDefaultSalon(salonNames[0]);
+                        setDefaultSalonId(salonData[0].salon_id);
+                    }
+
+                    if (responseData.stats) setStats(responseData.stats);
+                    if (responseData.appointments) setAppointments(responseData.appointments);
+                    if (responseData.stylists) setStylists(responseData.stylists);
+                } else {
+                    throw new Error('No salon data available');
+                }
+            } catch (error) {
+                console.log('Using fallback mock data:', error.message);
+                setDashboardData(mockSalons);
+                setSalons(mockSalons.map(salon => salon.name));
+                setDefaultSalon(mockSalons[0].name);
+                setDefaultSalonId(mockSalons[0].salon_id);
+                setStats(mockStats);
+                setAppointments(mockAppointments);
+                setStylists(mockStylists);
+                setError(error.response?.status === 401 ? 'Authentication failed' : 'Failed to load dashboard data');
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchData();
+    }, [user_id]);
+
+    // Save salon selection
+    useEffect(() => {
+        if (defaultSalon) localStorage.setItem('defaultSalon', defaultSalon);
+        if (defaultSalonId) localStorage.setItem('defaultSalonId', defaultSalonId);
+    }, [defaultSalon, defaultSalonId]);
+
+    // Utility functions
+    const getCurrentDate = () => {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    };
+
+    const getCurrentTime = () => {
+        const now = new Date();
+        return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    };
+
+    // Handlers
+    const handleSalonChange = (e) => {
+        const newSalon = e.target.value;
+        const salonData = dashboardData.find(s => s.name === newSalon);
+        setDefaultSalon(newSalon);
+        setDefaultSalonId(salonData?.salon_id || '');
+        setSelectedServices([]);
+        setSearchTerm('');
+    };
+
+    const handleNewBooking = () => {
+        setSelectedServices([]);
+        setSelectedStylist('Any');
+        setShowNewBookingForm(true);
+        setError(null);
+    };
+
+    const addService = (service) => {
+        if (!selectedServices.some(s => s.service_id === service.service_id)) {
+            setSelectedServices([...selectedServices, service]);
+            setSearchTerm('');
+        }
+    };
+
+    const removeService = (serviceId) => {
+        setSelectedServices(selectedServices.filter(s => s.service_id !== serviceId));
+    };
+
+    const debounceSearch = useCallback(
+        debounce((value) => setSearchTerm(value), 300),
+        []
+    );
+
+    const validateBooking = (data) => {
+        if (!data.date) return 'Date is required';
+        if (!data.time) return 'Time is required';
+        if (!data.salon_id) return 'Salon selection is required';
+        if (!data.services.length) return 'At least one service is required';
+        return null;
+    };
+
+    const handleSubmitBooking = async (e) => {
+        e.preventDefault();
+        setError(null);
+        setBookingLoading(true);
+
+        const formData = {
+            customer: { name: 'New Customer' },
+            services: selectedServices.map(service => ({
+                name: service.name,
+                service_id: service.service_id
+            })),
+            time: document.querySelector('input[type="time"]').value,
+            date: document.querySelector('input[type="date"]').value,
+            stylist: selectedStylist,
+            salon: defaultSalon,
+            salon_id: defaultSalonId
+        };
+
+        const validationError = validateBooking(formData);
+        if (validationError) {
+            setError(validationError);
+            setBookingLoading(false);
+            return;
+        }
+
+        try {
+            const response = await ADD_NEW_APPOINMENT_FN(formData);
+            if (response?.data?.success) {
+                setAppointments([{
+                    ...formData,
+                    customer: formData.customer,
+                    service: selectedServices.map(s => s.name).join(', ')
+                }, ...appointments]);
+                setShowNewBookingForm(false);
+                setSelectedServices([]);
+                setSelectedStylist('Any');
+            } else {
+                throw new Error('Booking failed');
+            }
+        } catch (err) {
+            setError(err.message || 'Failed to create booking');
+        } finally {
+            setBookingLoading(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-t-4 border-[#CE145B] border-solid rounded-full animate-spin mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading dashboard data...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <>  
-            {/* Main Content */}
+        <>
             <div className="flex-1 lg:mt-0">
                 <div className="max-w-full p-4 sm:p-6">
-                    {/* Top Section with Date Range and Quick Actions */}
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
                         <div>
                             <h1 className="text-xl sm:text-2xl font-bold">Dashboard</h1>
-                            <p className="text-sm text-gray-500 mt-1">{currentLocation}</p>
+                            <div className="mt-2">
+                                <select
+                                    value={defaultSalon}
+                                    onChange={handleSalonChange}
+                                    className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white"
+                                >
+                                    {salons.map((salon, index) => (
+                                        <option key={index} value={salon}>{salon}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
-                        
                         <div className="flex items-center space-x-2 mt-4 sm:mt-0">
                             <div className="dropdown relative">
                                 <select
@@ -205,7 +362,6 @@ const DashboardContent = () => {
                                 </select>
                                 <Filter size={14} className="absolute left-3 top-2.5 text-gray-400 pointer-events-none" />
                             </div>
-                            
                             <button 
                                 className="bg-[#CE145B] hover:bg-[#B71350] text-white rounded-lg px-4 py-2 text-sm font-medium flex items-center"
                                 onClick={handleNewBooking}
@@ -216,17 +372,13 @@ const DashboardContent = () => {
                         </div>
                     </div>
 
-                    {/* Stats Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         {stats.map((stat, index) => (
                             <StatsCard key={index} {...stat} />
                         ))}
                     </div>
-                    
-                    {/* Dashboard Sections */}
+
                     <div className="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-                        
-                        {/* Quick Actions Section */}
                         <div className="lg:col-span-4 bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                             <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
                             <div className="grid grid-cols-1 gap-3">
@@ -246,98 +398,169 @@ const DashboardContent = () => {
                             </div>
                         </div>
 
-                                                {/* Upcoming Appointments Section */}
-                                                <div className="lg:col-span-8 bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div className="lg:col-span-8 bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-semibold">Upcoming Appointments</h2>
                                 <button className="text-sm text-[#CE145B] hover:text-[#B71350]">View Schedule</button>
                             </div>
                             <div className="space-y-1">
-                                {filteredAppointments.length > 0 ? (
-                                    filteredAppointments.map((appointment, index) => (
+                                {appointments.length > 0 ? (
+                                    appointments.map((appointment, index) => (
                                         <AppointmentCard key={index} {...appointment} />
                                     ))
                                 ) : (
-                                    <p className="text-gray-500 py-4 text-center">No appointments for the selected period</p>
+                                    <p className="text-gray-500 py-4 text-center">No appointments scheduled</p>
                                 )}
                             </div>
                         </div>
-
-                        
                     </div>
                 </div>
             </div>
-            
-            {/* New Booking Form Modal */}
+
             {showNewBookingForm && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl p-6 max-w-md w-full">
+                    <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-screen overflow-y-auto">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-semibold">New Booking</h2>
                             <button 
                                 className="text-gray-400 hover:text-gray-600"
                                 onClick={() => setShowNewBookingForm(false)}
+                                disabled={bookingLoading}
                             >
                                 <X size={20} />
                             </button>
                         </div>
-                        <form className="space-y-4">
+                        {error && (
+                            <div className="mb-4 p-2 bg-red-50 text-red-700 text-sm rounded">
+                                {error}
+                            </div>
+                        )}
+                        <form onSubmit={handleSubmitBooking} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Service</label>
-                                <select className="w-full border border-gray-300 rounded-lg p-2 text-sm">
-                                    <option>Select service</option>
-                                    <option>Hair Coloring</option>
-                                    <option>Women's Haircut</option>
-                                    <option>Men's Haircut</option>
-                                    <option>Manicure & Pedicure</option>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Salon</label>
+                                <select 
+                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                                    value={defaultSalon}
+                                    onChange={handleSalonChange}
+                                    disabled={bookingLoading}
+                                >
+                                    {salons.map((salon, index) => (
+                                        <option key={index} value={salon}>{salon}</option>
+                                    ))}
                                 </select>
                             </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Services</label>
+                                <div className="relative mb-2">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search services..." 
+                                        className="w-full border border-gray-300 rounded-lg p-2 pl-8 text-sm"
+                                        value={searchTerm}
+                                        onChange={(e) => debounceSearch(e.target.value)}
+                                        disabled={bookingLoading}
+                                    />
+                                    <Search size={14} className="absolute left-2.5 top-2.5 text-gray-400" />
+                                </div>
+                                {searchTerm && (
+                                    <div className="border border-gray-200 rounded-lg mb-2 max-h-32 overflow-y-auto bg-white shadow-md">
+                                        {filteredServices.length > 0 ? (
+                                            filteredServices.map((service) => (
+                                                <div 
+                                                    key={service.service_id} 
+                                                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center justify-between border-b border-gray-100 last:border-0"
+                                                    onClick={() => addService(service)}
+                                                >
+                                                    <span>{service.name}</span>
+                                                    <PlusCircle size={14} className="text-[#CE145B]" />
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="px-3 py-2 text-sm text-gray-500">No services found</div>
+                                        )}
+                                    </div>
+                                )}
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    {selectedServices.map((service) => (
+                                        <div 
+                                            key={service.service_id} 
+                                            className="bg-[#FFDBD7] text-[#CE145B] text-xs rounded-full px-3 py-1 flex items-center"
+                                        >
+                                            <span className="mr-1">{service.name}</span>
+                                            <X 
+                                                size={12} 
+                                                className="cursor-pointer" 
+                                                onClick={() => removeService(service.service_id)}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                                {selectedServices.length === 0 && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                        Search and select services to add them here
+                                    </div>
+                                )}
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                                    <input type="date" className="w-full border border-gray-300 rounded-lg p-2 text-sm" />
+                                    <input 
+                                        type="date" 
+                                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                                        defaultValue={getCurrentDate()}
+                                        disabled={bookingLoading}
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
-                                    <input type="time" className="w-full border border-gray-300 rounded-lg p-2 text-sm" />
+                                    <input 
+                                        type="time" 
+                                        className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                                        defaultValue={getCurrentTime()}
+                                        disabled={bookingLoading}
+                                    />
                                 </div>
                             </div>
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Stylist</label>
-                                <select className="w-full border border-gray-300 rounded-lg p-2 text-sm">
+                                <select 
+                                    className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+                                    value={selectedStylist}
+                                    onChange={(e) => setSelectedStylist(e.target.value)}
+                                    disabled={bookingLoading}
+                                >
                                     <option>Any</option>
-                                    <option>Sarah Johnson</option>
-                                    <option>David Wilson</option>
-                                    <option>Lisa Brown</option>
-                                    <option>Mark Davis</option>
+                                    {stylists.map((stylist, index) => (
+                                        <option key={index}>{stylist}</option>
+                                    ))}
                                 </select>
                             </div>
+
                             <div className="flex justify-end space-x-2 pt-2">
                                 <button 
                                     type="button" 
                                     className="px-4 py-2 border border-gray-300 rounded-lg text-sm"
                                     onClick={() => setShowNewBookingForm(false)}
+                                    disabled={bookingLoading}
                                 >
                                     Cancel
                                 </button>
                                 <button 
-                                    type="button" 
-                                    className="px-4 py-2 bg-[#CE145B] text-white rounded-lg text-sm"
-                                    onClick={() => {
-                                        // In a real app, this would save the booking
-                                        setShowNewBookingForm(false);
-                                        // Show confirmation or update UI
-                                    }}
+                                    type="submit" 
+                                    className="px-4 py-2 bg-[#CE145B] text-white rounded-lg text-sm disabled:bg-gray-400"
+                                    disabled={bookingLoading}
                                 >
-                                    Book Appointment
+                                    {bookingLoading ? 'Booking...' : 'Book Appointment'}
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
-            
-            {/* Overlay for mobile menu */}
+
             {mobileMenuOpen && (
                 <div 
                     className="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden"

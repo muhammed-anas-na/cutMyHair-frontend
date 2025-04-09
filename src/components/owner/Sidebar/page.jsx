@@ -35,7 +35,7 @@ const Sidebar = ({ isDarkMode, setIsDarkMode, isVisible, setIsVisible, isMobileV
         { id: '/owner/dashboard', label: 'Dashboard', icon: Home },
         { id: '/owner/salons', label: 'My Salons', icon: Briefcase },
         { id: '/owner/schedules', label: 'Schedules', icon: Calendar },
-        { id: '/owner/finance', label: 'Finance', icon: DollarSign },
+        { id: '/owner/reports', label: 'Reports', icon: DollarSign },
     ];
 
     // Keeping your existing toggle functions

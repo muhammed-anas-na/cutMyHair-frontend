@@ -9,7 +9,9 @@ import {
   UPDATE_WORKING_HOUR_API,
   ADD_SERVICE_FOR_SALON_API,
   GET_APPOINTMENTS_OF_SALON_API,
-  ADD_NEW_CATEGORY_API
+  ADD_NEW_CATEGORY_API,
+  GET_DASHBOARD_DATA_API,
+  ADD_NEW_APPOINMENT_API
 } from '@/endpoints/index.js';
 
 // Send OTP Function for Owner
@@ -139,6 +141,22 @@ export const ADD_SERVICE_FOR_SALON_FN = async (salon_id, name, description, pric
 export const ADD_NEW_CATEGORY_FN = async(data)=>{
   try {
     return await axiosInstance.post(ADD_NEW_CATEGORY_API, data);
+  } catch (err) {
+    return err
+  }
+}
+
+export const GET_DASHBOARD_DATA_FN=async(userId)=>{
+  try {
+    return await axiosInstance.post(GET_DASHBOARD_DATA_API, {userId});
+  } catch (err) {
+    return err
+  }
+} 
+
+export const ADD_NEW_APPOINMENT_FN = async(newAppointment)=>{
+  try {
+    return await axiosInstance.post(ADD_NEW_APPOINMENT_API, newAppointment);
   } catch (err) {
     return err
   }
