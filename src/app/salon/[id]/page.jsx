@@ -199,14 +199,6 @@ const SalonDetailPage = ({ params }) => {
 
           {/* Gender Selection */}
           <div className="flex flex-wrap items-center gap-2 mt-4">
-            <label className="flex items-center bg-gray-50 px-3 py-1.5 rounded-full">
-              <input type="radio" name="gender" defaultChecked className="mr-2 accent-[#CE145B]" />
-              <span className="text-sm">Male</span>
-            </label>
-            <label className="flex items-center bg-gray-50 px-3 py-1.5 rounded-full">
-              <input type="radio" name="gender" className="mr-2 accent-[#CE145B]" />
-              <span className="text-sm">Female</span>
-            </label>
             <div className="ml-auto flex items-center bg-[#F3FCF7] px-3 py-1.5 rounded-full cursor-pointer" onClick={() => setIsVerificationPopupOpen(true)}>
               <div className="mr-2 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
                 <Info className="w-3 h-3 text-white" />
