@@ -216,7 +216,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6D7D3]">
+    <div className="min-h-screen bg-[#F6D7D3] pb-20">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div className="md:w-1/2 relative">
           <img

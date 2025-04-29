@@ -17,6 +17,7 @@ export default function OwnerLogin() {
     const [resendDisabled, setResendDisabled] = useState(false);
     const [timer, setTimer] = useState(30);
     const inputRefs = useRef([]);
+    const [otpId, setOtpID] = useState('');
     const router = useRouter();
     const { login } = useAuth();
     
@@ -110,7 +111,8 @@ export default function OwnerLogin() {
             if (validateOtp()) {
                 setIsLoading(true);
                 try {
-                    const response = await OWNER_VERIFY_OTP_FN(name, otp.join(""), 'login');
+                    console.log(otpId)
+                    const response = await OWNER_VERIFY_OTP_FN(name, otp.join(""), 'login', otpId);
                     if (response.status === 200) {
                         login({
                             user_id:response.data.data.owner_id,
@@ -135,6 +137,8 @@ export default function OwnerLogin() {
                 try {
                     const response = await OWNER_SEND_OTP_FN(phoneNumber , 'login');
                     if (response.status === 200) {
+                        console.log(response.data.data.otp_id)
+                        setOtpID(response.data.data.otp_id)
                         setIsOtpView(true);
                         setResendDisabled(true);
                         setTimeout(() => {
@@ -212,42 +216,7 @@ export default function OwnerLogin() {
                         alt="Salon Business"
                         className="absolute inset-0 w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#CE145B]/40 to-transparent flex flex-col justify-center px-10">
-                        <div className="max-w-md">
-                            <h2 className="text-4xl font-bold text-white mb-6">Welcome back to your salon dashboard</h2>
-                            <div className="space-y-6 text-white">
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-white/20 p-2 rounded-full">
-                                        <LayoutDashboard size={24} className="text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-lg">Manage Your Salon</h3>
-                                        <p className="text-white/90 text-sm">Control all aspects of your business</p>
-                                    </div>
-                                </div>
-                                
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-white/20 p-2 rounded-full">
-                                        <Calendar size={24} className="text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-lg">View Appointments</h3>
-                                        <p className="text-white/90 text-sm">Check upcoming bookings and schedule</p>
-                                    </div>
-                                </div>
-                                
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-white/20 p-2 rounded-full">
-                                        <Users size={24} className="text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-lg">Customer Management</h3>
-                                        <p className="text-white/90 text-sm">View and interact with your clients</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    
                 </div>
                 
                 {/* Mobile Header */}
@@ -258,12 +227,6 @@ export default function OwnerLogin() {
                             alt="Salon Business"
                             className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#CE145B]/40 to-transparent">
-                            <div className="p-6">
-                                <h2 className="text-2xl font-bold text-white">Salon Owner Portal</h2>
-                                <p className="text-white/90 mt-1">Login to manage your business</p>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 

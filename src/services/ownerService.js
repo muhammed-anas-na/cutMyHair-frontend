@@ -12,10 +12,10 @@ import {
   ADD_NEW_CATEGORY_API,
   GET_DASHBOARD_DATA_API,
   ADD_NEW_APPOINMENT_API,
-  GET_REPORT_DATA_API
+  GET_REPORT_DATA_API,
+  GET_OWNER_SETTINGS_DATA_API
 } from '@/endpoints/index.js';
 
-// Send OTP Function for Owner
 export const OWNER_SEND_OTP_FN = async (phone_number,from) => {
   try {
     return await axiosInstance.post(OWNER_SEND_OTP_API, { phone_number, from });
@@ -24,16 +24,14 @@ export const OWNER_SEND_OTP_FN = async (phone_number,from) => {
   }
 };
 
-// Verify OTP Function for Owner
-export const OWNER_VERIFY_OTP_FN = async (name, otp, from = '') => {
+export const OWNER_VERIFY_OTP_FN = async (name, otp, from = '', otp_id) => {
   try {
-    return await axiosInstance.post(OWNER_VERIFY_OTP_API, { name, otp, from });
+    return await axiosInstance.post(OWNER_VERIFY_OTP_API, { name, otp, from, otp_id });
   } catch (err) {
     return err;
   }
 };
 
-// Add Salon Function
 export const OWNER_ADD_SALON_FN = async (salonData) => {
   try {
     return await axiosInstance.post(OWNER_ADD_SALON_API, salonData);
@@ -42,7 +40,6 @@ export const OWNER_ADD_SALON_FN = async (salonData) => {
   }
 };
 
-// Get Salon by Owner ID Function
 export const OWNER_GET_SALON_BY_ID_FN = async (owner_id) => {
   try {
     return await axiosInstance.post(OWNER_GET_SALON_BY_ID_API, { owner_id });
@@ -51,7 +48,6 @@ export const OWNER_GET_SALON_BY_ID_FN = async (owner_id) => {
   }
 };
 
-// Get Salon Details by Salon ID Function
 export const OWNER_GET_SALON_DETAILS_BY_ID_FN = async (salon_id) => {
   try {
     return await axiosInstance.post(OWNER_GET_SALON_DETAILS_BY_ID_API, { salon_id });
@@ -117,7 +113,6 @@ export const GET_APPOINTMENTS_OF_SALON_FN = async(salon_id, date)=>{
   }
 }
 
-// Service Function: ADD_SERVICE_FOR_SALON_FN
 export const ADD_SERVICE_FOR_SALON_FN = async (salon_id, name, description, price, duration, category, status, category_id) => {
   try {
     console.log("IDDD===>",category_id)
@@ -166,6 +161,14 @@ export const ADD_NEW_APPOINMENT_FN = async(newAppointment)=>{
 export const GET_REPORT_DATA_FN = async(salon_id)=>{
   try {
     return await axiosInstance.post(GET_REPORT_DATA_API, {salon_id});
+  } catch (err) {
+    return err
+  }
+}
+
+export const GET_OWNER_SETTINGS_DATA_FN = async(user_id)=>{
+  try {
+    return await axiosInstance.post(GET_OWNER_SETTINGS_DATA_API, {user_id});
   } catch (err) {
     return err
   }

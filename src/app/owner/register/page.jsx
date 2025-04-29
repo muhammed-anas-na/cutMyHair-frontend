@@ -19,6 +19,7 @@ export default function OwnerRegister() {
     const [resendDisabled, setResendDisabled] = useState(false);
     const [timer, setTimer] = useState(30);
     const inputRefs = useRef([]);
+    const [otp_id, setOtpID] = useState('');
     const router = useRouter();
     const { login } = useAuth();
     
@@ -122,7 +123,7 @@ export default function OwnerRegister() {
             if (validateOtp()) {
                 setIsLoading(true);
                 try {
-                    const response = await OWNER_VERIFY_OTP_FN(name, otp.join(""), 'register');
+                    const response = await OWNER_VERIFY_OTP_FN(name, otp.join(""), 'register', otp_id);
                     if (response.status === 200) {
                         login({
                             user_id:response.data.data.owner_id,
@@ -150,6 +151,7 @@ export default function OwnerRegister() {
                     if (response.status === 200) {
                         setIsOtpView(true);
                         setResendDisabled(true);
+                        setOtpID(response.data.data.otp_id);
                         setTimeout(() => {
                             if (inputRefs.current[0]) {
                                 inputRefs.current[0].focus();
@@ -231,42 +233,7 @@ export default function OwnerRegister() {
                         alt="Salon Business"
                         className="absolute inset-0 w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#CE145B]/40 to-transparent flex flex-col justify-center px-10">
-                        <div className="max-w-md">
-                            <h2 className="text-4xl font-bold text-white mb-6">Grow your salon business with us</h2>
-                            <div className="space-y-6 text-white">
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-white/20 p-2 rounded-full">
-                                        <Calendar size={24} className="text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-lg">Simplified Booking Management</h3>
-                                        <p className="text-white/90 text-sm">Handle appointments effortlessly</p>
-                                    </div>
-                                </div>
-                                
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-white/20 p-2 rounded-full">
-                                        <Users size={24} className="text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-lg">Expand Your Customer Base</h3>
-                                        <p className="text-white/90 text-sm">Reach thousands of potential clients</p>
-                                    </div>
-                                </div>
-                                
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-white/20 p-2 rounded-full">
-                                        <Scissors size={24} className="text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-lg">Showcase Your Services</h3>
-                                        <p className="text-white/90 text-sm">Display your best work and specialties</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    
                 </div>
                 
                 {/* Mobile Header with Value Props */}
@@ -277,39 +244,18 @@ export default function OwnerRegister() {
                             alt="Salon Business"
                             className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#CE145B]/40 to-transparent">
-                            <div className="p-6">
-                                <h2 className="text-2xl font-bold text-white">Salon Owner Portal</h2>
-                                <p className="text-white/90 mt-1">Grow your business with cutmyhair.in</p>
-                            </div>
-                        </div>
                     </div>
-                    
-                    {/* Mobile Value Props */}
-                    <div className="bg-white px-4 py-3 shadow-md mt-4 mx-4 rounded-xl flex justify-between">
-                        <div className="text-center">
-                            <Calendar size={20} className="text-[#CE145B] mx-auto mb-1" />
-                            <span className="text-xs font-medium">Bookings</span>
-                        </div>
-                        <div className="text-center">
-                            <Users size={20} className="text-[#CE145B] mx-auto mb-1" />
-                            <span className="text-xs font-medium">Clients</span>
-                        </div>
-                        <div className="text-center">
-                            <Scissors size={20} className="text-[#CE145B] mx-auto mb-1" />
-                            <span className="text-xs font-medium">Services</span>
-                        </div>
-                    </div>
+                
                 </div>
                 
                 {/* Right side - Form */}
                 <div className="flex-1 flex flex-col justify-center px-4 sm:px-8 md:px-12 lg:px-16 py-8 md:py-0">
                     <div className="max-w-md w-full mx-auto">
                         <div className="mb-8">
-                            <h1 className="font-bold text-3xl sm:text-4xl mb-3 text-gray-900">
+                            <h1 className="font-bold text-xl sm:text-4xl mb-3 text-gray-900">
                                 {isOtpView ? "Verify your number" : "Salon Owner Registration"}
                             </h1>
-                            <p className="text-gray-600">
+                            <p className="text-gray-600 text-xs md:text-lg">
                                 {isOtpView 
                                     ? "Enter the 4-digit code sent to your mobile number."
                                     : "Join our platform to showcase your salon and manage bookings easily."}
@@ -365,6 +311,27 @@ export default function OwnerRegister() {
                                     )}
                                 </div>
                                 
+                                
+                                
+                                <button 
+                                    onClick={handleSendOtp}
+                                    disabled={isLoading}
+                                    className={`w-full py-3 px-4 rounded-lg ${
+                                        isLoading 
+                                            ? 'bg-gray-400 cursor-not-allowed' 
+                                            : 'bg-[#CE145B] hover:bg-[#B0124F] active:bg-[#9E1046]'
+                                    } text-white font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#CE145B] focus:ring-opacity-50`}
+                                >
+                                    {isLoading ? (
+                                        <span className="flex items-center justify-center">
+                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Sending...
+                                        </span>
+                                    ) : "Send OTP"}
+                                </button>
                                 {/* Business Benefits Preview */}
                                 <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mt-6">
                                     <h3 className="font-medium text-gray-800 flex items-center gap-2 mb-3">
@@ -386,26 +353,6 @@ export default function OwnerRegister() {
                                         </li>
                                     </ul>
                                 </div>
-                                
-                                <button 
-                                    onClick={handleSendOtp}
-                                    disabled={isLoading}
-                                    className={`w-full py-3 px-4 rounded-lg ${
-                                        isLoading 
-                                            ? 'bg-gray-400 cursor-not-allowed' 
-                                            : 'bg-[#CE145B] hover:bg-[#B0124F] active:bg-[#9E1046]'
-                                    } text-white font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#CE145B] focus:ring-opacity-50`}
-                                >
-                                    {isLoading ? (
-                                        <span className="flex items-center justify-center">
-                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                            Sending...
-                                        </span>
-                                    ) : "Send OTP"}
-                                </button>
                                 
                                 <div className="text-center pt-2">
                                     <p className="text-gray-600">

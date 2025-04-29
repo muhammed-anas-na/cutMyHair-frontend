@@ -32,9 +32,9 @@ export const SEND_OTP_FN = async (phone_number, from='') => {
 };
 
 // Verify OTP Function
-export const VERIFY_OTP_FN = async (name, otp, from = '') => {
+export const VERIFY_OTP_FN = async (name, otp, from = '', otpId) => {
   try {
-    const response = await axiosInstance.post(VERIFY_OTP_API, { name, otp, from });
+    const response = await axiosInstance.post(VERIFY_OTP_API, { name, otp, from, otpId });
     return response;
   } catch (err) {
     return err

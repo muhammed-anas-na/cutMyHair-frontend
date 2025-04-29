@@ -44,40 +44,48 @@ const SalonSchedule = () => {
   }, []);
 
   // Generate time slots from 6 AM to 10 PM (IST)
+// Generate time slots from 6 AM to 10 PM (IST) in 12-hour format with AM/PM
   const timeSlots = Array.from({ length: 17 }, (_, i) => {
-    const hour = i + 6;
-    return `${hour.toString().padStart(2, '0')}:00`;
+    const hour24 = i + 6;
+    const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+    const period = hour24 < 12 ? 'AM' : 'PM';
+    return `${hour12}:00 ${period}`;
   });
 
-  // Helper function to parse time from different formats
-  const parseTimeString = (timeString) => {
-    if (!timeString) return null;
+ // Helper function to parse time from different formats
+const parseTimeString = (timeString) => {
+  if (!timeString) return null;
+  
+  // Handle full ISO date string format (includes GMT+0530)
+  if (timeString.includes('GMT+0530')) {
+    return new Date(timeString);
+  }
+  
+  // Handle "HH:MM AM/PM" format
+  if (timeString.includes('AM') || timeString.includes('PM')) {
+    const [hourMinute, period] = timeString.split(' ');
+    const [hours, minutes] = hourMinute.split(':').map(num => parseInt(num, 10));
     
-    // Handle full ISO date string format (includes GMT+0530)
-    if (timeString.includes('GMT+0530')) {
-      return new Date(timeString);
+    // Convert to 24-hour format
+    let hour24 = hours;
+    if (period === 'PM' && hours !== 12) {
+      hour24 += 12;
+    } else if (period === 'AM' && hours === 12) {
+      hour24 = 0;
     }
     
-    // Handle "HH:MM AM/PM" format
-    if (timeString.includes('AM') || timeString.includes('PM')) {
-      const [hourMinute, period] = timeString.split(' ');
-      const [hours, minutes] = hourMinute.split(':').map(num => parseInt(num, 10));
-      
-      // Convert to 24-hour format
-      let hour24 = hours;
-      if (period === 'PM' && hours !== 12) {
-        hour24 += 12;
-      } else if (period === 'AM' && hours === 12) {
-        hour24 = 0;
-      }
-      
-      const date = new Date();
-      date.setHours(hour24, minutes, 0, 0);
-      return date;
-    }
-    
-    return null;
-  };
+    const date = new Date();
+    date.setHours(hour24, minutes, 0, 0);
+    return date;
+  }
+  
+  // Handle format like "Tue, 29 Apr 2025 13:36:00 GMT"
+  if (timeString.includes('GMT')) {
+    return new Date(timeString);
+  }
+  
+  return null;
+};
 
   // Helper function to format time in IST
   const formatTimeToIST = (date) => {
@@ -183,36 +191,40 @@ const SalonSchedule = () => {
     return [...new Set(services)];
   }, [appointments]);
 
-  // Filter appointments by selected criteria and time slot
   const getAppointmentsForTimeSlot = (time) => {
     if (!appointments || appointments.length === 0) return [];
-    
-    // Convert the timeslot (e.g. "09:00") to 24-hour format hour for comparison
-    const slotHour = parseInt(time.split(':')[0], 10);
-    
+  
+    // Convert "9:00 AM" or "3:00 PM" to 24-hour hour
+    const convert12hTo24h = (timeStr) => {
+      const [timePart, period] = timeStr.split(' ');
+      let [hourStr] = timePart.split(':');
+      let hour = parseInt(hourStr, 10);
+      if (period === 'PM' && hour !== 12) hour += 12;
+      if (period === 'AM' && hour === 12) hour = 0;
+      return hour;
+    };
+  
+    const slotHour = convert12hTo24h(time);
+  
     return appointments.filter(apt => {
-      // Skip if we don't have valid time data
       if (!apt.startTimeDate) return false;
-      
-      // Get the hour from start time for comparison
+  
       const aptStartHour = getHourFromDate(apt.startTimeDate);
-      
-      // Filter by time slot
+  
       const matchesTimeSlot = aptStartHour === slotHour;
-      
-      // Filter by stylist if selected
+  
       const matchesStylist = selectedStylist === 'all' || 
-                            (apt.stylist && apt.stylist === selectedStylist);
-      
-      // Filter by service if selected
+        (apt.stylist && apt.stylist === selectedStylist);
+  
       const matchesService = selectedService === 'all' || 
-                            (apt.services && apt.services.some(service => 
-                              service.name.toLowerCase().includes(selectedService.toLowerCase())
-                            ));
-      
+        (apt.services && apt.services.some(service => 
+          service.name.toLowerCase().includes(selectedService.toLowerCase())
+        ));
+  
       return matchesTimeSlot && matchesStylist && matchesService;
     });
   };
+  
 
   const handlePreviousDay = () => {
     setDate(prev => {
@@ -274,15 +286,23 @@ const SalonSchedule = () => {
       date.getFullYear() === today.getFullYear();
   };
 
-  // Check if a time slot is current
-  const isCurrentTimeSlot = (time) => {
-    if (!isToday(date)) return false;
-    
-    const slotHour = parseInt(time.split(':')[0], 10);
-    const currentHour = currentTime.getHours();
-    
-    return slotHour === currentHour;
-  };
+  function isCurrentTimeSlot(slotTime12h) {
+    const now = new Date();
+    const currentHour = now.getHours(); // 0–23
+    const currentMinute = now.getMinutes();
+  
+    const hour24 = (() => {
+      const [time, period] = slotTime12h.split(' ');
+      let [hour] = time.split(':');
+      hour = parseInt(hour);
+      if (period === 'PM' && hour !== 12) hour += 12;
+      if (period === 'AM' && hour === 12) hour = 0;
+      return hour;
+    })();
+  
+    return currentHour === hour24 && currentMinute < 60; // adjust as needed
+  }
+  
 
   // Format service list for display
   const formatServiceList = (services) => {
@@ -414,34 +434,117 @@ const SalonSchedule = () => {
     const isUpcoming = appointment.startTimeDate > currentTime;
     const isPast = appointment.endTimeDate < currentTime;
     const isInProgress = !isUpcoming && !isPast;
-
+    
+    // Calculate remaining time for in-progress appointments
+    const getRemainingTime = () => {
+      if (!isInProgress) return null;
+      const minutesRemaining = Math.ceil((appointment.endTimeDate - currentTime) / (1000 * 60));
+      return minutesRemaining;
+    };
+    
+    // Get time until appointment starts
+    const getWaitTime = () => {
+      if (!isUpcoming) return null;
+      const minutesUntil = Math.ceil((appointment.startTimeDate - currentTime) / (1000 * 60));
+      return minutesUntil;
+    };
+    
+    const remainingTime = getRemainingTime();
+    const waitTime = getWaitTime();
+    
+    // Determine priority level for visual emphasis
+    const isPriority = isInProgress || (isUpcoming && waitTime && waitTime < 30);
+  
     return (
       <div 
         onClick={() => handleAppointmentClick(appointment)}
-        className={`flex-1 min-w-[250px] max-w-[300px] rounded-lg shadow-sm p-3 cursor-pointer hover:-translate-y-0.5 hover:shadow-md transition-all
-          ${isInProgress ? 'bg-blue-50 border-l-4 border-l-blue-500' : 
-            isUpcoming ? 'bg-white border-l-4 border-l-[#CE145B]' : 
-            'bg-gray-50 border-l-4 border-l-gray-400'}`}
+        className={`flex flex-col w-full sm:min-w-[260px] sm:max-w-[300px] rounded-xl overflow-hidden shadow hover:shadow-md 
+          transition-all duration-200 transform hover:-translate-y-1 cursor-pointer ${
+          isPriority ? 'ring-2 ring-[#CE145B]/30' : ''
+        }`}
       >
-        <div className="flex justify-between mb-2">
-          <span className="font-semibold text-gray-800">
-            {appointment.customer_name}
-          </span>
-          <span className="text-sm text-gray-600">
-            {appointment.ist_start_time} - {appointment.ist_end_time}
+        {/* Header - Status Banner */}
+        <div className={`px-3 py-1.5 text-white text-xs font-medium flex items-center justify-between
+          ${isInProgress ? 'bg-blue-600' : 
+            isUpcoming ? 'bg-[#CE145B]' : 
+            'bg-gray-600'}`}
+        >
+          <div className="flex items-center">
+            {isInProgress ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-white animate-pulse mr-2"></span>
+                <span>In Progress</span>
+                {remainingTime && <span className="ml-1 opacity-90">• {remainingTime} min left</span>}
+              </>
+            ) : isUpcoming ? (
+              <>
+                <Clock size={12} className="mr-1.5" />
+                <span>Upcoming</span>
+                {waitTime && waitTime < 60 && <span className="ml-1 opacity-90">• {waitTime} min</span>}
+              </>
+            ) : (
+              <>
+                <CheckCircle size={12} className="mr-1.5" />
+                <span>Completed</span>
+              </>
+            )}
+          </div>
+          <span className="font-normal opacity-80 text-[10px]">
+            {appointment.total_duration} min
           </span>
         </div>
-        <div>
-          <div className={`${isInProgress ? 'text-blue-600' : 'text-[#CE145B]'} mb-1 font-medium`}>
-            {formatServiceList(appointment.services)}
-            {isInProgress && <span className="ml-2 animate-pulse">● In Progress</span>}
+        
+        {/* Main content */}
+        <div className="flex flex-col p-3 bg-white">
+          {/* Customer */}
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center">
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[#CE145B] font-medium mr-2">
+                {(appointment.customer_name || "C")[0]}
+              </div>
+              <span className="font-medium text-gray-900 truncate max-w-[140px]">
+                {appointment.customer_name || "Customer"}
+              </span>
+            </div>
+            <div className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(appointment.status)}`}>
+              {appointment.status?.toUpperCase() || 'PENDING'}
+            </div>
           </div>
           
-          <div className="text-gray-600">Stylist: {appointment.stylist || "Any Available"}</div>
-          <div className="mt-2 flex justify-between items-center">
-            <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${getStatusColor(appointment.status)}`}>
-              {appointment.status?.toUpperCase() || 'PENDING'}
-            </span>
+          {/* Time slot */}
+          <div className="flex items-center mb-3 text-gray-700 text-xs bg-gray-50 p-1.5 rounded">
+            <Clock size={14} className="mr-1.5 text-gray-500" />
+            <span>{appointment.ist_start_time} - {appointment.ist_end_time}</span>
+          </div>
+          
+          {/* Services */}
+          <div className="mb-3">
+            <div className="text-xs font-medium uppercase text-gray-500 mb-1.5">Services</div>
+            <div className="space-y-1.5">
+              {appointment.services && appointment.services.map((service, index) => (
+                <div key={index} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#CE145B] mr-2"></div>
+                    <span className="text-gray-800">{service.name}</span>
+                  </div>
+                  <span className="text-gray-600">₹{service.price}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+            <div className="flex items-center text-xs text-gray-500">
+              <User size={12} className="mr-1.5" />
+              <span>{appointment.stylist || "Any Available"}</span>
+            </div>
+            <div className={`flex items-center text-xs ${
+              appointment.payment_details?.payment_status === 'success' ? 'text-green-600' : 'text-yellow-600'
+            }`}>
+              <CreditCard size={12} className="mr-1.5" />
+              <span>{appointment.payment_details?.payment_status === 'success' ? 'PAID' : 'PENDING'}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -597,7 +700,7 @@ const SalonSchedule = () => {
             {timeSlots.map(time => {
               const appointmentsForSlot = getAppointmentsForTimeSlot(time);
               const isCurrentSlot = isCurrentTimeSlot(time);
-              
+              console.log(appointmentsForSlot);
               return (
                 <div 
                   key={time} 

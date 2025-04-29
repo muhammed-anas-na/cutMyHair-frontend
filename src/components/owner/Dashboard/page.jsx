@@ -3,10 +3,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Users, CalendarCheck, MoreVertical, TrendingUp, TrendingDown, Clock,
-    MapPin, Zap, Filter, ChevronDown, Menu, X, DollarSign, Bell, PlusCircle, Search
+    MapPin, Zap, Filter, ChevronDown, Menu, X, DollarSign, Bell, PlusCircle, Search,IndianRupee
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ADD_NEW_APPOINMENT_FN, GET_DASHBOARD_DATA_FN } from '@/services/ownerService';
+import { useRouter } from 'next/navigation';
 
 // Simple debounce function
 const debounce = (func, wait) => {
@@ -89,6 +90,7 @@ const AppointmentCard = ({ customer, service, time, stylist, location }) => (
 
 // Dashboard Content Component
 const DashboardContent = () => {
+    const router = useRouter();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [dateRange, setDateRange] = useState('This Week');
     const [defaultSalon, setDefaultSalon] = useState('');
@@ -108,7 +110,7 @@ const DashboardContent = () => {
     const mockStats = [
         { title: 'Total Customers', value: '259', change: { direction: 'up', value: '12%', text: 'vs last period' }, type: 'customers', icon: Users },
         { title: 'Total Bookings', value: '183', change: { direction: 'up', value: '8%', text: 'vs last period' }, type: 'bookings', icon: CalendarCheck },
-        { title: 'Total Revenue', value: '$4,320', change: { direction: 'up', value: '15%', text: 'vs last period' }, type: 'revenue', icon: DollarSign }
+        { title: 'Total Revenue', value: '$4,320', change: { direction: 'up', value: '15%', text: 'vs last period' }, type: 'revenue', icon: IndianRupee }
     ];
 
     const mockAppointments = [
@@ -117,33 +119,12 @@ const DashboardContent = () => {
         { customer: { name: 'Sophia Lee', image: '' }, service: 'Spa Manicure', time: '2:15 PM', stylist: 'Aisha Patel', location: 'Downtown Salon' }
     ];
 
-    const mockSalons = [
-        {
-            name: 'Downtown Salon',
-            salon_id: 'mock1',
-            services: [
-                { name: 'Haircut', service_id: 's1' },
-                { name: 'Blow Dry', service_id: 's2' },
-                { name: 'Color', service_id: 's3' }
-            ]
-        },
-        {
-            name: 'Uptown Spa & Salon',
-            salon_id: 'mock2',
-            services: [
-                { name: 'Haircut', service_id: 's4' },
-                { name: 'Men\'s Cut', service_id: 's5' },
-                { name: 'Color', service_id: 's6' }
-            ]
-        }
-    ];
-
     const mockStylists = ['Maria Garcia', 'John Davis', 'Aisha Patel'];
 
     const [stats, setStats] = useState(mockStats);
     const [appointments, setAppointments] = useState(mockAppointments);
     const { user_id } = useAuth();
-
+console.log(stats);
     // Get services for current salon
     const getServicesForCurrentSalon = () => {
         if (!dashboardData || !defaultSalon) return [];
@@ -169,11 +150,7 @@ const DashboardContent = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await GET_DASHBOARD_DATA_FN(user_id);
-                if (!response?.data?.success) {
-                    throw new Error('Invalid API response format');
-                }
-                
+                const response = await GET_DASHBOARD_DATA_FN(user_id);                
                 const responseData = response.data;
                 const salonData = responseData.data || [];
                 
@@ -191,29 +168,20 @@ const DashboardContent = () => {
                         setDefaultSalon(salonNames[0]);
                         setDefaultSalonId(salonData[0].salon_id);
                     }
-
                     if (responseData.stats) setStats(responseData.stats);
                     if (responseData.appointments) setAppointments(responseData.appointments);
                     if (responseData.stylists) setStylists(responseData.stylists);
-                } else {
-                    throw new Error('No salon data available');
                 }
             } catch (error) {
-                console.log('Using fallback mock data:', error.message);
-                // setDashboardData([]);
-                // setSalons([]);
-                // setDefaultSalon([]);
-                // setDefaultSalonId(mockSalons[0].salon_id);
-                // setStats(mockStats);
-                // setAppointments(mockAppointments);
-                // setStylists(mockStylists);
-                setError(error.response?.status === 401 ? 'Authentication failed' : 'Failed to load dashboard data');
+                console.log('Error fetching dashboard data:', error.message);
+                // Redirect to login in case of error
+                router.push('/owner/login');
             } finally {
                 setLoading(false);
             }
         }
         fetchData();
-    }, [user_id]);
+    }, [user_id, router]);
 
     // Save salon selection
     useEffect(() => {

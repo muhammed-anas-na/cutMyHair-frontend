@@ -7,7 +7,7 @@ import {
      Bell, Settings, ChevronDown,
     Sun, Moon, ChevronLeft, ChevronRight,
     Menu, X, Scissors, Package, DollarSign,
-    Percent, Shield, HelpCircle
+    Percent, Shield, HelpCircle,Wallet
 } from 'lucide-react';
 
 const Sidebar = ({ isDarkMode, setIsDarkMode, isVisible, setIsVisible, isMobileView }) => {
@@ -36,6 +36,7 @@ const Sidebar = ({ isDarkMode, setIsDarkMode, isVisible, setIsVisible, isMobileV
         { id: '/owner/salons', label: 'My Salons', icon: Briefcase },
         { id: '/owner/schedules', label: 'Schedules', icon: Calendar },
         { id: '/owner/reports', label: 'Reports', icon: DollarSign },
+        {id: '/owner/finance', label: 'Finance', icon: Wallet}
     ];
 
     // Keeping your existing toggle functions
@@ -127,22 +128,6 @@ const Sidebar = ({ isDarkMode, setIsDarkMode, isVisible, setIsVisible, isMobileV
                         </div>
                     ) : (
                         <div className="w-8 h-8 bg-[#CE145B] rounded-full mx-auto flex-shrink-0" />
-                    )}
-                    
-                    {!isMobileView ? (
-                        <button 
-                            onClick={toggleExpand} 
-                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
-                        >
-                            {isExpanded ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-                        </button>
-                    ) : (
-                        <button 
-                            onClick={toggleSidebar} 
-                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
-                        >
-                            <X size={20} />
-                        </button>
                     )}
                 </div>
 

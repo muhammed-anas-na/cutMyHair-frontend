@@ -33,6 +33,7 @@ export const OWNER_SEND_OTP_API = `${OWNER_BASE_URL}/send-otp`;
 export const OWNER_VERIFY_OTP_API = `${OWNER_BASE_URL}/verify-otp`;
 export const GET_DASHBOARD_DATA_API = `${OWNER_BASE_URL}/get-dashboard-data`;
 export const ADD_NEW_APPOINMENT_API = `${OWNER_BASE_URL}/add-new-appoinment-by-owner`;
+export const GET_OWNER_SETTINGS_DATA_API = `${OWNER_BASE_URL}/get-owner-profile`;
 
 // Salon Management Endpoints for Owners
 export const OWNER_ADD_SALON_API = `${OWNER_BASE_URL}/add-salon`;

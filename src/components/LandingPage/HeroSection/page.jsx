@@ -100,13 +100,23 @@ const HeroSection = () => {
                 ))}
               </div>
               
-              <button
+             <div className='flex gap-5'>
+             <button
+                onClick={() => router.push('/owner/register')}
+                className="w-full mt-4 py-3 px-4 text-center rounded-md text-black border-2 font-medium transition-colors"
+                
+              >
+                Register Salon
+              </button>
+             <button
                 onClick={() => router.push('/home')}
                 className="w-full mt-4 py-3 px-4 text-center rounded-md text-white font-medium transition-colors"
                 style={{ backgroundColor: primaryColor }}
               >
                 See All Services
               </button>
+
+             </div>
             </div>
 
             {/* Simple Trust Indicators */}

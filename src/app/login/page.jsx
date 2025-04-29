@@ -19,6 +19,7 @@ export default function Login() {
     const [timer, setTimer] = useState(30);
     const inputRefs = useRef([]);
     const router = useRouter();
+    const [otpId, setOtpId]= useState('');
     const { login } = useAuth();
     
     // Timer for resend OTP
@@ -112,7 +113,7 @@ export default function Login() {
             if (validateOtp()) {
                 setIsLoading(true);
                 try {
-                    const response = await VERIFY_OTP_FN(name, otp.join(""), 'login');
+                    const response = await VERIFY_OTP_FN(name, otp.join(""), 'login',otpId);
                     if (response.status === 200) {
                         console.log("Loign User id =>",response);
                         login({
@@ -138,6 +139,7 @@ export default function Login() {
                 try {
                     const response = await SEND_OTP_FN(phoneNumber , 'login');
                     if (response.status === 200) {
+                        setOtpId(response.data.data.otpId)
                         setIsOtpView(true);
                         setResendDisabled(true);
                         setTimeout(() => {
