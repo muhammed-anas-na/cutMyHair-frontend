@@ -103,7 +103,7 @@ export default function OwnerLayout({ children }) {
                     </div>
 
                     {/* Content Area with Proper Padding */}
-                    <div className="p-4 sm:p-6 md:p-8">
+                    <div className="sm:p-6 md:p-8">
                         {children}
                     </div>
                 </div>

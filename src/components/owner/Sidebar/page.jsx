@@ -124,7 +124,7 @@ const Sidebar = ({ isDarkMode, setIsDarkMode, isVisible, setIsVisible, isMobileV
                     {isExpanded ? (
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-[#CE145B] rounded-full flex items-center justify-center text-white font-bold text-sm">SB</div>
-                            <span className="font-semibold truncate">Salon Boss</span>
+                            <span className="font-semibold truncate">Cut My Hair</span>
                         </div>
                     ) : (
                         <div className="w-8 h-8 bg-[#CE145B] rounded-full mx-auto flex-shrink-0" />
@@ -132,7 +132,7 @@ const Sidebar = ({ isDarkMode, setIsDarkMode, isVisible, setIsVisible, isMobileV
                 </div>
 
                 <div className="flex-1 py-4 space-y-1 overflow-y-auto scrollbar-hide">
-                    {isExpanded && <div className="px-4 text-sm text-gray-500 mb-2">MAIN</div>}
+                    {/* {isExpanded && <div className="px-4 text-sm text-gray-500 mb-2">MAIN</div>} */}
                     {navItems.map((item) => (
                         <MenuItem key={item.id} item={item} />
                     ))}
@@ -165,23 +165,6 @@ const Sidebar = ({ isDarkMode, setIsDarkMode, isVisible, setIsVisible, isMobileV
                             )}
                         </button>
                     </div>
-
-                    {isExpanded && (
-                        <div className="px-4 py-3 bg-gray-50 rounded-lg flex items-center justify-between">
-                            <button
-                                onClick={() => setIsDarkMode(false)}
-                                className={`p-2 rounded ${!isDarkMode ? 'bg-white shadow' : ''}`}
-                            >
-                                <Sun size={16} />
-                            </button>
-                            <button
-                                onClick={() => setIsDarkMode(true)}
-                                className={`p-2 rounded ${isDarkMode ? 'bg-white shadow' : ''}`}
-                            >
-                                <Moon size={16} />
-                            </button>
-                        </div>
-                    )}
                 </div>
             </aside>
         </>

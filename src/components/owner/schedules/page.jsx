@@ -458,13 +458,13 @@ const parseTimeString = (timeString) => {
     return (
       <div 
         onClick={() => handleAppointmentClick(appointment)}
-        className={`flex flex-col w-full sm:min-w-[260px] sm:max-w-[300px] rounded-xl overflow-hidden shadow hover:shadow-md 
+        className={`flex flex-col min-w-[180px] max-w-[220px] md:min-w-[260px] md:max-w-[300px] rounded-lg md:rounded-xl overflow-hidden shadow hover:shadow-md 
           transition-all duration-200 transform hover:-translate-y-1 cursor-pointer ${
-          isPriority ? 'ring-2 ring-[#CE145B]/30' : ''
+          isPriority ? 'ring-1 md:ring-2 ring-[#CE145B]/30' : ''
         }`}
       >
         {/* Header - Status Banner */}
-        <div className={`px-3 py-1.5 text-white text-xs font-medium flex items-center justify-between
+        <div className={`px-2 md:px-3 py-1 md:py-1.5 text-white text-[10px] md:text-xs font-medium flex items-center justify-between
           ${isInProgress ? 'bg-blue-600' : 
             isUpcoming ? 'bg-[#CE145B]' : 
             'bg-gray-600'}`}
@@ -472,59 +472,62 @@ const parseTimeString = (timeString) => {
           <div className="flex items-center">
             {isInProgress ? (
               <>
-                <span className="w-2 h-2 rounded-full bg-white animate-pulse mr-2"></span>
+                <span className="w-1.5 md:w-2 h-1.5 md:h-2 rounded-full bg-white animate-pulse mr-1 md:mr-2"></span>
                 <span>In Progress</span>
-                {remainingTime && <span className="ml-1 opacity-90">• {remainingTime} min left</span>}
+                {remainingTime && <span className="ml-0.5 md:ml-1 opacity-90">• {remainingTime}<span className="hidden md:inline"> min left</span><span className="inline md:hidden">m</span></span>}
               </>
             ) : isUpcoming ? (
               <>
-                <Clock size={12} className="mr-1.5" />
+                <Clock size={10} className="mr-1 md:hidden" />
+                <Clock size={12} className="hidden md:inline mr-1.5" />
                 <span>Upcoming</span>
-                {waitTime && waitTime < 60 && <span className="ml-1 opacity-90">• {waitTime} min</span>}
+                {waitTime && waitTime < 60 && <span className="ml-0.5 md:ml-1 opacity-90">• {waitTime}<span className="hidden md:inline"> min</span><span className="inline md:hidden">m</span></span>}
               </>
             ) : (
               <>
-                <CheckCircle size={12} className="mr-1.5" />
+                <CheckCircle size={10} className="mr-1 md:hidden" />
+                <CheckCircle size={12} className="hidden md:inline mr-1.5" />
                 <span>Completed</span>
               </>
             )}
           </div>
-          <span className="font-normal opacity-80 text-[10px]">
-            {appointment.total_duration} min
+          <span className="font-normal opacity-80 text-[9px] md:text-[10px]">
+            {appointment.total_duration}<span className="hidden md:inline"> min</span><span className="inline md:hidden">m</span>
           </span>
         </div>
         
         {/* Main content */}
-        <div className="flex flex-col p-3 bg-white">
+        <div className="flex flex-col p-2 md:p-3 bg-white">
           {/* Customer */}
-          <div className="flex items-center justify-between mb-2.5">
+          <div className="lg:flex items-center justify-between mb-1.5 md:mb-2.5 hidden">
             <div className="flex items-center">
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[#CE145B] font-medium mr-2">
+              <div className="w-6 md:w-8 h-6 md:h-8 rounded-full bg-gray-100 flex items-center justify-center text-[#CE145B] text-xs md:font-medium mr-1.5 md:mr-2">
                 {(appointment.customer_name || "C")[0]}
               </div>
-              <span className="font-medium text-gray-900 truncate max-w-[140px]">
+              <span className="font-medium text-gray-900 text-xs md:text-base truncate max-w-[100px] md:max-w-[140px]">
                 {appointment.customer_name || "Customer"}
               </span>
             </div>
-            <div className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(appointment.status)}`}>
+            <div className={`px-1.5 md:px-2 py-0.5 rounded text-[9px] md:text-xs font-medium ${getStatusColor(appointment.status)}`}>
               {appointment.status?.toUpperCase() || 'PENDING'}
             </div>
           </div>
           
           {/* Time slot */}
-          <div className="flex items-center mb-3 text-gray-700 text-xs bg-gray-50 p-1.5 rounded">
-            <Clock size={14} className="mr-1.5 text-gray-500" />
+          <div className="flex items-center mb-2 md:mb-3 text-gray-700 text-[9px] md:text-xs bg-gray-50 p-1 md:p-1.5 rounded">
+            <Clock size={10} className="mr-1 md:hidden text-gray-500" />
+            <Clock size={14} className="hidden md:inline mr-1.5 text-gray-500" />
             <span>{appointment.ist_start_time} - {appointment.ist_end_time}</span>
           </div>
           
           {/* Services */}
-          <div className="mb-3">
-            <div className="text-xs font-medium uppercase text-gray-500 mb-1.5">Services</div>
-            <div className="space-y-1.5">
+          <div className="mb-2 md:mb-3 hidden md:block">
+            <div className="text-[9px] md:text-xs font-medium uppercase text-gray-500 mb-1 md:mb-1.5">Services</div>
+            <div className="space-y-1 md:space-y-1.5">
               {appointment.services && appointment.services.map((service, index) => (
-                <div key={index} className="flex items-center justify-between text-sm">
+                <div key={index} className="flex items-center justify-between text-[10px] md:text-sm">
                   <div className="flex items-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#CE145B] mr-2"></div>
+                    <div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-[#CE145B] mr-1 md:mr-2"></div>
                     <span className="text-gray-800">{service.name}</span>
                   </div>
                   <span className="text-gray-600">₹{service.price}</span>
@@ -534,15 +537,17 @@ const parseTimeString = (timeString) => {
           </div>
           
           {/* Footer */}
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <div className="flex items-center text-xs text-gray-500">
-              <User size={12} className="mr-1.5" />
+          <div className="flex items-center justify-between pt-1.5 md:pt-2 border-t border-gray-100">
+            <div className="flex items-center text-[9px] md:text-xs text-gray-500">
+              <User size={8} className="mr-1 md:hidden" />
+              <User size={12} className="hidden md:inline mr-1.5" />
               <span>{appointment.stylist || "Any Available"}</span>
             </div>
-            <div className={`flex items-center text-xs ${
+            <div className={`flex items-center text-[9px] md:text-xs ${
               appointment.payment_details?.payment_status === 'success' ? 'text-green-600' : 'text-yellow-600'
             }`}>
-              <CreditCard size={12} className="mr-1.5" />
+              <CreditCard size={8} className="mr-1 md:hidden" />
+              <CreditCard size={12} className="hidden md:inline mr-1.5" />
               <span>{appointment.payment_details?.payment_status === 'success' ? 'PAID' : 'PENDING'}</span>
             </div>
           </div>
