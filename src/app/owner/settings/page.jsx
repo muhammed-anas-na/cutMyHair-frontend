@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Bell, User, Calendar, CreditCard, Shield, LogOut, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { GET_OWNER_SETTINGS_DATA_FN } from '@/services/ownerService';
 
 const SettingsPage = () => {
   const [notifications, setNotifications] = useState({
@@ -10,14 +11,16 @@ const SettingsPage = () => {
     reminders: true,
   });
   const {user_id} = useAuth();
-
+const [data, setData] = useState();
+const {OwnerLogout} = useAuth()
   useEffect(()=>{
     async function fetchUserData(){
         const userData = await GET_OWNER_SETTINGS_DATA_FN(user_id);
-        console.log(userData);
+        console.log(userData.data[0])
+        setData(userData.data[0])
     }
     fetchUserData();
-  },[])
+  },[user_id])
   // Primary color from CE145B palette
   const primaryColor = '#CE145B';
   
@@ -29,6 +32,9 @@ const SettingsPage = () => {
     });
   };
 
+  function haneldLogout(){
+    OwnerLogout()
+  }
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
       {/* Main Content */}
@@ -43,8 +49,8 @@ const SettingsPage = () => {
               JS
             </div>
             <div>
-              <h2 className="text-lg font-semibold">Jane Smith</h2>
-              <p className="text-sm text-gray-500">jane.smith@example.com</p>
+              <h2 className="text-lg font-semibold">{data?.name}</h2>
+              <p className="text-sm text-gray-500">{data?.phone_number}</p>
             </div>
           </div>
           <button 
@@ -89,7 +95,7 @@ const SettingsPage = () => {
           </div>
 
           {/* Notification Settings */}
-          <div className="p-4 rounded-lg bg-white shadow-sm">
+          {/* <div className="p-4 rounded-lg bg-white shadow-sm">
             <h3 className="text-md font-semibold mb-3" style={{ color: primaryColor }}>Notification Settings</h3>
             
             <div className="space-y-2">
@@ -168,10 +174,10 @@ const SettingsPage = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
           
           {/* Appointment Preferences */}
-          <div className="p-4 rounded-lg bg-white shadow-sm">
+          {/* <div className="p-4 rounded-lg bg-white shadow-sm">
             <h3 className="text-md font-semibold mb-3" style={{ color: primaryColor }}>Appointment Preferences</h3>
             
             <div className="space-y-2">
@@ -191,7 +197,7 @@ const SettingsPage = () => {
                 <ChevronRight size={18} className="text-gray-500" />
               </div>
             </div>
-          </div>
+          </div> */}
           
           {/* Support & Logout */}
           <div className="p-4 rounded-lg bg-white shadow-sm">
@@ -208,6 +214,7 @@ const SettingsPage = () => {
               
               <div className="p-3 rounded-md flex items-center hover:bg-gray-50 cursor-pointer"
                 style={{ color: primaryColor }}
+                onClick={haneldLogout}
               >
                 <LogOut size={18} />
                 <span className="ml-3 font-medium">Logout</span>

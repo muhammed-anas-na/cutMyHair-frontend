@@ -6,7 +6,7 @@ import {
     MapPin, Zap, Filter, ChevronDown, Menu, X, DollarSign, Bell, PlusCircle, Search,IndianRupee
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { ADD_NEW_APPOINMENT_FN, GET_DASHBOARD_DATA_FN } from '@/services/ownerService';
+import { ADD_NEW_APPOINMENT_FN, GET_DASHBOARD_DATA_FN, GET_STYLIST_DATA__FN } from '@/services/ownerService';
 import { useRouter } from 'next/navigation';
 
 // Simple debounce function
@@ -124,7 +124,6 @@ const DashboardContent = () => {
     const [stats, setStats] = useState(mockStats);
     const [appointments, setAppointments] = useState(mockAppointments);
     const { user_id } = useAuth();
-console.log(stats);
     // Get services for current salon
     const getServicesForCurrentSalon = () => {
         if (!dashboardData || !defaultSalon) return [];
@@ -170,7 +169,6 @@ console.log(stats);
                     }
                     if (responseData.stats) setStats(responseData.stats);
                     if (responseData.appointments) setAppointments(responseData.appointments);
-                    if (responseData.stylists) setStylists(responseData.stylists);
                 }
             } catch (error) {
                 console.log('Error fetching dashboard data:', error.message);
@@ -182,6 +180,15 @@ console.log(stats);
         }
         fetchData();
     }, [user_id, router]);
+
+    useEffect(()=>{
+        const fetchSalonStylist=async()=>{
+            const response = await GET_STYLIST_DATA__FN(defaultSalonId);
+            console.log(response.data[0]?.stylists)
+            setStylists(response.data[0]?.stylists)
+        }
+        fetchSalonStylist();
+    },[defaultSalonId])
 
     // Save salon selection
     useEffect(() => {
@@ -502,7 +509,7 @@ console.log(stats);
                                 >
                                     <option>Any</option>
                                     {stylists.map((stylist, index) => (
-                                        <option key={index}>{stylist}</option>
+                                        <option key={index}>{stylist.name}</option>
                                     ))}
                                 </select>
                             </div>

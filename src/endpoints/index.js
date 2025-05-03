@@ -33,7 +33,7 @@ export const OWNER_SEND_OTP_API = `${OWNER_BASE_URL}/send-otp`;
 export const OWNER_VERIFY_OTP_API = `${OWNER_BASE_URL}/verify-otp`;
 export const GET_DASHBOARD_DATA_API = `${OWNER_BASE_URL}/get-dashboard-data`;
 export const ADD_NEW_APPOINMENT_API = `${OWNER_BASE_URL}/add-new-appoinment-by-owner`;
-export const GET_OWNER_SETTINGS_DATA_API = `${OWNER_BASE_URL}/get-owner-profile`;
+export const GET_OWNER_SETTINGS_DATA_API = `${OWNER_BASE_URL}/get-owner-settings`;
 
 // Salon Management Endpoints for Owners
 export const OWNER_ADD_SALON_API = `${OWNER_BASE_URL}/add-salon`;
@@ -45,6 +45,8 @@ export const ADD_SERVICE_FOR_SALON_API = `${OWNER_BASE_URL}/add-service`;
 export const GET_APPOINTMENTS_OF_SALON_API = `${OWNER_BASE_URL}/get-appoinments-of-salon`;
 export const ADD_NEW_CATEGORY_API = `${OWNER_BASE_URL}/add-category`;
 export const GET_REPORT_DATA_API = `${OWNER_BASE_URL}/get-reports`
+export const Add_NEW_EMPLOYEE_API = `${OWNER_BASE_URL}/add-stylist`
+export const GET_STYLIST_DATA_API = `${OWNER_BASE_URL}/get-stylist`
 
 //User Payment
 export const CREATE_ORDER_API = `${USER_BASE_URL}/create-razorpay-order`;

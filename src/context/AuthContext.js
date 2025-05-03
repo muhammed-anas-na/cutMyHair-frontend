@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }) => {
         pathname !== '/privacy-policy' &&
         pathname !== '/report-issue' &&
         pathname !== '/terms-and-conditions' &&  
-        !pathname.startsWith('/owner/') &&
+        // !pathname.startsWith('/owner/') &&
         !pathname.startsWith('/blogs') &&
         !pathname.startsWith('/blogs/')) {
         router.replace('/login');
@@ -113,9 +113,27 @@ export const AuthProvider = ({ children }) => {
     // Redirect to login
     router.replace('/login');
   };
+  const OwnerLogout = () => {
+    // Remove from localStorage
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('')
+    // Remove default header
+    delete axios.defaults.headers.common['Authorization'];
+    
+    setAuthState({
+      user_id: null,
+      access_token: null,
+      isAuthenticated: false,
+      isLoading: false
+    });
+    
+    // Redirect to login
+    router.replace('/owner/login');
+  };
 
   return (
-    <AuthContext.Provider value={{ ...authState, login, logout }}>
+    <AuthContext.Provider value={{ ...authState, login, logout ,OwnerLogout}}>
       {children}
     </AuthContext.Provider>
   );
