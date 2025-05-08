@@ -25,6 +25,7 @@ const SalonSchedule = () => {
   const [selectedStylist, setSelectedStylist] = useState('all');
   const [selectedService, setSelectedService] = useState('all');
   const [selectedSalon, setSelectedSalon] = useState(null);
+  const [salonWorkingHours,setSalonWorkingHours] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isSalonSwitcherOpen, setIsSalonSwitcherOpen] = useState(false);
@@ -42,49 +43,54 @@ const SalonSchedule = () => {
     
     return () => clearInterval(timer);
   }, []);
-
-  // Generate time slots from 6 AM to 10 PM (IST)
-// Generate time slots from 6 AM to 10 PM (IST) in 12-hour format with AM/PM
-  const timeSlots = Array.from({ length: 17 }, (_, i) => {
-    const hour24 = i + 6;
+  // Generate time slots from 6 AM to 11:59 PM (IST)
+  const timeSlots = Array.from({ length: 18 * 2 }, (_, i) => {
+    const hour24 = Math.floor(i / 2) + 6;
     const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+    const minutes = i % 2 === 0 ? '00' : '30';
     const period = hour24 < 12 ? 'AM' : 'PM';
-    return `${hour12}:00 ${period}`;
+    return `${hour12}:${minutes} ${period}`;
   });
-
  // Helper function to parse time from different formats
+// Replace your existing parseTimeString function with this improved version
 const parseTimeString = (timeString) => {
   if (!timeString) return null;
   
-  // Handle full ISO date string format (includes GMT+0530)
-  if (timeString.includes('GMT+0530')) {
-    return new Date(timeString);
-  }
-  
-  // Handle "HH:MM AM/PM" format
-  if (timeString.includes('AM') || timeString.includes('PM')) {
-    const [hourMinute, period] = timeString.split(' ');
-    const [hours, minutes] = hourMinute.split(':').map(num => parseInt(num, 10));
-    
-    // Convert to 24-hour format
-    let hour24 = hours;
-    if (period === 'PM' && hours !== 12) {
-      hour24 += 12;
-    } else if (period === 'AM' && hours === 12) {
-      hour24 = 0;
+  try {
+    // Handle IST timestamp format with timezone info
+    if (timeString.includes('GMT+0530') || timeString.includes('Standard Time')) {
+      return new Date(timeString);
     }
     
-    const date = new Date();
-    date.setHours(hour24, minutes, 0, 0);
-    return date;
-  }
-  
-  // Handle format like "Tue, 29 Apr 2025 13:36:00 GMT"
-  if (timeString.includes('GMT')) {
+    // Handle "HH:MM AM/PM" format
+    if (timeString.includes('AM') || timeString.includes('PM')) {
+      const [hourMinute, period] = timeString.split(' ');
+      const [hours, minutes] = hourMinute.split(':').map(num => parseInt(num, 10));
+      
+      // Convert to 24-hour format
+      let hour24 = hours;
+      if (period === 'PM' && hours !== 12) {
+        hour24 += 12;
+      } else if (period === 'AM' && hours === 12) {
+        hour24 = 0;
+      }
+      
+      const result = new Date();
+      result.setHours(hour24, minutes, 0, 0);
+      return result;
+    }
+    
+    // Handle format like "Tue, 29 Apr 2025 13:36:00 GMT"
+    if (timeString.includes('GMT')) {
+      return new Date(timeString);
+    }
+    
+    // Try direct parsing as fallback
     return new Date(timeString);
+  } catch (error) {
+    console.error("Error parsing time:", error, timeString);
+    return new Date(); // Return current time as fallback
   }
-  
-  return null;
 };
 
   // Helper function to format time in IST
@@ -100,6 +106,16 @@ const parseTimeString = (timeString) => {
   };
 
   // Helper function to convert date object to hour integer for comparison
+
+  const getMinutesFromDate = (date) => {
+    if (!date) return null;
+    try {
+      return date.getMinutes();
+    } catch (error) {
+      console.error("Error getting minutes from date:", error);
+      return null;
+    }
+  };
   const getHourFromDate = (date) => {
     if (!date) return null;
     return date.getHours();
@@ -112,7 +128,7 @@ const parseTimeString = (timeString) => {
       
       setLoading(true);
       try {
-        const response = await GET_OWNER_SALON_FN(userId, ['name', 'rating', 'address', 'stylists', 'stats', 'salon_id']);
+        const response = await GET_OWNER_SALON_FN(userId, ['name', 'rating', 'address', 'stylists', 'stats', 'salon_id', 'working_hours']);
         if (response.data.data && response.data.data.length > 0) {
           setSalons(response.data.data);
           setSelectedSalon(response.data.data[0].salon_id); // Select first salon by default
@@ -191,39 +207,46 @@ const parseTimeString = (timeString) => {
     return [...new Set(services)];
   }, [appointments]);
 
-  const getAppointmentsForTimeSlot = (time) => {
-    if (!appointments || appointments.length === 0) return [];
+const getAppointmentsForTimeSlot = (timeSlot) => {
+  if (!appointments || appointments.length === 0) return [];
+
+  // Parse the time slot to get the hour and whether it's AM/PM
+  const [timePart, period] = timeSlot.split(' ');
+  const [hourStr, minuteStr] = timePart.split(':');
+  let slotHour = parseInt(hourStr, 10);
+  const slotMinute = parseInt(minuteStr, 10);
   
-    // Convert "9:00 AM" or "3:00 PM" to 24-hour hour
-    const convert12hTo24h = (timeStr) => {
-      const [timePart, period] = timeStr.split(' ');
-      let [hourStr] = timePart.split(':');
-      let hour = parseInt(hourStr, 10);
-      if (period === 'PM' && hour !== 12) hour += 12;
-      if (period === 'AM' && hour === 12) hour = 0;
-      return hour;
-    };
-  
-    const slotHour = convert12hTo24h(time);
-  
-    return appointments.filter(apt => {
-      if (!apt.startTimeDate) return false;
-  
-      const aptStartHour = getHourFromDate(apt.startTimeDate);
-  
-      const matchesTimeSlot = aptStartHour === slotHour;
-  
-      const matchesStylist = selectedStylist === 'all' || 
-        (apt.stylist && apt.stylist === selectedStylist);
-  
-      const matchesService = selectedService === 'all' || 
-        (apt.services && apt.services.some(service => 
-          service.name.toLowerCase().includes(selectedService.toLowerCase())
-        ));
-  
-      return matchesTimeSlot && matchesStylist && matchesService;
-    });
-  };
+  // Convert to 24-hour time
+  if (period === 'PM' && slotHour !== 12) slotHour += 12;
+  if (period === 'AM' && slotHour === 12) slotHour = 0;
+
+  return appointments.filter(apt => {
+    if (!apt.startTimeDate) return false;
+    
+    // Get the hour and minute from the appointment start time
+    const aptHour = getHourFromDate(apt.startTimeDate);
+    const aptMinute = getMinutesFromDate(apt.startTimeDate);
+    
+    // Check if the appointment starts in this time slot
+    // For 30-minute slots: the appointment must start in the first 30 minutes of this slot's hour
+    const matchesTimeSlot = aptHour === slotHour && 
+      ((slotMinute === 0 && aptMinute < 30) || 
+       (slotMinute === 30 && aptMinute >= 30));
+
+       // Add this new helper function
+
+    // Apply filters
+    const matchesStylist = selectedStylist === 'all' || 
+      apt.stylist === selectedStylist;
+
+    const matchesService = selectedService === 'all' || 
+      (apt.services && apt.services.some(service => 
+        service.name === selectedService
+      ));
+
+    return matchesTimeSlot && matchesStylist && matchesService;
+  });
+};
   
 
   const handlePreviousDay = () => {
@@ -291,52 +314,47 @@ const parseTimeString = (timeString) => {
     const currentHour = now.getHours(); // 0–23
     const currentMinute = now.getMinutes();
   
-    const hour24 = (() => {
-      const [time, period] = slotTime12h.split(' ');
-      let [hour] = time.split(':');
-      hour = parseInt(hour);
-      if (period === 'PM' && hour !== 12) hour += 12;
-      if (period === 'AM' && hour === 12) hour = 0;
-      return hour;
-    })();
+    // Convert slot time to 24-hour format
+    const [time, period] = slotTime12h.split(' ');
+    let [hour, minute] = time.split(':').map(n => parseInt(n, 10));
+    
+    if (period === 'PM' && hour !== 12) hour += 12;
+    if (period === 'AM' && hour === 12) hour = 0;
+    
+    // Check if the current time falls within this time slot
+    if (hour === currentHour) {
+      if (minute === 0) {
+        return currentMinute < 30; // First half hour
+      } else if (minute === 30) {
+        return currentMinute >= 30; // Second half hour
+      }
+    }
+    
+    return false;
+  }
+
+// Update the handleStatusUpdate function to ensure appointment status is correctly updated
+const handleStatusUpdate = (appointmentId, newStatus) => {
+  // In a real app, you would call API to update status
+  console.log(`Updating appointment ${appointmentId} to ${newStatus}`);
   
-    return currentHour === hour24 && currentMinute < 60; // adjust as needed
+  // Update local state to reflect the change immediately
+  setAppointments(prevAppointments => 
+    prevAppointments.map(apt => 
+      apt._id === appointmentId 
+        ? { ...apt, status: newStatus } 
+        : apt
+    )
+  );
+  
+  // If we're updating the currently selected appointment
+  if (selectedAppointment && selectedAppointment._id === appointmentId) {
+    setSelectedAppointment(prev => ({ ...prev, status: newStatus }));
   }
   
-
-  // Format service list for display
-  const formatServiceList = (services) => {
-    if (!services || services.length === 0) return "No services";
-    
-    if (services.length === 1) {
-      return services[0].name;
-    }
-    
-    return `${services[0].name} + ${services.length - 1} more`;
-  };
-
-  // Handle appointment status update
-  const handleStatusUpdate = (appointmentId, newStatus) => {
-    // In a real app, you would call API to update status
-    console.log(`Updating appointment ${appointmentId} to ${newStatus}`);
-    
-    // Update local state to reflect the change immediately
-    setAppointments(prevAppointments => 
-      prevAppointments.map(apt => 
-        apt._id === appointmentId 
-          ? { ...apt, status: newStatus } 
-          : apt
-      )
-    );
-    
-    // If we're updating the currently selected appointment
-    if (selectedAppointment && selectedAppointment._id === appointmentId) {
-      setSelectedAppointment(prev => ({ ...prev, status: newStatus }));
-    }
-    
-    // Close the detail panel after status update
-    setIsDetailOpen(false);
-  };
+  // Close the detail panel after status update
+  setIsDetailOpen(false);
+};
 
   // Empty state component
   const EmptyState = () => (
@@ -558,7 +576,10 @@ const parseTimeString = (timeString) => {
 
   // Check if we have any data to show
   const hasAppointments = appointments.length > 0;
-  const anyAppointmentsForDay = timeSlots.some(time => getAppointmentsForTimeSlot(time).length > 0);
+  const anyAppointmentsForDay = timeSlots.some(time => {
+    const aptsForTimeSlot = getAppointmentsForTimeSlot(time);
+    return aptsForTimeSlot.length > 0;
+  });
 
   // Current time indicator
   const CurrentTimeIndicator = () => {
@@ -702,46 +723,50 @@ const parseTimeString = (timeString) => {
           </div>
           
           <div className="overflow-x-auto">
-            {timeSlots.map(time => {
-              const appointmentsForSlot = getAppointmentsForTimeSlot(time);
-              const isCurrentSlot = isCurrentTimeSlot(time);
-              console.log(appointmentsForSlot);
-              return (
-                <div 
-                  key={time} 
-                  className={`flex min-h-[70px] sm:min-h-[80px] border-b border-gray-200 relative
-                    ${isCurrentSlot ? 'bg-yellow-50' : ''}`}
-                >
-                  <div className={`w-16 sm:w-24 p-2 sm:p-3 ${isCurrentSlot ? 'bg-yellow-100 font-medium' : 'bg-gray-50'} text-gray-600 text-xs sm:text-sm flex items-center`}>
-                    {time}
-                    {isCurrentSlot && (
-                      <span className="ml-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                    )}
-                  </div>
-                  <div className="flex-1 p-1 sm:p-2 overflow-x-auto flex gap-2 relative">
-                    {isCurrentSlot && <CurrentTimeIndicator />}
-                    
-                    {appointmentsForSlot.length > 0 ? (
-                      appointmentsForSlot.map(apt => (
-                        <AppointmentCard key={apt._id} appointment={apt} />
-                      ))
-                    ) : (
-                      <div className="flex items-center justify-center w-full p-2 text-gray-400 text-xs sm:text-sm">
-                        Available
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+  {timeSlots.map((time, index) => {
+    const appointmentsForSlot = getAppointmentsForTimeSlot(time);
+    const isCurrentSlot = isCurrentTimeSlot(time);
+    
+    // Only show indicator for the first matching time slot
+    const showIndicator = isCurrentSlot && 
+      timeSlots.findIndex(t => isCurrentTimeSlot(t)) === index;
+    
+    return (
+      <div 
+        key={time} 
+        className={`flex min-h-[70px] sm:min-h-[80px] border-b border-gray-200 relative
+          ${isCurrentSlot ? 'bg-yellow-50' : ''}`}
+      >
+        <div className={`w-16 sm:w-24 p-2 sm:p-3 ${isCurrentSlot ? 'bg-yellow-100 font-medium' : 'bg-gray-50'} text-gray-600 text-xs sm:text-sm flex items-center`}>
+          {time}
+          {isCurrentSlot && (
+            <span className="ml-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+          )}
+        </div>
+        <div className="flex-1 p-1 sm:p-2 overflow-x-auto flex gap-2 relative">
+          {showIndicator && <CurrentTimeIndicator />}
+          
+          {appointmentsForSlot.length > 0 ? (
+            appointmentsForSlot.map(apt => (
+              <AppointmentCard key={apt._id} appointment={apt} />
+            ))
+          ) : (
+            <div className="flex items-center justify-center w-full p-2 text-gray-400 text-xs sm:text-sm">
+              Available
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  })}
   
-            {/* No appointments message if filtered to none */}
-            {hasAppointments && !anyAppointmentsForDay && (
-              <div className="p-6 sm:p-8 text-center text-gray-500 text-sm">
-                No appointments match your current filters.
-              </div>
-            )}
-          </div>
+  {/* No appointments message if filtered to none */}
+  {hasAppointments && !anyAppointmentsForDay && (
+    <div className="p-6 sm:p-8 text-center text-gray-500 text-sm">
+      No appointments match your current filters.
+    </div>
+  )}
+</div>
         </div>
       )}
   

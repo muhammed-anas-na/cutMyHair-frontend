@@ -47,6 +47,7 @@ export const ADD_NEW_CATEGORY_API = `${OWNER_BASE_URL}/add-category`;
 export const GET_REPORT_DATA_API = `${OWNER_BASE_URL}/get-reports`
 export const Add_NEW_EMPLOYEE_API = `${OWNER_BASE_URL}/add-stylist`
 export const GET_STYLIST_DATA_API = `${OWNER_BASE_URL}/get-stylist`
+export const GET_FINANCE_DATA_API = `${OWNER_BASE_URL}/get-finance-report`
 
 //User Payment
 export const CREATE_ORDER_API = `${USER_BASE_URL}/create-razorpay-order`;

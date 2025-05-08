@@ -15,7 +15,8 @@ import {
   GET_REPORT_DATA_API,
   GET_OWNER_SETTINGS_DATA_API,
   Add_NEW_EMPLOYEE_API,
-  GET_STYLIST_DATA_API
+  GET_STYLIST_DATA_API,
+  GET_FINANCE_DATA_API
 } from '@/endpoints/index.js';
 
 export const OWNER_SEND_OTP_FN = async (phone_number,from) => {
@@ -187,6 +188,14 @@ export const Add_NEW_EMPLOYEE_FN = async(salon_id, name)=>{
 export const GET_STYLIST_DATA__FN = async(salon_id)=>{
   try {
     return await axiosInstance.post(GET_STYLIST_DATA_API, {salon_id});
+  } catch (err) {
+    return err
+  }
+}
+
+export const GET_FINANCE_DATA_FN = async(salon_id)=>{
+  try {
+    return await axiosInstance.post(GET_FINANCE_DATA_API, {salon_id});
   } catch (err) {
     return err
   }

@@ -24,7 +24,7 @@ export const SalonProvider = ({ children }) => {
     const initializeSalon = () => {
       // Only proceed if the user is authenticated
       if (isAuthenticated && typeof window !== 'undefined') {
-        const salon_id = localStorage.getItem('salon_id');
+        const salon_id = localStorage.getItem('defaultSalonId');
         
         if (salon_id) {
           setSalonState({
@@ -42,7 +42,7 @@ export const SalonProvider = ({ children }) => {
 
   // Function to set the salon ID
   const setSalonId = (salon_id) => {
-    localStorage.setItem('salon_id', salon_id);
+    localStorage.setItem('defaultSalonId', salon_id);
     setSalonState({
       salon_id,
       isLoading: false
@@ -60,7 +60,7 @@ export const SalonProvider = ({ children }) => {
   
   const clearSalonId = () => {
     // Remove from localStorage
-    localStorage.removeItem('salon_id');
+    localStorage.removeItem('defaultSalonId');
     
     setSalonState({
       salon_id: null,

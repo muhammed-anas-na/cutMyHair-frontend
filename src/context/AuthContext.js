@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }) => {
         pathname !== '/privacy-policy' &&
         pathname !== '/report-issue' &&
         pathname !== '/terms-and-conditions' &&  
-        // !pathname.startsWith('/owner/') &&
+        !pathname.startsWith('/owner/') &&
         !pathname.startsWith('/blogs') &&
         !pathname.startsWith('/blogs/')) {
         router.replace('/login');

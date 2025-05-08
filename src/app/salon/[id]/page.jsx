@@ -80,7 +80,6 @@ const SalonDetailPage = ({ params }) => {
     return selectedServices.reduce((total, service) => total + service.price, 0);
   };
 
-  // Function to calculate total duration of selected services
   const getTotalDuration = () => {
     // Assuming duration is in format like "30 min"
     const totalMinutes = selectedServices.reduce((total, service) => {
@@ -88,15 +87,9 @@ const SalonDetailPage = ({ params }) => {
       const minutes = parseInt(durationStr.split(' ')[0]) || 0;
       return total + minutes;
     }, 0);
-    
-    // Format the total duration
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    
-    if (hours > 0) {
-      return `${hours} hr ${minutes > 0 ? `${minutes} min` : ''}`;
-    }
-    return `${minutes} min`;
+  
+    // Return the total duration in minutes
+    return `${totalMinutes} min`;
   };
 
   // Function to handle booking button click
@@ -197,7 +190,6 @@ const SalonDetailPage = ({ params }) => {
             </motion.button>
           </div>
 
-          {/* Gender Selection */}
           <div className="flex flex-wrap items-center gap-2 mt-4">
             <div className="ml-auto flex items-center bg-[#F3FCF7] px-3 py-1.5 rounded-full cursor-pointer" onClick={() => setIsVerificationPopupOpen(true)}>
               <div className="mr-2 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
