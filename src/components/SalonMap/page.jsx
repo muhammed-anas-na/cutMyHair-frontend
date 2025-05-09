@@ -8,7 +8,6 @@ import CustomMarker from '../CustomMarker/page';
 import SalonFeedback from '../SalonReview/page';
 import { useRouter } from "next/navigation";
 import { useLocation } from '@/context/LocationContext';
-
 function SalonMap({ salons, loading, error }) {
   const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
@@ -19,7 +18,6 @@ function SalonMap({ salons, loading, error }) {
   const [mapInitialized, setMapInitialized] = useState(false);
   const [userLocationSet, setUserLocationSet] = useState(false);
   const rootsRef = useRef([]);
- 
   // Initialize map when component mounts
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -193,6 +191,7 @@ function SalonMap({ salons, loading, error }) {
         // Add click event listener
         el.addEventListener('click', () => {
           setSelectedSalon(salon);
+          router.push(`/salon/${salon.salon_id}?from=map`)
         });
         
         // Add to map
@@ -331,7 +330,7 @@ function SalonMap({ salons, loading, error }) {
 
       <div id='map-container' ref={mapContainerRef} style={{ height: '500px' }}/>
       
-      {selectedSalon && (
+      {/* {selectedSalon && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-40">
           <div className="absolute bottom-0 left-0 right-0 z-50">
             <SalonFeedback 
@@ -341,7 +340,7 @@ function SalonMap({ salons, loading, error }) {
             />
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

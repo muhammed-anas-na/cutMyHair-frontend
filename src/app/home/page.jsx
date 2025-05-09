@@ -14,6 +14,7 @@ import LocationModal from '@/components/LocationModal/page';
 import { GET_NEAREST_SALON_FN } from '@/services/userService';
 import { useAuth } from '@/context/AuthContext';
 import Footer from '@/components/LandingPage/Footer/page';
+import { useSearchParams } from 'next/navigation'
 
 const Home = () => {
   const [isMapView, setIsMapView] = useState(false);
@@ -56,7 +57,15 @@ const Home = () => {
   
     fetchSalons();
   }, [latitude, longitude]);
-
+  const searchParams = useSearchParams();
+  const view = searchParams.get('view')
+  console.log(view);
+  useEffect(()=>{
+    if(view=='map'){
+      setIsMapView(true);
+    }
+  },[view])
+  console.log(isLocationModalOpen)
   const handleRetry = () => {
     if (!latitude || !longitude) {
       setIsLocationModalOpen(true);

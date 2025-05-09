@@ -15,6 +15,8 @@ import { checkIfOpenToday } from '@/helpers';
 import SalonImageSlider from '../ImageSlider';
 import VerificationPopup from '@/components/VerificationPopUp/page';
 import BookingModal from '../../../components/BookingModal/page';
+import { useSearchParams } from 'next/navigation'
+import { useRouter } from "next/navigation";
 
 const SalonDetailPage = ({ params }) => {
   const unwrappedParams = use(params);
@@ -27,6 +29,9 @@ const SalonDetailPage = ({ params }) => {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isVerificationPopupOpen, setIsVerificationPopupOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const param = searchParams.get('from')
   // Tabs available in the salon detail page
   const tabs = ['Services', 'Gallery', 'Stylists', 'About', "Rating"];
 
@@ -43,6 +48,14 @@ const SalonDetailPage = ({ params }) => {
     fetchData();
   }, []);
 
+
+  function handleBackClick(){
+    if(param == 'map'){
+      router.push('/home?view=map')
+    }else{
+      router.push('/home?view=list')
+    }
+  }
   // Function to toggle category expansion
   const toggleCategory = (categoryName) => {
     if (expandedCategory === categoryName) {
@@ -109,11 +122,9 @@ const SalonDetailPage = ({ params }) => {
       />
 
       <div className="sticky top-0 z-20 bg-white shadow-sm px-4 py-3 flex items-center justify-between">
-        <Link href="/home">
-          <div className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <button onClick={()=>handleBackClick()} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
             <ChevronLeft className="w-6 h-6 text-gray-800" />
-          </div>
-        </Link>
+          </button>
         <div className="flex-1 mx-3">
           <div className="relative">
             <input
