@@ -130,17 +130,23 @@ const SalonDetailPage = ({ params }) => {
       <div className="max-w-4xl mx-auto"> 
         {/* Salon Image - Fixed height with proper object fit */}
         <div className="relative h-60 w-full overflow-hidden">
-          <SalonImageSlider
-            images={salon?.images || []}
-            altText={salon?.name || "Salon image"}
-          />
-          <motion.button
+        <div className="max-w-4xl mx-auto"> 
+      {/* Salon Image - Fixed height with proper object fit */}
+      <div className="relative w-full">
+        <SalonImageSlider
+          images={salon?.images || []}
+          altText={salon?.name || "Salon image"}
+        />
+      </div>
+
+      <motion.button
             className="absolute top-3 right-3 p-2.5 bg-white rounded-full shadow-md"
             whileTap={{ scale: 0.9 }}
             onClick={() => setIsFavorite(!isFavorite)}
           >
             <Heart className={`w-5 h-5 ${isFavorite ? 'text-[#CE145B] fill-[#CE145B]' : 'text-gray-500'}`} />
           </motion.button>
+    </div>
         </div>
 
         {/* Salon Info */}

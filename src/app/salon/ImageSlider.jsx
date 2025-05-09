@@ -8,8 +8,9 @@ const SalonImageSlider = ({ images = [], altText = "Salon image" }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Auto-slide functionality (optional)
+  // Auto-slide functionality
   useEffect(() => {
     if (!images || images.length <= 1) return;
 
@@ -27,6 +28,7 @@ const SalonImageSlider = ({ images = [], altText = "Salon image" }) => {
     if (!images || images.length <= 1) return;
     
     setIsTransitioning(true);
+    setImageLoaded(false);
     setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
     
     // Reset transition state after animation completes
@@ -38,16 +40,22 @@ const SalonImageSlider = ({ images = [], altText = "Salon image" }) => {
     if (!images || images.length <= 1) return;
     
     setIsTransitioning(true);
+    setImageLoaded(false);
     setCurrentIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
     
     // Reset transition state after animation completes
     setTimeout(() => setIsTransitioning(false), 500);
   };
 
+  // Handle image load event
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
+
   // If no images are available
   if (!images || images.length === 0) {
     return (
-      <div className="relative max-h-60 overflow-hidden bg-gray-100 flex items-center justify-center">
+      <div className="relative h-60 w-full overflow-hidden bg-gray-100 flex items-center justify-center">
         <div className="flex flex-col items-center text-gray-400">
           <Image className="w-10 h-10 mb-2" />
           <p className="text-sm font-medium">No images available</p>
@@ -57,18 +65,41 @@ const SalonImageSlider = ({ images = [], altText = "Salon image" }) => {
   }
 
   return (
-    <div className="relative max-h-60 overflow-hidden">
-      {/* Current image */}
-      <motion.img
-        key={currentIndex}
-        src={images[currentIndex]}
-        alt={`${altText} ${currentIndex + 1}/${images.length}`}
-        className="w-full h-full object-cover"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.5 }}
-      />
+    <div className="relative h-60 w-full overflow-hidden bg-gray-100">
+      {/* Background blur effect for aesthetics */}
+      {images[currentIndex] && (
+        <div 
+          className="absolute inset-0 blur-xl opacity-50"
+          style={{ 
+            backgroundImage: `url(${images[currentIndex]})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        />
+      )}
+      
+      {/* Image container with proper centering */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        {/* Current image with proper handling for various dimensions */}
+        <motion.img
+          key={currentIndex}
+          src={images[currentIndex]}
+          alt={`${altText} ${currentIndex + 1}/${images.length}`}
+          className={`max-h-60 max-w-full object-contain transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: imageLoaded ? 1 : 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          onLoad={handleImageLoad}
+        />
+      </div>
+
+      {/* Loading indicator */}
+      {!imageLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-pink-500 rounded-full animate-spin"></div>
+        </div>
+      )}
 
       {/* Favorite button */}
       <motion.button 
@@ -116,6 +147,7 @@ const SalonImageSlider = ({ images = [], altText = "Salon image" }) => {
               onClick={() => {
                 if (!isTransitioning) {
                   setIsTransitioning(true);
+                  setImageLoaded(false);
                   setCurrentIndex(index);
                   setTimeout(() => setIsTransitioning(false), 500);
                 }
