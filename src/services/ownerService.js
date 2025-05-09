@@ -16,7 +16,11 @@ import {
   GET_OWNER_SETTINGS_DATA_API,
   Add_NEW_EMPLOYEE_API,
   GET_STYLIST_DATA_API,
-  GET_FINANCE_DATA_API
+  GET_FINANCE_DATA_API,
+  WITHDRAW_AMOUNT_API,
+  UPDATE_SERVICE_API,
+  UPDATE_CATEGORY_API,
+  DELETE_STYLIST_API
 } from '@/endpoints/index.js';
 
 export const OWNER_SEND_OTP_FN = async (phone_number,from) => {
@@ -196,6 +200,38 @@ export const GET_STYLIST_DATA__FN = async(salon_id)=>{
 export const GET_FINANCE_DATA_FN = async(salon_id)=>{
   try {
     return await axiosInstance.post(GET_FINANCE_DATA_API, {salon_id});
+  } catch (err) {
+    return err
+  }
+}
+
+export const WITHDRAW_AMOUNT_FN = async(salon_id, amount,upiId)=>{
+  try {
+    return await axiosInstance.post(WITHDRAW_AMOUNT_API, {salon_id,amount,upiId});
+  } catch (err) {
+    return err
+  }
+}
+
+export const UPDATE_SERVICE_FN = async(salon_id, service_id,service_name, service_desc, service_price,service_duration,service_category, service_status,categoryID)=>{
+  try {
+      return await axiosInstance.post(UPDATE_SERVICE_API, {salon_id,service_id,service_name,service_desc,service_price,service_duration,service_category, service_status,categoryID});
+  } catch (err) {
+    return err
+  }
+}
+
+export const UPDATE_CATEGORY_FN = async(data)=>{
+  try {
+    return await axiosInstance.post(UPDATE_CATEGORY_API, data);
+} catch (err) {
+  return err
+}
+}
+
+export const DELETE_STYLIST_FN = async(salon_id,id)=>{
+  try {
+    return await axiosInstance.post(DELETE_STYLIST_API, {salon_id,id});
   } catch (err) {
     return err
   }

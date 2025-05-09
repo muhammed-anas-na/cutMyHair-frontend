@@ -1,8 +1,8 @@
 // EmployeesTab.jsx
 import React, { useEffect, useState } from 'react';
-import { Plus, Users, Pencil, X, Camera, AlertCircle } from 'lucide-react';
+import { Plus, Users, Pencil, X, Camera, AlertCircle, MoreVertical, Trash2 } from 'lucide-react';
 import { useSalon } from '@/context/SalonContext';
-import { Add_NEW_EMPLOYEE_FN, GET_STYLIST_DATA__FN } from '@/services/ownerService';
+import { Add_NEW_EMPLOYEE_FN, DELETE_STYLIST_FN, GET_STYLIST_DATA__FN } from '@/services/ownerService';
 
 const EmployeesTab = ({ salonData, isEditing }) => {
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
@@ -12,6 +12,8 @@ const EmployeesTab = ({ salonData, isEditing }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(null);
 
   // Fetch stylists data on component mount
   useEffect(() => {
@@ -20,7 +22,7 @@ const EmployeesTab = ({ salonData, isEditing }) => {
         setIsLoading(true);
         const response = await GET_STYLIST_DATA__FN(salonData.salon_id);
         if (response.data) {
-          console.log(response.data[0].stylists)
+          console.log(response.data[0].stylists);
           setStylists(response.data[0].stylists);
         }
       } catch (err) {
@@ -62,6 +64,17 @@ const EmployeesTab = ({ salonData, isEditing }) => {
         
         // Update the local employees state
         setEmployees([...employees, newEmployee]);
+        
+        // Refresh the stylists list to include the new employee
+        try {
+          const refreshResponse = await GET_STYLIST_DATA__FN(salonData.salon_id);
+          if (refreshResponse.data) {
+            setStylists(refreshResponse.data[0].stylists);
+          }
+        } catch (refreshErr) {
+          console.error("Failed to refresh stylists:", refreshErr);
+        }
+        
         setSuccess("Employee added successfully!");
         setName(''); // Reset form
         setIsAddingEmployee(false); // Close modal
@@ -80,6 +93,78 @@ const EmployeesTab = ({ salonData, isEditing }) => {
     setError('');
     setName('');
   };
+
+  // Toggle dropdown menu for a specific employee
+  const toggleMenu = (id, event) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    setOpenMenuId(openMenuId === id ? null : id);
+  };
+
+  // Close dropdown menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openMenuId === null) return;
+      
+      const menuButton = event.target.closest('button[data-menu-toggle]');
+      const menuDropdown = event.target.closest('.menu-dropdown');
+      
+      if (menuButton && menuButton.getAttribute('data-employee-id') === openMenuId) {
+        return;
+      }
+      
+      if (menuDropdown && menuDropdown.getAttribute('data-employee-id') === openMenuId) {
+        return;
+      }
+      
+      setOpenMenuId(null);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openMenuId]);
+
+  // Handle employee deletion
+  const handleDeleteEmployee = async (id, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    try {
+      setDeleteLoading(id);
+      setError('');
+      
+      const response = await DELETE_STYLIST_FN(salonData.salon_id, id);
+      
+      if (response) {
+        // Update the local stylists state
+        setStylists(stylists.filter(stylist => stylist._id !== id));
+        setSuccess("Employee deleted successfully!");
+      }
+    } catch (err) {
+      console.error("Failed to delete employee:", err);
+      setError("Failed to delete employee. Please try again.");
+    } finally {
+      setDeleteLoading(null);
+      setOpenMenuId(null);
+    }
+  };
+
+  // Clear success message after 5 seconds
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        setSuccess('');
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
 
   return (
     <div>
@@ -103,26 +188,81 @@ const EmployeesTab = ({ salonData, isEditing }) => {
           </button>
         </div>
       )}
+      
+      {/* Error message */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg flex items-center gap-2">
+          <AlertCircle size={16} />
+          <div className="flex-1">{error}</div>
+          <button onClick={() => setError('')} className="text-red-700">
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
-      {stylists && stylists.length > 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center py-8">
+          <div className="animate-pulse text-gray-400">Loading employees...</div>
+        </div>
+      ) : stylists && stylists.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {stylists.map((stylists) => (
-            <div key={stylists.id} className="bg-white rounded-xl shadow-sm p-4">
+          {stylists.map((stylist) => (
+            <div key={stylist._id} className="bg-white rounded-xl shadow-sm p-4">
               <div className="flex items-start gap-4">
                 <img 
-                  src={stylists.photo || "/api/placeholder/64/64"} 
-                  alt={stylists.name} 
+                  src={stylist.photo || "/api/placeholder/64/64"} 
+                  alt={stylist.name} 
                   className="w-16 h-16 rounded-full object-cover" 
                 />
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{stylists.name}</h3>
+                  <h3 className="font-semibold text-gray-900">{stylist.name}</h3>
                   <p className="text-sm text-gray-600">No Specific Role for now</p>
                 </div>
-                {isEditing && (
-                  <button className="p-2 text-gray-400 hover:text-gray-600">
-                    <Pencil size={16} />
+                <div className="relative">
+                  <button 
+                    data-menu-toggle="true"
+                    data-employee-id={stylist._id}
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
+                    onClick={(e) => toggleMenu(stylist._id, e)}
+                  >
+                    <MoreVertical size={16} />
                   </button>
-                )}
+                  
+                  {/* Dropdown Menu */}
+                  {openMenuId === stylist._id && (
+                    <div 
+                      className="menu-dropdown absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10 py-1 border border-gray-200" 
+                      data-employee-id={stylist._id}
+                    >
+                      {isEditing && (
+                        <button 
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                          onClick={() => {/* Add edit functionality here */}}
+                        >
+                          <Pencil size={14} />
+                          Edit
+                        </button>
+                      )}
+                      <button 
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+                        onClick={(e) => handleDeleteEmployee(stylist._id, e)}
+                        disabled={deleteLoading === stylist._id}
+                      >
+                        {deleteLoading === stylist._id ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                            Deleting...
+                          </div>
+                        ) : (
+                          <>
+                            <Trash2 size={14} />
+                            Delete
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -157,7 +297,7 @@ const EmployeesTab = ({ salonData, isEditing }) => {
               </button>
             </div>
             
-            {/* Error message */}
+            {/* Error message in modal */}
             {error && (
               <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg flex items-center gap-2">
                 <AlertCircle size={16} />

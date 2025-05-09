@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Store, X, FolderPlus, ChevronDown, ChevronRight } from 'lucide-react';
-import { ADD_NEW_CATEGORY_FN, ADD_SERVICE_FOR_SALON_FN } from '@/services/ownerService';
+import { Plus, Pencil, Trash2, Store, X, FolderPlus, ChevronDown, ChevronRight, Save } from 'lucide-react';
+import { ADD_NEW_CATEGORY_FN, ADD_SERVICE_FOR_SALON_FN, UPDATE_CATEGORY_FN, UPDATE_SERVICE_FN } from '../../../services/ownerService';
 
 const ServicesTab = ({ salonData, setSalonData, isEditing }) => {
   const [showAddServiceModal, setShowAddServiceModal] = useState(false);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [editingServiceId, setEditingServiceId] = useState(null);
+  const [editingCategoryId, setEditingCategoryId] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   
   const [newService, setNewService] = useState({
     name: '',
@@ -53,32 +56,61 @@ const ServicesTab = ({ salonData, setSalonData, isEditing }) => {
   
   const handleAddService = async (e) => {
     e.preventDefault();
-    try {
-      const categoryId = selectedCategory?.category_id || selectedCategory?._id || null;
+      try {
+        const categoryId = selectedCategory?.category_id || selectedCategory?._id || null;
+        
+        if (editingServiceId) {
+            const response = await UPDATE_SERVICE_FN(
+              salonData.salon_id,
+              editingServiceId,
+              newService.name,
+              newService.description,
+              Number(newService.price),
+              newService.duration,
+              newService.category,
+              newService.status,
+              categoryId
+            );
+            console.log(response);
+            const updatedServices = salonData.services.map(service => 
+              service.service_id === editingServiceId 
+                ? { ...service, ...newService, price: Number(newService.price), category_id: categoryId }
+                : service
+            );
+            
+            setSalonData(prevData => ({
+              ...prevData,
+              services: updatedServices
+            }));
+            
+            setEditingServiceId(null);
+        } else {
+          // Add new service
+          const response = await ADD_SERVICE_FOR_SALON_FN(
+            salonData.salon_id,
+            newService.name,
+            newService.description,
+            Number(newService.price),
+            newService.duration,
+            newService.category, // This is the service type (Female/Male/Unisex)
+            newService.status,
+            categoryId // Pass the category_id explicitly
+          );
       
-      const response = await ADD_SERVICE_FOR_SALON_FN(
-        salonData.salon_id,
-        newService.name,
-        newService.description,
-        Number(newService.price),
-        newService.duration,
-        newService.category, // This is the service type (Female/Male/Unisex)
-        newService.status,
-        categoryId // Pass the category_id explicitly
-      );
-  
-      if (response.status === 200) {
-        const serviceToAdd = {
-          ...response.data.data,
-          category_id: categoryId // Ensure category_id is included in the new service
-        };
-  
+          if (response.status === 200) {
+            const serviceToAdd = {
+              ...response.data.data,
+              category_id: categoryId // Ensure category_id is included in the new service
+            };
+      
+            setSalonData(prevData => ({
+              ...prevData,
+              services: [...(prevData.services || []), serviceToAdd]
+            }));
+          }
+        }
+        
         setShowAddServiceModal(false);
-        setSalonData(prevData => ({
-          ...prevData,
-          services: [...(prevData.services || []), serviceToAdd]
-        }));
-  
         setNewService({
           name: '',
           description: '',
@@ -89,45 +121,71 @@ const ServicesTab = ({ salonData, setSalonData, isEditing }) => {
           category_id: ''
         });
         setSelectedCategory(null);
+      } catch (err) {
+        console.error('Error handling service:', err.response?.data || err.message);
+        alert('Failed to process service: ' + (err.response?.data?.message || 'Unknown error'));
       }
-    } catch (err) {
-      console.error('Error adding service:', err.response?.data || err.message);
-      alert('Failed to add service: ' + (err.response?.data?.message || 'Unknown error'));
     }
-  };
   
   const handleAddCategory = async (e) => {
     e.preventDefault();
     try {
-      const categoryId = `cat_${Date.now()}`;
-      const categoryToAdd = {
-        salon_id: salonData.salon_id,
-        category_id: categoryId,
-        name: newCategory.name,
-        description: newCategory.description || ''
-      };
-      
-      const response = await ADD_NEW_CATEGORY_FN(categoryToAdd);
-      
-      if (response.status === 200) {
-        setSalonData(prev => ({
-          ...prev,
-          categories: [...(prev.categories || []), {
-            ...categoryToAdd,
-            _id: response.data.data?._id || categoryId
-          }]
-        }));
+      if (editingCategoryId) {
+        // Update existing category
+        const response = await UPDATE_CATEGORY_FN({
+          salon_id: salonData.salon_id,
+          category_id: editingCategoryId,
+          name: newCategory.name,
+          description: newCategory.description || ''
+        });
         
-        setNewCategory({ name: '', description: '' });
-        setShowAddCategoryModal(false);
+        if (response.status === 200) {
+          const updatedCategories = salonData.categories.map(cat => 
+            (cat.category_id || cat._id) === editingCategoryId 
+              ? { ...cat, name: newCategory.name, description: newCategory.description }
+              : cat
+          );
+          
+          setSalonData(prev => ({
+            ...prev,
+            categories: updatedCategories
+          }));
+          
+          setEditingCategoryId(null);
+        }
+      } else {
+        // Add new category
+        const categoryId = `cat_${Date.now()}`;
+        const categoryToAdd = {
+          salon_id: salonData.salon_id,
+          category_id: categoryId,
+          name: newCategory.name,
+          description: newCategory.description || ''
+        };
         
-        setExpandedCategories(prev => ({
-          ...prev,
-          [categoryId]: true
-        }));
+        const response = await ADD_NEW_CATEGORY_FN(categoryToAdd);
+        
+        if (response.status === 200) {
+          setSalonData(prev => ({
+            ...prev,
+            categories: [...(prev.categories || []), {
+              ...categoryToAdd,
+              _id: response.data.data?._id || categoryId
+            }]
+          }));
+          
+          setExpandedCategories(prev => ({
+            ...prev,
+            [categoryId]: true
+          }));
+        }
       }
+      
+      setNewCategory({ name: '', description: '' });
+      setShowAddCategoryModal(false);
     } catch (err) {
-      console.error('Error adding category:', err);
+      console.error('Error handling category:', err);
+      alert('Failed to process category: ' + (err.response?.data?.message || 'Unknown error'));
     }
   };
   
@@ -171,7 +229,41 @@ const ServicesTab = ({ salonData, setSalonData, isEditing }) => {
       ...prev,
       category_id: category?.category_id || category?._id || ''
     }));
+    setEditingServiceId(null);
     setShowAddServiceModal(true);
+  };
+  
+  const openEditServiceModal = (service, e) => {
+    if (e) e.stopPropagation();
+    
+    // Find the category for this service
+    const category = salonData.categories.find(
+      cat => (cat.category_id || cat._id) === service.category_id
+    );
+    
+    setSelectedCategory(category || null);
+    setNewService({
+      name: service.name,
+      description: service.description || '',
+      price: service.price.toString(),
+      duration: service.duration,
+      category: service.category,
+      status: service.status,
+      category_id: service.category_id || ''
+    });
+    setEditingServiceId(service.service_id);
+    setShowAddServiceModal(true);
+  };
+  
+  const openEditCategoryModal = (category, e) => {
+    if (e) e.stopPropagation();
+    
+    setNewCategory({
+      name: category.name,
+      description: category.description || ''
+    });
+    setEditingCategoryId(category.category_id || category._id);
+    setShowAddCategoryModal(true);
   };
   
   const getServicesByCategory = (categoryId) => {
@@ -240,12 +332,20 @@ const ServicesTab = ({ salonData, setSalonData, isEditing }) => {
                       <span className="sm:hidden">Add</span>
                     </button>
                     {isEditing && (
-                      <button 
-                        onClick={(e) => handleDeleteCategory(categoryId, e)}
-                        className="text-red-600 hover:text-red-800 ml-1 sm:ml-3"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <>
+                        <button 
+                          onClick={(e) => openEditCategoryModal(category, e)}
+                          className="text-blue-600 hover:text-blue-800 ml-1 sm:ml-3"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button 
+                          onClick={(e) => handleDeleteCategory(categoryId, e)}
+                          className="text-red-600 hover:text-red-800 ml-1 sm:ml-3"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -292,7 +392,10 @@ const ServicesTab = ({ salonData, setSalonData, isEditing }) => {
                                 </td>
                                 {isEditing && (
                                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-medium">
-                                    <button className="text-[#CE145B] hover:text-[#CE145B]/80 mr-2 sm:mr-3">
+                                    <button 
+                                      onClick={(e) => openEditServiceModal(service, e)}
+                                      className="text-[#CE145B] hover:text-[#CE145B]/80 mr-2 sm:mr-3"
+                                    >
                                       <Pencil size={16} />
                                     </button>
                                     <button 
@@ -378,7 +481,10 @@ const ServicesTab = ({ salonData, setSalonData, isEditing }) => {
                       </td>
                       {isEditing && (
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-medium">
-                          <button className="text-[#CE145B] hover:text-[#CE145B]/80 mr-2 sm:mr-3">
+                          <button 
+                            onClick={(e) => openEditServiceModal(service, e)}
+                            className="text-[#CE145B] hover:text-[#CE145B]/80 mr-2 sm:mr-3"
+                          >
                             <Pencil size={16} />
                           </button>
                           <button 
@@ -398,35 +504,34 @@ const ServicesTab = ({ salonData, setSalonData, isEditing }) => {
         </div>
       )}
       
-      {/* Empty State - Made responsive */}
-      {!hasCategoriesWithServices && !hasUncategorizedServices && (
-        <div className="bg-gray-50 rounded-lg sm:rounded-xl p-6 sm:p-8 text-center">
-          <Store size={40} className="mx-auto text-gray-300 mb-3 sm:mb-4" />
-          <h3 className="text-md sm:text-lg font-medium text-gray-700 mb-2">No Services Added Yet</h3>
-          <p className="text-sm text-gray-500 mb-4">Start by adding a category or service.</p>
-          <div className="flex flex-col xs:flex-row items-center justify-center gap-3">
-            <button
-              onClick={() => setShowAddCategoryModal(true)}
-              className="w-full xs:w-auto px-4 py-2 text-sm bg-[#CE145B] text-white rounded-lg hover:bg-[#CE145B]/90 inline-flex items-center justify-center gap-2"
-            >
-              <FolderPlus size={16} />
-              Add Category
-            </button>
-            <button
-              onClick={() => openAddServiceModal(null)}
-              className="w-full xs:w-auto px-4 py-2 text-sm border border-[#CE145B] text-[#CE145B] rounded-lg hover:bg-[#CE145B]/5 inline-flex items-center justify-center gap-2"
-            >
-              <Plus size={16} />
-              Add Service
-            </button>
-          </div>
-        </div>
-      )}
-  
-      {/* Add Service Modal - Made responsive */}
+      {/* Service Modal (Add/Edit) - Made responsive */}
       {showAddServiceModal && (
         <div className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 w-full max-w-md mx-auto max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                {editingServiceId ? 'Edit Service' : 'Add New Service'}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowAddServiceModal(false);
+                  setEditingServiceId(null);
+                  setNewService({
+                    name: '',
+                    description: '',
+                    price: '',
+                    duration: '',
+                    category: '',
+                    status: 'available',
+                    category_id: ''
+                  });
+                }}
+                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            
             <form onSubmit={handleAddService} className="space-y-3 sm:space-y-4">
               {salonData.categories?.length > 0 && (
                 <div>
@@ -544,13 +649,26 @@ const ServicesTab = ({ salonData, setSalonData, isEditing }) => {
               <div className="mt-5 sm:mt-6 flex gap-3">
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 text-sm bg-[#CE145B] text-white rounded-lg hover:bg-[#CE145B]/90"
+                  className="flex-1 px-4 py-2 text-sm bg-[#CE145B] text-white rounded-lg hover:bg-[#CE145B]/90 flex items-center justify-center gap-2"
                 >
-                  Add Service
+                  {editingServiceId ? <Save size={16} /> : <Plus size={16} />}
+                  {editingServiceId ? 'Save Changes' : 'Add Service'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowAddServiceModal(false)}
+                  onClick={() => {
+                    setShowAddServiceModal(false);
+                    setEditingServiceId(null);
+                    setNewService({
+                      name: '',
+                      description: '',
+                      price: '',
+                      duration: '',
+                      category: '',
+                      status: 'available',
+                      category_id: ''
+                    });
+                  }}
                   className="flex-1 px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                 >
                   Cancel
@@ -561,14 +679,20 @@ const ServicesTab = ({ salonData, setSalonData, isEditing }) => {
         </div>
       )}
       
-      {/* Add Category Modal - Made responsive */}
+      {/* Category Modal (Add/Edit) - Made responsive */}
       {showAddCategoryModal && (
         <div className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 w-full max-w-md mx-auto max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Add New Category</h3>
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                {editingCategoryId ? 'Edit Category' : 'Add New Category'}
+              </h3>
               <button
-                onClick={() => setShowAddCategoryModal(false)}
+                onClick={() => {
+                  setShowAddCategoryModal(false);
+                  setEditingCategoryId(null);
+                  setNewCategory({ name: '', description: '' });
+                }}
                 className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full"
               >
                 <X size={18} />
@@ -602,13 +726,18 @@ const ServicesTab = ({ salonData, setSalonData, isEditing }) => {
               <div className="mt-5 sm:mt-6 flex gap-3">
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 text-sm bg-[#CE145B] text-white rounded-lg hover:bg-[#CE145B]/90"
+                  className="flex-1 px-4 py-2 text-sm bg-[#CE145B] text-white rounded-lg hover:bg-[#CE145B]/90 flex items-center justify-center gap-2"
                 >
-                  Add Category
+                  {editingCategoryId ? <Save size={16} /> : <FolderPlus size={16} />}
+                  {editingCategoryId ? 'Save Changes' : 'Add Category'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowAddCategoryModal(false)}
+                  onClick={() => {
+                    setShowAddCategoryModal(false);
+                    setEditingCategoryId(null);
+                    setNewCategory({ name: '', description: '' });
+                  }}
                   className="flex-1 px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                 >
                   Cancel
