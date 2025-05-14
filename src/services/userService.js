@@ -19,7 +19,8 @@ import {
   REMOVE_FROM_FAVORITES_API,
   GET_ALL_FAVOURITES_API,
   GET_BLOGS_API,
-  GET_BLOG_BY_SLUG_API
+  GET_BLOG_BY_SLUG_API,
+  FETCH_USER_DETAILS_API
 } from '@/endpoints/index.js';
 
 // Send OTP Function
@@ -188,6 +189,14 @@ export const GET_BLOGS_FN = async()=>{
 export const GET_BLOG_BY_SLUG_FN = async(slug)=>{
   try{
     return await axiosInstance.post(GET_BLOG_BY_SLUG_API, {slug})
+  }catch(err){
+    return err;
+  }
+}
+
+export const FETCH_USER_DETAILS_FN = async(user_id)=>{
+  try{
+    return await axiosInstance.post(FETCH_USER_DETAILS_API, {user_id})
   }catch(err){
     return err;
   }

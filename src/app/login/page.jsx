@@ -223,13 +223,6 @@ export default function Login() {
                         alt="Salon Services"
                         className="absolute inset-0 w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#CE145B]/30 to-transparent"></div>
-                    
-                    {/* Brand Overlay */}
-                    <div className="absolute left-8 bottom-8 text-white">
-                        <h2 className="text-3xl font-bold mb-2">Cut My Hair</h2>
-                        <p className="text-sm md:text-base max-w-xs">Your premier destination for salon services and haircare</p>
-                    </div>
                 </div>
                 
                 {/* Mobile Image */}
@@ -239,12 +232,6 @@ export default function Login() {
                         alt="Salon Services"
                         className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-b from-[#CE145B]/20 to-transparent"></div>
-                    
-                    {/* Logo on mobile */}
-                    <div className="absolute top-4 left-4">
-                        <h2 className="text-2xl font-bold text-white">Cut My Hair</h2>
-                    </div>
                 </div>
                 
                 {/* Right side - Form */}

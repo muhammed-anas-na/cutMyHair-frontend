@@ -17,7 +17,7 @@ export const GET_LOCATION_FROM_TEXT_API = `${USER_BASE_URL}/get-location-from-te
 export const CONFIRM_BOOKING_API = `${USER_BASE_URL}/confirm-booking`
 export const GET_USER_BOOKINGS_BY_ID_API = `${USER_BASE_URL}/get-user-bookings`
 export const GET_BOOKING_DETAIL_BY_ID_API = `${USER_BASE_URL}/get-booking-details`
-
+export const FETCH_USER_DETAILS_API = `${USER_BASE_URL}/get-user-details`
 
 // Salon-related endpoints for Users
 export const GET_SALON_FEEDBACKS_API = `${USER_BASE_URL}/get-salon-feedbacks`;
@@ -51,6 +51,8 @@ export const GET_FINANCE_DATA_API = `${OWNER_BASE_URL}/get-finance-report`
 export const UPDATE_SERVICE_API = `${OWNER_BASE_URL}/update-services`
 export const UPDATE_CATEGORY_API = `${OWNER_BASE_URL}/update-category`
 export const DELETE_STYLIST_API = `${OWNER_BASE_URL}/delete-stylist`
+export const UPLOAD_IMAGE_BACKEND_API = `${OWNER_BASE_URL}/update-salon-images`
+export const DELETE_IMAGE_BACKEND_API = `${OWNER_BASE_URL}/delete-salon-images`
 
 //Owner Transaction Related
 export const WITHDRAW_AMOUNT_API = `${OWNER_BASE_URL}/withdraw-amount`

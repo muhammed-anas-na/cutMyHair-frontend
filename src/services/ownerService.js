@@ -20,7 +20,9 @@ import {
   WITHDRAW_AMOUNT_API,
   UPDATE_SERVICE_API,
   UPDATE_CATEGORY_API,
-  DELETE_STYLIST_API
+  DELETE_STYLIST_API,
+  UPLOAD_IMAGE_BACKEND_API,
+  DELETE_IMAGE_BACKEND_API
 } from '@/endpoints/index.js';
 
 export const OWNER_SEND_OTP_FN = async (phone_number,from) => {
@@ -232,6 +234,22 @@ export const UPDATE_CATEGORY_FN = async(data)=>{
 export const DELETE_STYLIST_FN = async(salon_id,id)=>{
   try {
     return await axiosInstance.post(DELETE_STYLIST_API, {salon_id,id});
+  } catch (err) {
+    return err
+  }
+}
+
+export const UPLOAD_IMAGE_BACKEND_FN = async(salon_id,urls)=>{
+  try {
+    return await axiosInstance.post(UPLOAD_IMAGE_BACKEND_API, {salon_id,urls});
+  } catch (err) {
+    return err
+  }
+}
+
+export const DELETE_IMAGE_BACKEND_FN = async(salon_id, image_url)=>{
+  try {
+    return await axiosInstance.post(DELETE_IMAGE_BACKEND_API, {salon_id,image_url});
   } catch (err) {
     return err
   }

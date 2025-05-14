@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import Sidebar from '../../components/owner/Sidebar/page';
 import { SalonProvider } from '@/context/SalonContext';
 import { Menu } from 'lucide-react';
+import BottomBar from '../../components/owner/Sidebar/page';
 
 export default function OwnerLayout({ children }) {
     const [isDarkMode, setIsDarkMode] = useState(false);
@@ -62,7 +63,7 @@ export default function OwnerLayout({ children }) {
         <SalonProvider>
             <div className="flex min-h-screen bg-gray-50">
                 {/* Sidebar Component */}
-                <Sidebar 
+                <BottomBar 
                     isDarkMode={isDarkMode} 
                     setIsDarkMode={setIsDarkMode} 
                     isVisible={isSidebarVisible}

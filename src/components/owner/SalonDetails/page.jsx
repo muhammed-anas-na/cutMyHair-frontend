@@ -130,6 +130,7 @@ const SalonDetails = ({ salon_id }) => {
         
         {activeTab === 'photos' && 
           <PhotosTab 
+            setSalonData={setSalonData} 
             salonData={salonData} 
             isEditing={isEditing} 
           />

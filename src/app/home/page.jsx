@@ -14,7 +14,7 @@ import LocationModal from '@/components/LocationModal/page';
 import { GET_NEAREST_SALON_FN } from '@/services/userService';
 import { useAuth } from '@/context/AuthContext';
 import Footer from '@/components/LandingPage/Footer/page';
-import { useSearchParams } from 'next/navigation'
+// import { useSearchParams } from 'next/navigation'
 
 const Home = () => {
   const [isMapView, setIsMapView] = useState(false);
@@ -57,15 +57,23 @@ const Home = () => {
   
     fetchSalons();
   }, [latitude, longitude]);
-  const searchParams = useSearchParams();
-  const view = searchParams.get('view')
+  const [view, setView] = useState(null);
+
+  // const searchParams = useSearchParams();
+  // const view = searchParams.get('view')
+  useEffect(() => {
+    const fetchSearchParams = async () => {
+      const params = await import('next/navigation').then((mod) => mod.useSearchParams());
+      setView(params.get('view'));
+    };
+    fetchSearchParams();
+  }, []);
   console.log(view);
   useEffect(()=>{
     if(view=='map'){
       setIsMapView(true);
     }
   },[view])
-  console.log(isLocationModalOpen)
   const handleRetry = () => {
     if (!latitude || !longitude) {
       setIsLocationModalOpen(true);
@@ -85,10 +93,12 @@ const Home = () => {
           <div className="flex flex-col">
             {/* <h1 className="font-bold text-xl">Nearest Salon</h1> */}
           </div>
+          <Suspense fallback={<p>Loading...</p>}>
           <div className="flex gap-2 items-center">
             <h3 className="text-xs md:text-sm font-medium">Map View</h3>
             <ToggleSwitch isOn={isMapView} setIsOn={setIsMapView} />
           </div>
+          </Suspense>
         </div>
         
         <div className="max-w-6xl mx-auto w-full">

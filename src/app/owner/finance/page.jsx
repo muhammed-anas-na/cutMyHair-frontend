@@ -178,14 +178,14 @@ const SalonFinanceDashboard = () => {
                 >
                   Transactions
                 </button>
-                <button
+                {/* <button
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
                     activeTab === 'withdrawals' ? 'bg-[#CE145B] text-white' : 'text-gray-600 hover:bg-[#F7D1E0] hover:text-[#CE145B]'
                   }`}
                   onClick={() => setActiveTab('withdrawals')}
                 >
                   Withdrawals
-                </button>
+                </button> */}
               </div>
             </div>
           </div>
@@ -207,14 +207,14 @@ const SalonFinanceDashboard = () => {
               >
                 Transactions
               </button>
-              <button
+              {/* <button
                 className={`px-2 py-2 rounded-md text-sm font-medium ${
                   activeTab === 'withdrawals' ? 'bg-[#CE145B] text-white' : 'text-gray-600 hover:bg-[#F7D1E0] hover:text-[#CE145B]'
                 }`}
                 onClick={() => setActiveTab('withdrawals')}
               >
                 Withdrawals
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
@@ -478,7 +478,7 @@ const SalonFinanceDashboard = () => {
           </div>
         )}
 
-        {activeTab === 'withdrawals' && (
+        {/* {activeTab === 'withdrawals' && (
           <div>
             <div className="bg-white rounded-lg shadow p-4 mb-6">
               <h2 className="text-xl font-bold mb-4">Withdrawal History</h2>
@@ -578,7 +578,7 @@ const SalonFinanceDashboard = () => {
               </div>
             )}
           </div>
-        )}
+        )} */}
       </main>
     </div>
   );

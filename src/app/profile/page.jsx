@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Calendar, Settings, Palette, Info, Mail, Star, LogOut, ChevronRight } from 'lucide-react';
 import Navigation from '@/components/Navigation/page';
@@ -7,8 +7,11 @@ import Header from '@/components/Header/page';
 import { useRouter } from 'next/navigation';
 
 import { useAuth } from '@/context/AuthContext';
+import { FETCH_USER_DETAILS_FN } from '@/services/userService';
+
 const Profile = () => {
-  const {logout} = useAuth();
+  const {logout,user_id} = useAuth();
+  const [userDetails, setUserDetails] = useState();
   const router = useRouter();
   const menuItems = [
     {
@@ -66,6 +69,22 @@ const Profile = () => {
     logout();
   }
 
+  useEffect(()=>{
+    async function fetchData(){
+      try{
+        const response = await FETCH_USER_DETAILS_FN(user_id);
+        console.log("Response ==>",response.data.data);
+        if(response.data.data == null){
+          logout();
+          router.replace('/login')
+        }
+        setUserDetails(response.data.data);
+      }catch(err){
+        console.log("Error" , err);
+      }
+    }fetchData()
+  },[user_id])
+
   return (
     <div className="min-h-screen bg-gray-50 mb-16">
       <Header />
@@ -85,11 +104,9 @@ const Profile = () => {
               </svg>
             </div>
           </div>
-          <h1 className="text-xl font-semibold mb-1">John Doe</h1>
-          <p className="text-gray-500">johndoe@mail.com</p>
+          <h1 className="text-xl font-semibold mb-1">{userDetails?.name}</h1>
+          <p className="text-gray-500">{userDetails?.phone_number}</p>
         </div>
-
-        {/* Menu Items */}
         <div className="py-4">
           <div className="bg-white rounded-lg shadow-sm">
             {menuItems.map((item, index) => (
@@ -115,11 +132,12 @@ const Profile = () => {
           </div>
         </div>
       </div>
-
-      {/* Bottom Navigation */}
       <Navigation currentPage={'profile'}/>
     </div>
   );
 };
 
 export default Profile;
+
+
+
