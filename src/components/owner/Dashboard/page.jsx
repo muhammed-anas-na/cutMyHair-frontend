@@ -308,7 +308,7 @@ const DashboardContent = () => {
                                 </select>
                             </div>
                         </div>
-                        <div className="flex items-center space-x-2 mt-4 sm:mt-0">
+                        {/* <div className="flex items-center space-x-2 mt-4 sm:mt-0">
                             <div className="dropdown relative">
                                 <select
                                     value={dateRange}
@@ -328,7 +328,7 @@ const DashboardContent = () => {
                                 <Zap size={16} className="mr-1" />
                                 <span>Quick Add</span>
                             </button>
-                        </div>
+                        </div> */}
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

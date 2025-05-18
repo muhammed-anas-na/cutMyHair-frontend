@@ -10,7 +10,6 @@ import BottomBar from '../../components/owner/Sidebar/page';
 export default function OwnerLayout({ children }) {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMobileView, setIsMobileView] = useState(false);
-    const [isSidebarVisible, setIsSidebarVisible] = useState(true);
     const pathname = usePathname();
 
     // Check for mobile view on window resize
@@ -18,11 +17,6 @@ export default function OwnerLayout({ children }) {
         const checkScreenSize = () => {
             const isMobile = window.innerWidth < 768;
             setIsMobileView(isMobile);
-            
-            // Only auto-hide sidebar on initial load for mobile, not when toggling
-            if (isMobile && isSidebarVisible && !document.hidden) {
-                setIsSidebarVisible(false);
-            }
         };
 
         checkScreenSize();
@@ -44,11 +38,6 @@ export default function OwnerLayout({ children }) {
     // Check if current route should be full screen
     const isFullScreenRoute = fullScreenRoutes.includes(pathname);
 
-    const toggleSidebar = () => {
-        // Force a true toggle regardless of current state
-        setIsSidebarVisible(prevState => !prevState);
-    };
-
     // If it's a full screen route, render just the children
     if (isFullScreenRoute) {
         return (
@@ -66,8 +55,7 @@ export default function OwnerLayout({ children }) {
                 <BottomBar 
                     isDarkMode={isDarkMode} 
                     setIsDarkMode={setIsDarkMode} 
-                    isVisible={isSidebarVisible}
-                    setIsVisible={setIsSidebarVisible}
+                    isVisible={true}
                     isMobileView={isMobileView}
                 />
                 
@@ -77,29 +65,17 @@ export default function OwnerLayout({ children }) {
                         isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'
                     }`}
                     style={{ 
-                        marginLeft: isMobileView ? 0 : (isSidebarVisible ? '0' : '0'),
+                        marginLeft: isMobileView ? 0 :  0,
                         width: '100%'
                     }}
                 >
                     {/* Mobile Header with Menu Toggle */}
                     <div className="sticky top-0 z-10 bg-white border-b md:hidden p-4 flex items-center">
-                        <button 
-                            onClick={toggleSidebar}
-                            className="p-2 mr-2 rounded-lg hover:bg-gray-100"
-                        >
-                            <Menu size={24} />
-                        </button>
                         <h1 className="text-xl font-semibold">Salon Dashboard</h1>
                     </div>
                     
                     {/* Desktop Header with Menu Toggle */}
                     <div className="hidden md:flex sticky top-0 z-10 bg-white border-b p-4 items-center">
-                        <button 
-                            onClick={toggleSidebar}
-                            className="p-2 mr-4 rounded-lg hover:bg-gray-100"
-                        >
-                            <Menu size={24} />
-                        </button>
                         <h1 className="text-xl font-semibold">Salon Dashboard</h1>
                     </div>
 

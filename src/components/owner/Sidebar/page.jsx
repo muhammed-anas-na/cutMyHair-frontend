@@ -10,7 +10,7 @@ import {
     Percent, Shield, HelpCircle, Wallet, MoreVertical
 } from 'lucide-react';
 
-const BottomBar = ({ isDarkMode, setIsDarkMode, isVisible = true, setIsVisible, isMobileView }) => {
+const BottomBar = ({isVisible = true, isMobileView }) => {
     const router = useRouter();
     const pathname = usePathname();
     const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
