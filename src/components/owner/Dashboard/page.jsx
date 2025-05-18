@@ -105,24 +105,8 @@ const DashboardContent = () => {
     const [salons, setSalons] = useState([]);
     const [stylists, setStylists] = useState([]);
     const [selectedStylist, setSelectedStylist] = useState('Any');
-
-    // Mock data
-    const mockStats = [
-        { title: 'Total Customers', value: '259', change: { direction: 'up', value: '12%', text: 'vs last period' }, type: 'customers', icon: Users },
-        { title: 'Total Bookings', value: '183', change: { direction: 'up', value: '8%', text: 'vs last period' }, type: 'bookings', icon: CalendarCheck },
-        { title: 'Total Revenue', value: '$4,320', change: { direction: 'up', value: '15%', text: 'vs last period' }, type: 'revenue', icon: IndianRupee }
-    ];
-
-    const mockAppointments = [
-        { customer: { name: 'Emma Johnson', image: '' }, service: 'Haircut & Style', time: '10:00 AM', stylist: 'Maria Garcia', location: 'Downtown Salon' },
-        { customer: { name: 'Michael Smith', image: '' }, service: 'Color Treatment', time: '11:30 AM', stylist: 'John Davis', location: 'Downtown Salon' },
-        { customer: { name: 'Sophia Lee', image: '' }, service: 'Spa Manicure', time: '2:15 PM', stylist: 'Aisha Patel', location: 'Downtown Salon' }
-    ];
-
-    const mockStylists = ['Maria Garcia', 'John Davis', 'Aisha Patel'];
-
-    const [stats, setStats] = useState(mockStats);
-    const [appointments, setAppointments] = useState(mockAppointments);
+    const [stats, setStats] = useState([]);
+    const [appointments, setAppointments] = useState([]);
     const { user_id } = useAuth();
     // Get services for current salon
     const getServicesForCurrentSalon = () => {
@@ -508,9 +492,9 @@ const DashboardContent = () => {
                                     disabled={bookingLoading}
                                 >
                                     <option>Any</option>
-                                    {stylists.map((stylist, index) => (
-                                        <option key={index}>{stylist.name}</option>
-                                    ))}
+                                    {stylists?.map((stylist, index) => (
+    <option key={index} value={stylist.name}>{stylist.name}</option>
+))}
                                 </select>
                             </div>
 

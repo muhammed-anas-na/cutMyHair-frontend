@@ -61,7 +61,7 @@ export const SalonProvider = ({ children }) => {
   const clearSalonId = () => {
     // Remove from localStorage
     localStorage.removeItem('defaultSalonId');
-    
+    localStorage.removeItem('defaultSalon');
     setSalonState({
       salon_id: null,
       isLoading: false

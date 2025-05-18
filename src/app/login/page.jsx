@@ -219,7 +219,7 @@ export default function Login() {
                 {/* Left side - Image */}
                 <div className="md:w-1/2 relative hidden md:block">
                     <img
-                        src="register-image.png"
+                        src="image05.jpg"
                         alt="Salon Services"
                         className="absolute inset-0 w-full h-full object-cover"
                     />
@@ -228,7 +228,7 @@ export default function Login() {
                 {/* Mobile Image */}
                 <div className="h-48 relative md:hidden">
                     <img
-                        src="register-image.png"
+                        src="image05.jpg"
                         alt="Salon Services"
                         className="w-full h-full object-cover"
                     />
@@ -392,14 +392,8 @@ export default function Login() {
                         {/* Social Links */}
                         <div className="mt-12">
                             <div className="flex justify-center space-x-6">
-                                <a href="#" className="text-gray-500 hover:text-[#CE145B] transition-colors">
-                                    <Facebook size={20} />
-                                </a>
-                                <a href="#" className="text-gray-500 hover:text-[#CE145B] transition-colors">
+                                <a href="https://instagram.com/cut_my_hair.in" className="text-gray-500 hover:text-[#CE145B] transition-colors">
                                     <Instagram size={20} />
-                                </a>
-                                <a href="#" className="text-gray-500 hover:text-[#CE145B] transition-colors">
-                                    <Twitter size={20} />
                                 </a>
                             </div>
                             <p className="text-center text-xs text-gray-500 mt-4">

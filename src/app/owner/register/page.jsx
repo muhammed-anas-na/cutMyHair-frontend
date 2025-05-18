@@ -229,7 +229,7 @@ export default function OwnerRegister() {
                 {/* Left side - Image & Info */}
                 <div className="md:w-1/2 relative hidden md:block">
                     <img
-                        src="../register-image.png"
+                        src="../image05.jpg"
                         alt="Salon Business"
                         className="absolute inset-0 w-full h-full object-cover"
                     />
@@ -240,7 +240,7 @@ export default function OwnerRegister() {
                 <div className="md:hidden">
                     <div className="h-48 relative">
                         <img
-                            src="../register-image.png"
+                            src="../image05.jpg"
                             alt="Salon Business"
                             className="w-full h-full object-cover"
                         />

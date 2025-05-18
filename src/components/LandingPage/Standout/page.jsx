@@ -26,7 +26,7 @@ const FeaturesGrid = () => {
             <p className="text-white/90 mb-6">Trained professionals with years of experience in latest styling techniques</p>
             <div className="bg-white rounded-xl p-4 mt-auto">
               <Image
-                src="/image02.jpg"
+                src="/image05.jpg"
                 alt="Professional stylist working"
                 width={400}
                 height={400}

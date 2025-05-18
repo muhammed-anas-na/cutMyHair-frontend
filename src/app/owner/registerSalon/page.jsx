@@ -220,7 +220,7 @@ export default function Register() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div className="md:w-1/2 relative">
           <img
-            src="../register-image.png"
+            src="../image05.jpg"
             alt="CoverImage"
             className="w-full h-auto md:object-cover md:h-screen"
           />

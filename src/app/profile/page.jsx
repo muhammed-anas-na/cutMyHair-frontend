@@ -76,6 +76,7 @@ const Profile = () => {
         console.log("Response ==>",response.data.data);
         if(response.data.data == null){
           logout();
+          
           router.replace('/login')
         }
         setUserDetails(response.data.data);
