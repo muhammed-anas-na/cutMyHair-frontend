@@ -25,9 +25,9 @@ import {
   DELETE_IMAGE_BACKEND_API
 } from '@/endpoints/index.js';
 
-export const OWNER_SEND_OTP_FN = async (phone_number,from) => {
+export const OWNER_SEND_OTP_FN = async (phone_number,from,name) => {
   try {
-    return await axiosInstance.post(OWNER_SEND_OTP_API, { phone_number, from });
+    return await axiosInstance.post(OWNER_SEND_OTP_API, { phone_number, from,name });
   } catch (err) {
     return err.response ? err.response.data : err;
   }

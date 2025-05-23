@@ -146,17 +146,25 @@ export default function OwnerRegister() {
             if (validateName() && validatePhone()) {
                 setIsLoading(true);
                 try {
-                    const response = await OWNER_SEND_OTP_FN(phoneNumber, 'register');
+                    const response = await OWNER_SEND_OTP_FN(phoneNumber, 'register', name);
           
                     if (response.status === 200) {
-                        setIsOtpView(true);
-                        setResendDisabled(true);
-                        setOtpID(response.data.data.otp_id);
-                        setTimeout(() => {
+                        if(response.data.data.otp_id){
+                            setIsOtpView(true);
+                            setResendDisabled(true);
+                            setOtpID(response.data.data.otp_id);
+                            setTimeout(() => {
                             if (inputRefs.current[0]) {
                                 inputRefs.current[0].focus();
                             }
                         }, 100);
+                        }else{
+                            login({
+                                user_id:response.data.data.owner_id,
+                                access_token: response.data.data.access_token
+                            });
+                            router.replace('/owner/registerSalon');
+                        }
                     } else if (response.status === 400) {
                         setPhoneError('Phone number already exists. Please login instead.');
                     } else {
