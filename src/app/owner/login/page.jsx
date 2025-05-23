@@ -137,15 +137,23 @@ export default function OwnerLogin() {
                 try {
                     const response = await OWNER_SEND_OTP_FN(phoneNumber , 'login');
                     if (response.status === 200) {
-                        console.log(response.data.data.otp_id)
-                        setOtpID(response.data.data.otp_id)
-                        setIsOtpView(true);
-                        setResendDisabled(true);
-                        setTimeout(() => {
-                            if (inputRefs.current[0]) {
-                                inputRefs.current[0].focus();
-                            }
-                        }, 100);
+                        if(response.data.data.otp_id){
+                            console.log(response.data.data.otp_id)
+                            setOtpID(response.data.data.otp_id)
+                            setIsOtpView(true);
+                            setResendDisabled(true);
+                            setTimeout(() => {
+                                if (inputRefs.current[0]) {
+                                    inputRefs.current[0].focus();
+                                }
+                            }, 100);
+                        }else{
+                            login({
+                                user_id:response.data.data.owner_id,
+                                access_token: response.data.data.access_token
+                            });
+                            router.replace('/owner/dashboard');
+                        }
                     } else if (response.status === 400) {
                         setPhoneError('Phone number already exists. Please login instead.');
                     } else {
