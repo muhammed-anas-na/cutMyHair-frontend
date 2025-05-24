@@ -3,10 +3,12 @@ let BASE_URL;
 if(process.env.NEXT_PUBLIC_ENVIRONMENT == 'dev'){
     BASE_URL = 'http://localhost:8000/api';
 }else if(process.env.NEXT_PUBLIC_ENVIRONMENT == 'SAT'){
-    BASE_URL - 'http://69.62.78.176:8000/api'
+    console.log('SAT');
+    BASE_URL = 'http://69.62.78.176:8000/api'
 }else{
     BASE_URL = 'https://cutmyhair-backend.onrender.com/api';
 }
+console.log("BASE_URL",BASE_URL);
 const OWNER_BASE_URL = `${BASE_URL}/owner`;
 const USER_BASE_URL = `${BASE_URL}/users`;
 const BLOG_BASE_URL = `${BASE_URL}/blogs`;
