@@ -193,7 +193,7 @@ const WorkingHours = () => {
       
       const response = await UPDATE_WORKING_HOUR_FN(salon_id, apiTimeSlots);
       if (response.status === 200) {
-        router.replace(`/owner/success?message=Working%20Hours%20Updated%20Successfully&redirect=/owner/dashboard`);
+        router.replace(`/owner/success?message=Working%20Hours%20Updated%20Successfully&redirect=/owner/dashboard?from=register`);
       }
     } catch (err) {
       console.error('Error updating working hours:', err);

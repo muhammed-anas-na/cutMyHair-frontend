@@ -3,7 +3,7 @@ import SuccessMessagePage from '@/components/SuccessMessagePage/page';
 
 const SuccessComponent = () => {
   return (
-    <SuccessMessagePage message={'Registration Completed'} redirectURL={'/owner/dashboard'}/>
+    <SuccessMessagePage message={'Registration Completed'} redirectURL={'/owner/dashboard?from=register'}/>
   );
 };
 

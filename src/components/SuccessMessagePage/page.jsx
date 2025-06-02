@@ -20,7 +20,7 @@ const SuccessMessagePage = ({message, redirectURL}) => {
         <Link
         href={redirectURL}
         className="w-full bg-[#CE145B] text-white py-4 rounded-lg text-lg font-medium hover:bg-[#b01150] transition-colors text-center">
-          Continue
+          Continuee
         </Link>
       </div>
     </div>

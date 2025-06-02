@@ -3,11 +3,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Users, CalendarCheck, MoreVertical, TrendingUp, TrendingDown, Clock,
-    MapPin, Zap, Filter, ChevronDown, Menu, X, DollarSign, Bell, PlusCircle, Search,IndianRupee
+    MapPin, Zap, Filter, ChevronDown, Menu, X, DollarSign, Bell, PlusCircle, Search, IndianRupee
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ADD_NEW_APPOINMENT_FN, GET_DASHBOARD_DATA_FN, GET_STYLIST_DATA__FN } from '@/services/ownerService';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Lottie from 'lottie-react';
+import welcomeAnimation from '../../../../public/animations/owner-welcome.json';
 
 // Simple debounce function
 const debounce = (func, wait) => {
@@ -107,7 +109,20 @@ const DashboardContent = () => {
     const [selectedStylist, setSelectedStylist] = useState('Any');
     const [stats, setStats] = useState([]);
     const [appointments, setAppointments] = useState([]);
+    const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
+    const [showWelcomePopup, setShowWelcomePopup] = useState(false);
     const { user_id } = useAuth();
+    const searchParams = useSearchParams();
+
+    // Check for welcome message and tutorial visibility
+    useEffect(() => {
+        const from = searchParams.get('from');
+        const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+        if (from === 'register' && !hasSeenWelcome) {
+            setShowWelcomeMessage(true);
+        }
+    }, [searchParams]);
+
     // Get services for current salon
     const getServicesForCurrentSalon = () => {
         if (!dashboardData || !defaultSalon) return [];
@@ -156,7 +171,6 @@ const DashboardContent = () => {
                 }
             } catch (error) {
                 console.log('Error fetching dashboard data:', error.message);
-                // Redirect to login in case of error
                 router.push('/owner/login');
             } finally {
                 setLoading(false);
@@ -165,14 +179,16 @@ const DashboardContent = () => {
         fetchData();
     }, [user_id, router]);
 
-    useEffect(()=>{
-        const fetchSalonStylist=async()=>{
+    useEffect(() => {
+        const fetchSalonStylist = async () => {
             const response = await GET_STYLIST_DATA__FN(defaultSalonId);
-            console.log(response.data[0]?.stylists)
-            setStylists(response.data[0]?.stylists)
+            console.log(response.data[0]?.stylists);
+            setStylists(response.data[0]?.stylists);
+        };
+        if (defaultSalonId) {
+            fetchSalonStylist();
         }
-        fetchSalonStylist();
-    },[defaultSalonId])
+    }, [defaultSalonId]);
 
     // Save salon selection
     useEffect(() => {
@@ -278,6 +294,17 @@ const DashboardContent = () => {
         }
     };
 
+    const handleCloseWelcome = () => {
+        setShowWelcomePopup(false);
+        setShowWelcomeMessage(false);
+        localStorage.setItem('hasSeenWelcome', 'true');
+    };
+
+    const handleAnimationComplete = () => {
+        setShowWelcomeMessage(false);
+        setShowWelcomePopup(true);
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -291,6 +318,82 @@ const DashboardContent = () => {
 
     return (
         <>
+            {showWelcomeMessage && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+                    <Lottie 
+                        animationData={welcomeAnimation} 
+                        loop={false} 
+                        onComplete={handleAnimationComplete}
+                        className="w-full h-full max-w-3xl"
+                    />
+                </div>
+            )}
+
+            {showWelcomePopup && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-screen overflow-y-auto">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-semibold">Welcome to Your Dashboard!</h2>
+                            <button 
+                                className="text-gray-400 hover:text-gray-600"
+                                onClick={handleCloseWelcome}
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            <p className="text-gray-600 text-sm">
+                                We're excited to have you on board! Here's a quick guide to get you started with your salon dashboard.
+                            </p>
+                            <div className="space-y-4">
+                                <div className="flex items-start">
+                                    <CalendarCheck className="text-[#CE145B] mr-3 flex-shrink-0" size={20} />
+                                    <div>
+                                        <h3 className="text-sm font-medium">Create New Bookings</h3>
+                                        <p className="text-xs text-gray-500">
+                                            Use the "New Booking" button in the Quick Actions section to schedule appointments for your customers.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start">
+                                    <Users className="text-[#CE145B] mr-3 flex-shrink-0" size={20} />
+                                    <div>
+                                        <h3 className="text-sm font-medium">Manage Customers</h3>
+                                        <p className="text-xs text-gray-500">
+                                            Add new customers or view existing ones to keep track of your client base.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start">
+                                    <IndianRupee className="text-[#CE145B] mr-3 flex-shrink-0" size={20} />
+                                    <div>
+                                        <h3 className="text-sm font-medium">Track Performance</h3>
+                                        <p className="text-xs text-gray-500">
+                                            Monitor your salon's performance with stats on customers, bookings, and revenue at the top of the dashboard.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start">
+                                    <Clock className="text-[#CE145B] mr-3 flex-shrink-0" size={20} />
+                                    <div>
+                                        <h3 className="text-sm font-medium">View Upcoming Appointments</h3>
+                                        <p className="text-xs text-gray-500">
+                                            Check the Upcoming Appointments section to see scheduled bookings and manage your salon's schedule.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <button 
+                                className="w-full bg-[#CE145B] text-white py-2 rounded-lg text-sm mt-4"
+                                onClick={handleCloseWelcome}
+                            >
+                                Got it, let's start!
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex-1 lg:mt-0">
                 <div className="max-w-full p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
@@ -308,27 +411,6 @@ const DashboardContent = () => {
                                 </select>
                             </div>
                         </div>
-                        {/* <div className="flex items-center space-x-2 mt-4 sm:mt-0">
-                            <div className="dropdown relative">
-                                <select
-                                    value={dateRange}
-                                    onChange={(e) => setDateRange(e.target.value)}
-                                    className="flex items-center space-x-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm appearance-none pl-9"
-                                >
-                                    <option>Today</option>
-                                    <option>This Week</option>
-                                    <option>This Month</option>
-                                </select>
-                                <Filter size={14} className="absolute left-3 top-2.5 text-gray-400 pointer-events-none" />
-                            </div>
-                            <button 
-                                className="bg-[#CE145B] hover:bg-[#B71350] text-white rounded-lg px-4 py-2 text-sm font-medium flex items-center"
-                                onClick={handleNewBooking}
-                            >
-                                <Zap size={16} className="mr-1" />
-                                <span>Quick Add</span>
-                            </button>
-                        </div> */}
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -376,7 +458,8 @@ const DashboardContent = () => {
                 </div>
             </div>
 
-            {showNewBookingForm && (
+            {/* Commented out as per original code */}
+            {/* {showNewBookingForm && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-screen overflow-y-auto">
                         <div className="flex justify-between items-center mb-4">
@@ -493,8 +576,8 @@ const DashboardContent = () => {
                                 >
                                     <option>Any</option>
                                     {stylists?.map((stylist, index) => (
-    <option key={index} value={stylist.name}>{stylist.name}</option>
-))}
+                                        <option key={index} value={stylist.name}>{stylist.name}</option>
+                                    ))}
                                 </select>
                             </div>
 
@@ -518,7 +601,7 @@ const DashboardContent = () => {
                         </form>
                     </div>
                 </div>
-            )}
+            )} */}
 
             {mobileMenuOpen && (
                 <div 
