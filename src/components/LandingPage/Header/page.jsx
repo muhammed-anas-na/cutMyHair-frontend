@@ -306,7 +306,7 @@ const Header = () => {
                 <Mail size={18} className="mr-3 text-pink-500" />
                 <div>
                   <p className="font-medium">Email Us</p>
-                  <p className="text-sm text-gray-600">info@beautysalon.com</p>
+                  <p className="text-sm text-gray-600">info@cutmyhair.in</p>
                 </div>
               </a>
             </div>

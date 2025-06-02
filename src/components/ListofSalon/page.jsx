@@ -156,24 +156,24 @@ export default function ListOfSalon({favorites, salons, loading, error, onRetry,
   const promotionalBanners = [
     {
       id: 1,
-      title: "30% Off First Booking",
-      description: "Use code: NEWUSER30",
+      title: "15% Off First Booking",
+      description: "Use code: NEWUSER15",
       bgColor: "from-pink-500 to-[#CE145B]",
       icon: <Percent size={24} className="text-white" />,
       buttonText: "Book Now"
     },
     {
       id: 2,
-      title: "Free Consultation",
-      description: "Book a style consultation today",
+      title: "Refer a Friend",
+      description: "Get 10% off your next booking",
       bgColor: "from-purple-500 to-indigo-600",
       icon: <Clock size={24} className="text-white" />,
       buttonText: "Schedule"
     },
     {
       id: 3,
-      title: "Gift Cards Available",
-      description: "Perfect for any occasion",
+      title: "Book 3 Services, Get 1 Free",
+      description: "Book 3 services and get 1 free",
       bgColor: "from-blue-400 to-blue-600",
       icon: <Gift size={24} className="text-white" />,
       buttonText: "Get Card"
