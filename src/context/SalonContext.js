@@ -3,6 +3,7 @@
 // src/context/SalonContext.js
 import { createContext, useState, useContext, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import {useOwnerAuth} from './OwnerContext'
 
 const SalonContext = createContext(null);
 
@@ -17,15 +18,13 @@ export const SalonProvider = ({ children }) => {
     }]
   });
   
-  const { isAuthenticated } = useAuth();
-
+  const { isAuthenticated } = useOwnerAuth();
   // Initialize salon state from storage on mount
   useEffect(() => {
     const initializeSalon = () => {
       // Only proceed if the user is authenticated
       if (isAuthenticated && typeof window !== 'undefined') {
         const salon_id = localStorage.getItem('defaultSalonId');
-        
         if (salon_id) {
           setSalonState({
             salon_id,

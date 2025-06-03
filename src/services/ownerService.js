@@ -124,7 +124,6 @@ export const GET_APPOINTMENTS_OF_SALON_FN = async(salon_id, date)=>{
 
 export const ADD_SERVICE_FOR_SALON_FN = async (salon_id, name, description, price, duration, category, status, category_id) => {
   try {
-    console.log("IDDD===>",category_id)
     const response = await axiosInstance.post(ADD_SERVICE_FOR_SALON_API, {
       salon_id,
       name,

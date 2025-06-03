@@ -8,7 +8,6 @@ const PhotosTab = ({ salonData, setSalonData, isEditing, onSave }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState(null);
   const fileInputRef = useRef(null);
-console.log(salonData.salon_id)
   // Trigger file input click
   const handleAddPhotoClick = () => {
     fileInputRef.current.click();
@@ -57,7 +56,6 @@ console.log(salonData.salon_id)
           const imageUrl = await uploadImageToCloudinary(file);
           newImageUrls.push(imageUrl);
           const response = await UPLOAD_IMAGE_BACKEND_FN(salonData.salon_id,newImageUrls);
-          console.log(response);
         } catch (error) {
           console.error('Error uploading file:', error);
           setUploadError(`Failed to upload ${file.name}: ${error.message}`);
@@ -98,7 +96,6 @@ console.log(salonData.salon_id)
     if (window.confirm('Are you sure you want to remove this photo?')) {
       const updatedPhotos = salonData.photos.filter((_, index) => index !== indexToRemove);
         const respose = await DELETE_IMAGE_BACKEND_FN(salonData.salon_id, photo)
-        console.log(respose);
       setSalonData({
         ...salonData,
         photos: updatedPhotos

@@ -3,8 +3,7 @@ import { Phone, X } from 'lucide-react';
 import Link from 'next/link';
 
 const SalonFeedback = ({ salon, onClose, onViewServices }) => {
-  // Sample images if salon.images is empty (for development/testing)
-  console.log(salon);
+  // Sample images if salon.images is empty (for development/testing
   const sampleImages = [
     {
         id: 1,

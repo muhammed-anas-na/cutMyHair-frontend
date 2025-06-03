@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { OWNER_SEND_OTP_FN, OWNER_VERIFY_OTP_FN } from "@/services/ownerService";
 import Link from "next/link";
+import { useOwnerAuth } from "../../../context/OwnerContext";
 
 export default function OwnerLogin() {
     const [isOtpView, setIsOtpView] = useState(false);
@@ -19,7 +20,7 @@ export default function OwnerLogin() {
     const inputRefs = useRef([]);
     const [otpId, setOtpID] = useState('');
     const router = useRouter();
-    const { login } = useAuth();
+    const { Ownerlogin } = useOwnerAuth();
     
     // Timer for resend OTP
     useEffect(() => {
@@ -111,11 +112,10 @@ export default function OwnerLogin() {
             if (validateOtp()) {
                 setIsLoading(true);
                 try {
-                    console.log(otpId)
                     const response = await OWNER_VERIFY_OTP_FN(name, otp.join(""), 'login', otpId);
                     if (response.status === 200) {
-                        login({
-                            user_id:response.data.data.owner_id,
+                        Ownerlogin({
+                            owner_id:response.data.data.owner_id,
                             access_token: response.data.data.access_token
                         });
                         router.replace('/owner/dashboard');
@@ -138,7 +138,6 @@ export default function OwnerLogin() {
                     const response = await OWNER_SEND_OTP_FN(phoneNumber , 'login');
                     if (response.status === 200) {
                         if(response.data.data.otp_id){
-                            console.log(response.data.data.otp_id)
                             setOtpID(response.data.data.otp_id)
                             setIsOtpView(true);
                             setResendDisabled(true);
@@ -148,8 +147,8 @@ export default function OwnerLogin() {
                                 }
                             }, 100);
                         }else{
-                            login({
-                                user_id:response.data.data.owner_id,
+                            Ownerlogin({
+                                owner_id:response.data.data.owner_id,
                                 access_token: response.data.data.access_token
                             });
                             router.replace('/owner/dashboard');

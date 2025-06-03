@@ -36,9 +36,6 @@ export default function HeroSection() {
   // Handle search submission
   const handleSearch = (e) => {
     e.preventDefault();
-    // Implement search functionality
-    console.log(`Searching for: ${searchQuery}`);
-    // You would typically redirect to search results page here
   };
 
   return (

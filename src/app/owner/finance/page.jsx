@@ -17,9 +17,8 @@ const SalonFinanceDashboard = () => {
   const [modalError, setModalError] = useState('');
 
   const { salon_id } = useSalon();
-
   useEffect(() => {
-    async function fetchData() {
+    async function fetchData(salon_id) {
       try {
         setLoading(true);
         const response = await GET_FINANCE_DATA_FN(salon_id);
@@ -31,10 +30,7 @@ const SalonFinanceDashboard = () => {
         setLoading(false);
       }
     }
-
-    if (salon_id) {
-      fetchData();
-    }
+    fetchData(salon_id);
   }, [salon_id]);
 
   const toggleSection = (section) => {
@@ -73,31 +69,6 @@ const SalonFinanceDashboard = () => {
     try {
       // Note: Consider using an environment variable for the API URL in production (e.g., process.env.NEXT_PUBLIC_API_URL)
       const response = await WITHDRAW_AMOUNT_FN(salon_id, parseFloat(withdrawAmount) * 100, upiId)
-      console.log(response);
-
-      // const response = await fetch('/api/withdraw', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     salonId: salon_id,
-      //     amount: parseFloat(withdrawAmount) * 100, // Convert to paise for Razorpay
-      //     upiId,
-      //   }),
-      // });
-
-      // const result = await response.json();
-      // if (response.ok) {
-      //   alert(`Withdrawal of ₹${withdrawAmount} to ${upiId} initiated successfully!`);
-      //   closeModal();
-      //   setWithdrawAmount('');
-      //   // Refresh financial data
-      //   const updatedData = await GET_FINANCE_DATA_FN(salon_id);
-      //   setFinancialData(updatedData.data.data);
-      // } else {
-      //   setModalError(result.error || 'Withdrawal failed. Please try again.');
-      // }
     } catch (err) {
       setModalError('An error occurred. Please try again later.');
       console.error(err);

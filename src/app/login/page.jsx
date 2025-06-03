@@ -115,7 +115,6 @@ export default function Login() {
                 try {
                     const response = await VERIFY_OTP_FN(name, otp.join(""), 'login',otpId);
                     if (response.status === 200) {
-                        console.log("Loign User id =>",response);
                         login({
                             user_id:response.data.data.user_id,
                             access_token: response.data.data.access_token

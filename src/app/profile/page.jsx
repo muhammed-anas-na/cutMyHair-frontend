@@ -73,7 +73,6 @@ const Profile = () => {
     async function fetchData(){
       try{
         const response = await FETCH_USER_DETAILS_FN(user_id);
-        console.log("Response ==>",response.data.data);
         if(response.data.data == null){
           logout();
           

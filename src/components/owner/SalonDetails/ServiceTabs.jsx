@@ -71,7 +71,6 @@ const ServicesTab = ({ salonData, setSalonData, isEditing }) => {
               newService.status,
               categoryId
             );
-            console.log(response);
             const updatedServices = salonData.services.map(service => 
               service.service_id === editingServiceId 
                 ? { ...service, ...newService, price: Number(newService.price), category_id: categoryId }

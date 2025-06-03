@@ -39,7 +39,6 @@ const SalonDetailPage = ({ params }) => {
     async function fetchData() {
       try {
         const response = await OWNER_GET_SALON_DETAILS_BY_ID_FN(unwrappedParams.id);
-        console.log(response);
         setSalon(response.data.data);
       } catch (err) {
         console.log(err);

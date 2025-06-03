@@ -30,7 +30,6 @@ const SalonFinanceDashboard = () => {
         const response = await GET_REPORT_DATA_FN(defaultSalonId);
         setReportData(response.data);
         setIsLoading(false);
-        console.log('Report ==>', response.data);
       } catch (err) {
         console.log(err);
         setIsLoading(false);

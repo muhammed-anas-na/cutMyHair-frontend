@@ -22,7 +22,6 @@ const EmployeesTab = ({ salonData, isEditing }) => {
         setIsLoading(true);
         const response = await GET_STYLIST_DATA__FN(salonData.salon_id);
         if (response.data) {
-          console.log(response.data[0].stylists);
           setStylists(response.data[0].stylists);
         }
       } catch (err) {

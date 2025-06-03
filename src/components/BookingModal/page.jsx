@@ -76,24 +76,19 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
 
   useEffect(() => {
     async function fetchTimeSlots() {
-      console.log("Fetching time slots");
       setIsLoadingSlots(true);
       setSelectedTime(null);
       const isoDate = getISODateString();
-      console.log("Date==>", isoDate);
       const response = await GET_TIME_SLOTS_FN(salonData.salon_id, isoDate, totalDuration);
-      console.log("Fetched Time slots ==>", response);
       
       // First check if salon is closed
       if (response.data && response.data.message === "Salon is closed on this date") {
-        console.log("Salon is closed");
         setIsClosed(true);
         setTimeSlots([]);
         setSelectedTime(null);
       } 
       // Then check if we have time slots
       else if (response.data && response.data.success && response.data.data && response.data.data.timeSlots && response.data.data.timeSlots.length > 0) {
-        console.log("Found time slots");
         setIsClosed(false);
         const fetchedSlots = response.data.data.timeSlots.map((slot, index) => ({
           id: index + 1,
@@ -109,7 +104,6 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
       } 
       // Default case - no slots available but salon is open
       else {
-        console.log("No slots available");
         setIsClosed(false);
         setTimeSlots([]);
         setSelectedTime(null);
@@ -201,7 +195,6 @@ const BookingModal = ({ isOpen, onClose, selectedServices, setSelectedServices, 
   };
 
   const handleDateChange = (newDate) => {
-    console.log("Date changed to:", newDate);
     setSelectedDate(newDate);
   };
 

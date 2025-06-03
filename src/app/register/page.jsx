@@ -123,7 +123,6 @@ export default function Register() {
                 setIsLoading(true);
                 try {
                     const response = await VERIFY_OTP_FN(name, otp.join(""), 'register');
-                    console.log(response);
                     if (response.status === 200) {
                         login({
                             user_id:response.data.user_id,

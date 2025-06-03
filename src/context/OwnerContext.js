@@ -5,11 +5,11 @@ import { createContext, useState, useContext, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import axios from 'axios';
 
-const AuthContext = createContext(null);
+const OwnerContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
-  const [authState, setAuthState] = useState({
-    user_id: null,
+export const OwnerAuthProvider = ({ children }) => {
+  const [ownerAuthState, setOwnerAuthState] = useState({
+    owner_id: null,
     access_token: null,
     isAuthenticated: false,
     isLoading: true
@@ -23,21 +23,21 @@ export const AuthProvider = ({ children }) => {
     const initializeAuth = () => {
       // Check if we're in a browser environment
       if (typeof window !== 'undefined') {
-        const user_id = localStorage.getItem('user_id');
+        const owner_id = localStorage.getItem('owner_id');
         const access_token = localStorage.getItem('access_token');
         
-        if (user_id && access_token) {
+        if (owner_id && access_token) {
           // Set default authorization header for all requests
           axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
           
-          setAuthState({
-            user_id,
+          setOwnerAuthState({
+            owner_id,
             access_token,
             isAuthenticated: true,
             isLoading: false
           });
         } else {
-          setAuthState(prev => ({ ...prev, isLoading: false }));
+          setOwnerAuthState(prev => ({ ...prev, isLoading: false }));
         }
       }
     };
@@ -48,16 +48,16 @@ export const AuthProvider = ({ children }) => {
   // Handle route protection
   useEffect(() => {
     // Wait until auth is checked
-    if (authState.isLoading) return;
+    if (ownerAuthState.isLoading) return;
     
     // If user is authenticated and trying to access login/register pages
-    if (authState.isAuthenticated && 
-        (pathname === '/login' || pathname === '/register')) {
-      router.replace('/home');
+    if (ownerAuthState.isAuthenticated && 
+        (pathname === '/owner/login' || pathname === '/owner/register')) {
+        router.replace('/owner/dashboard');
     }
     
     // If user is not authenticated and trying to access protected routes
-    if (!authState.isAuthenticated && 
+    if (!ownerAuthState.isAuthenticated && 
         pathname !== '/' && 
         pathname !== '/login' && 
         pathname !== '/register' && 
@@ -73,55 +73,36 @@ export const AuthProvider = ({ children }) => {
         !pathname.startsWith('/blogs/')) {
         router.replace('/login');
     }
-  }, [authState.isAuthenticated, authState.isLoading, pathname, router]);
+  }, [ownerAuthState.isAuthenticated, ownerAuthState.isLoading, pathname, router]);
 
   // Login function
-  const login = (userData) => {
-    const { user_id, access_token } = userData;
+  const Ownerlogin = (userData) => {
+    const { owner_id, access_token } = userData;
     // Store in localStorage for persistence
-    localStorage.setItem('user_id', user_id);
+    localStorage.setItem('owner_id', owner_id);
     localStorage.setItem('access_token', access_token);
     
     // Set default authorization header
     axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
     
-    setAuthState({
-      user_id,
+    setOwnerAuthState({
+      owner_id,
       access_token,
       isAuthenticated: true,
       isLoading: false
     });
   };
 
-  // Logout function
-  const logout = () => {
-    // Remove from localStorage
-    localStorage.removeItem('user_id');
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('')
-    // Remove default header
-    delete axios.defaults.headers.common['Authorization'];
-    
-    setAuthState({
-      user_id: null,
-      access_token: null,
-      isAuthenticated: false,
-      isLoading: false
-    });
-    
-    // Redirect to login
-    router.replace('/login');
-  };
   const OwnerLogout = () => {
     // Remove from localStorage
-    localStorage.removeItem('user_id');
+    localStorage.removeItem('owner_id');
     localStorage.removeItem('access_token');
     localStorage.removeItem('')
     // Remove default header
     delete axios.defaults.headers.common['Authorization'];
     
-    setAuthState({
-      user_id: null,
+    setOwnerAuthState({
+      owner_id: null,
       access_token: null,
       isAuthenticated: false,
       isLoading: false
@@ -132,15 +113,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ ...authState, login, logout ,OwnerLogout}}>
+    <OwnerContext.Provider value={{ ...ownerAuthState, Ownerlogin, OwnerLogout ,OwnerLogout}}>
       {children}
-    </AuthContext.Provider>
+    </OwnerContext.Provider>
   );
 };
 
 // Custom hook for easy context usage
-export const useAuth = () => {
-  const context = useContext(AuthContext);
+export const useOwnerAuth = () => {
+  const context = useContext(OwnerContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }

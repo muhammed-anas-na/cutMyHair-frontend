@@ -14,7 +14,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Lottie from 'lottie-react';
 import welcomeAnimation from '../../../../public/animations/owner-welcome.json';
 import Link from 'next/link';
-
+import {useOwnerAuth} from "@/context/OwnerContext"
 // Simple debounce function
 const debounce = (func, wait) => {
     let timeout;
@@ -115,7 +115,7 @@ const DashboardContent = () => {
     const [appointments, setAppointments] = useState([]);
     const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
     const [showWelcomePopup, setShowWelcomePopup] = useState(false);
-    const { user_id } = useAuth();
+    const { owner_id } = useOwnerAuth();
     const searchParams = useSearchParams();
     const [isHovered, setIsHovered] = useState(false);
 
@@ -154,7 +154,7 @@ const DashboardContent = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await GET_DASHBOARD_DATA_FN(user_id);                
+                const response = await GET_DASHBOARD_DATA_FN(owner_id);                
                 const responseData = response.data;
                 const salonData = responseData.data || [];
                 
@@ -183,12 +183,11 @@ const DashboardContent = () => {
             }
         }
         fetchData();
-    }, [user_id, router]);
+    }, [owner_id, router]);
 
     useEffect(() => {
         const fetchSalonStylist = async () => {
             const response = await GET_STYLIST_DATA__FN(defaultSalonId);
-            console.log(response.data[0]?.stylists);
             setStylists(response.data[0]?.stylists);
         };
         if (defaultSalonId) {

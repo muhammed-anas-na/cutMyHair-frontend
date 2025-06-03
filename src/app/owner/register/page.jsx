@@ -1,5 +1,6 @@
 'use client';
 import { useAuth } from "@/context/AuthContext";
+import { useOwnerAuth } from "@/context/OwnerContext";
 import { OWNER_SEND_OTP_FN, OWNER_VERIFY_OTP_FN } from "@/services/ownerService"; 
 import { Facebook, Instagram, Twitter, Scissors, Calendar, Users, CheckCircle } from "lucide-react";
 import Link from "next/link";
@@ -21,7 +22,7 @@ export default function OwnerRegister() {
     const inputRefs = useRef([]);
     const [otp_id, setOtpID] = useState('');
     const router = useRouter();
-    const { login } = useAuth();
+    const { Ownerlogin } = useOwnerAuth();
     
     // Timer for resend OTP
     useEffect(() => {
@@ -125,7 +126,7 @@ export default function OwnerRegister() {
                 try {
                     const response = await OWNER_VERIFY_OTP_FN(name, otp.join(""), 'register', otp_id);
                     if (response.status === 200) {
-                        login({
+                        Ownerlogin({
                             user_id:response.data.data.owner_id,
                             access_token: response.data.data.access_token
                         });
@@ -159,7 +160,7 @@ export default function OwnerRegister() {
                             }
                         }, 100);
                         }else{
-                            login({
+                            Ownerlogin({
                                 user_id:response.data.data.owner_id,
                                 access_token: response.data.data.access_token
                             });

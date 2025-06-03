@@ -4,10 +4,10 @@ import { PlusCircle, Scissors, ArrowRight, ImageOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { GET_OWNER_SALON_FN } from '@/services/ownerService';
-
+import {useOwnerAuth} from "@/context/OwnerContext"
 const SalonManagement = () => {
   const router = useRouter();
-  const { user_id } = useAuth();
+  const { owner_id } = useOwnerAuth();
   const [salons, setSalons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,8 +16,7 @@ const SalonManagement = () => {
     const fetchSalons = async () => {
       setLoading(true);
       try {
-        console.log(user_id);
-        const response = await GET_OWNER_SALON_FN(user_id);
+        const response = await GET_OWNER_SALON_FN(owner_id);
         if (response?.data?.data) {
           setSalons(response.data.data);
         } else {
@@ -33,7 +32,7 @@ const SalonManagement = () => {
     };
 
     fetchSalons();
-  }, [user_id]);
+  }, [owner_id]);
 
   const handleCreateNew = () => {
     router.push('/owner/registerSalon');
@@ -44,8 +43,7 @@ const SalonManagement = () => {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-5 pb-12">
-      {/* Header - Enhanced for better mobile visibility */}
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-5 pb-12 mb-8">
       <div className="bg-[#CE145B] rounded-lg sm:rounded-xl p-5 sm:p-6 mb-6 sm:mb-8 text-white shadow-md">
         <h1 className="text-xl sm:text-2xl font-bold mb-2">Salon Management</h1>
         <p className="text-sm sm:text-base opacity-90">Manage your salon portfolio and create new locations</p>

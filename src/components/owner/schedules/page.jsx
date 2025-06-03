@@ -18,6 +18,7 @@ import {
 import { GET_OWNER_SALON_FN } from '@/services/ownerService';
 import { GET_APPOINTMENTS_OF_SALON_FN } from '@/services/ownerService';
 import { useAuth } from '@/context/AuthContext';
+import {useOwnerAuth} from "@/context/OwnerContext"
 
 const SalonSchedule = () => {
   const [date, setDate] = useState(new Date());
@@ -33,7 +34,7 @@ const SalonSchedule = () => {
   const [salons, setSalons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { user_id } = useAuth();
+  const { owner_id } = useOwnerAuth();
   
   // Update current time every minute
   useEffect(() => {
@@ -143,8 +144,8 @@ const parseTimeString = (timeString) => {
       }
     }
     
-    fetchSalons(user_id);
-  }, [user_id]);
+    fetchSalons(owner_id);
+  }, [owner_id]);
 
   // Fetch appointments for selected salon
   useEffect(() => {
@@ -335,9 +336,6 @@ const getAppointmentsForTimeSlot = (timeSlot) => {
 
 // Update the handleStatusUpdate function to ensure appointment status is correctly updated
 const handleStatusUpdate = (appointmentId, newStatus) => {
-  // In a real app, you would call API to update status
-  console.log(`Updating appointment ${appointmentId} to ${newStatus}`);
-  
   // Update local state to reflect the change immediately
   setAppointments(prevAppointments => 
     prevAppointments.map(apt => 

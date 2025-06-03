@@ -6,6 +6,7 @@ import Sidebar from '../../components/owner/Sidebar/page';
 import { SalonProvider } from '@/context/SalonContext';
 import { Menu } from 'lucide-react';
 import BottomBar from '../../components/owner/Sidebar/page';
+import {OwnerAuthProvider} from '../../context/OwnerContext'
 
 export default function OwnerLayout({ children }) {
     const [isDarkMode, setIsDarkMode] = useState(false);
@@ -41,14 +42,17 @@ export default function OwnerLayout({ children }) {
     // If it's a full screen route, render just the children
     if (isFullScreenRoute) {
         return (
-            <SalonProvider>  
-                {children}
-            </SalonProvider>
+            <OwnerAuthProvider>
+                <SalonProvider>  
+                    {children}
+                </SalonProvider>
+            </OwnerAuthProvider>
         );
     }
 
     // Otherwise, render the layout with sidebar
     return (
+        <OwnerAuthProvider>
         <SalonProvider>
             <div className="flex min-h-screen bg-gray-50">
                 {/* Sidebar Component */}
@@ -86,5 +90,6 @@ export default function OwnerLayout({ children }) {
                 </div>
             </div>
         </SalonProvider>
+        </OwnerAuthProvider>
     );
 }

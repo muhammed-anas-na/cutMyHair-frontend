@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Bell, User, Calendar, CreditCard, Shield, LogOut, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { GET_OWNER_SETTINGS_DATA_FN } from '@/services/ownerService';
+import { useOwnerAuth } from '@/context/OwnerContext';
 
 const SettingsPage = () => {
   const [notifications, setNotifications] = useState({
@@ -12,11 +13,10 @@ const SettingsPage = () => {
   });
   const {user_id} = useAuth();
 const [data, setData] = useState();
-const {OwnerLogout} = useAuth()
+const {OwnerLogout} = useOwnerAuth()
   useEffect(()=>{
     async function fetchUserData(){
         const userData = await GET_OWNER_SETTINGS_DATA_FN(user_id);
-        console.log(userData.data[0])
         setData(userData.data[0])
     }
     fetchUserData();
