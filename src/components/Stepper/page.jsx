@@ -1,7 +1,7 @@
 // Step indicator component
 const StepIndicator = ({ currentStep, totalSteps = 3 }) => {
     return (
-      <div className="flex items-center justify-center gap-4 mb-8">
+      <div className="flex items-center justify-center gap-4 m-8">
         {[...Array(totalSteps)].map((_, index) => (
           <div key={index} className="flex items-center">
             <div className={`h-8 w-8 rounded-full flex items-center justify-center

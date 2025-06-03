@@ -15,7 +15,7 @@ import { checkIfOpenToday } from '@/helpers';
 import SalonImageSlider from '../ImageSlider';
 import VerificationPopup from '@/components/VerificationPopUp/page';
 import BookingModal from '../../../components/BookingModal/page';
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation';
 import { useRouter } from "next/navigation";
 
 const SalonDetailPage = ({ params }) => {

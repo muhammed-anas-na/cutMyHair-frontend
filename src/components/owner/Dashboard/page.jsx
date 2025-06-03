@@ -3,13 +3,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Users, CalendarCheck, MoreVertical, TrendingUp, TrendingDown, Clock,
-    MapPin, Zap, Filter, ChevronDown, Menu, X, DollarSign, Bell, PlusCircle, Search, IndianRupee
+    MapPin, Zap, Filter, ChevronDown, Menu, X, DollarSign, Bell, PlusCircle, Search, IndianRupee,
+    Sparkles,
+    Plus,
+    ArrowRight
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ADD_NEW_APPOINMENT_FN, GET_DASHBOARD_DATA_FN, GET_STYLIST_DATA__FN } from '@/services/ownerService';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Lottie from 'lottie-react';
 import welcomeAnimation from '../../../../public/animations/owner-welcome.json';
+import Link from 'next/link';
 
 // Simple debounce function
 const debounce = (func, wait) => {
@@ -113,6 +117,8 @@ const DashboardContent = () => {
     const [showWelcomePopup, setShowWelcomePopup] = useState(false);
     const { user_id } = useAuth();
     const searchParams = useSearchParams();
+    const [isHovered, setIsHovered] = useState(false);
+
 
     // Check for welcome message and tutorial visibility
     useEffect(() => {
@@ -305,6 +311,10 @@ const DashboardContent = () => {
         setShowWelcomePopup(true);
     };
 
+    const handleRegisterSalon = () => {
+        router.push('/owner/registerSalon');
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -314,6 +324,98 @@ const DashboardContent = () => {
                 </div>
             </div>
         );
+    }
+
+    if (!loading && salons.length === 0) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 px-4 mb-20">
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-pink-200/20 to-purple-200/20 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-pink-200/20 to-purple-200/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+            </div>
+            
+            <div className="relative bg-white p-8 rounded-3xl shadow-xl max-w-lg w-full text-center border border-pink-100/50 backdrop-blur-sm">
+                <div className="mb-8">
+                    <div className="bg-gradient-to-r from-pink-500/10 to-purple-500/10 p-4 rounded-full inline-block">
+                        <Users className="text-[#CE145B] mx-auto animate-bounce" size={56} />
+                    </div>
+                    {/* Sparkle decorations */}
+                    <Sparkles className="absolute -top-2 -right-2 text-pink-400 animate-pulse" size={20} />
+                    <Sparkles className="absolute -bottom-1 -left-2 text-purple-400 animate-pulse" size={16} style={{animationDelay: '0.5s'}} />
+                </div>
+
+                {/* Main heading with gradient text */}
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-3">
+                    Welcome to Your Dashboard
+                </h2>
+                <p className='text-xs'>Powered by CutMyHair</p>
+                {/* Subheading */}
+                <h3 className="text-lg text-gray-600 font-medium mb-6">
+                    No Salons Registered Yet
+                </h3>
+
+                {/* Description with better typography */}
+                <p className="text-gray-500 text-base leading-relaxed mb-8 max-w-sm mx-auto">
+                    Ready to transform your business? Register your salon to unlock powerful booking management, 
+                    customer insights, and growth tools designed just for you.
+                </p>
+
+                {/* Enhanced CTA button with continuous glow animation */}
+                <button
+                    onClick={handleRegisterSalon}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                    className="group relative bg-gradient-to-r from-[#CE145B] to-[#E91E63] text-white px-8 py-4 rounded-2xl text-base font-semibold transition-all duration-300 hover:scale-105 transform active:scale-95 animate-pulse shadow-lg shadow-pink-500/50"
+                    style={{
+                        boxShadow: '0 0 20px rgba(206, 20, 91, 0.4), 0 0 40px rgba(206, 20, 91, 0.2), 0 0 60px rgba(206, 20, 91, 0.1)',
+                        animation: 'glow 2s ease-in-out infinite alternate'
+                    }}
+                >
+                    <span className="flex items-center justify-center gap-2">
+                        <Plus className={`transition-transform duration-300 ${isHovered ? 'rotate-90' : ''}`} size={20} />
+                        Register Your Salon
+                        <ArrowRight className={`transition-transform duration-300 ${isHovered ? 'translate-x-1' : ''}`} size={20} />
+                    </span>
+                    
+                    {/* Button shine effect */}
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                </button>
+
+                {/* Benefits preview */}
+                <div className="mt-8 pt-6 border-t border-gray-100">
+                    <p className="text-xs text-gray-400 mb-3 font-medium">What you'll get:</p>
+                    <div className="flex justify-center gap-6 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                            <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
+                            Booking Management
+                        </span>
+                        <span className="flex items-center gap-1">
+                            <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                            Customer Insights
+                        </span>
+                        <span className="flex items-center gap-1">
+                            <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
+                            Growth Analytics
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {/* CSS for custom glow animation */}
+            <style jsx>{`
+                @keyframes glow {
+                    from {
+                        box-shadow: 0 0 20px rgba(206, 20, 91, 0.4), 0 0 40px rgba(206, 20, 91, 0.2), 0 0 60px rgba(206, 20, 91, 0.1);
+                    }
+                    to {
+                        box-shadow: 0 0 30px rgba(206, 20, 91, 0.6), 0 0 60px rgba(206, 20, 91, 0.4), 0 0 90px rgba(206, 20, 91, 0.2);
+                    }
+                }
+            `}</style>
+        </div>
+    
+        )
+
     }
 
     return (
@@ -394,9 +496,9 @@ const DashboardContent = () => {
                 </div>
             )}
 
-            <div className="flex-1 lg:mt-0">
+            <div className="flex-1 lg:mt-0 mb-20">
                 <div className="max-w-full p-4 sm:p-6">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
+                    <div className="flex flex-row items-start sm:items-center justify-between mb-6">
                         <div>
                             <h1 className="text-xl sm:text-2xl font-bold">Dashboard</h1>
                             <div className="mt-2">
@@ -410,6 +512,11 @@ const DashboardContent = () => {
                                     ))}
                                 </select>
                             </div>
+                        </div>
+
+
+                        <div>
+                            <Link href={'/owner/bookings'} className='bg-pink-600 p-2 text-white rounded-lg'>View Bookings</Link>
                         </div>
                     </div>
 
@@ -458,8 +565,7 @@ const DashboardContent = () => {
                 </div>
             </div>
 
-            {/* Commented out as per original code */}
-            {/* {showNewBookingForm && (
+            {showNewBookingForm && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-screen overflow-y-auto">
                         <div className="flex justify-between items-center mb-4">
@@ -601,7 +707,7 @@ const DashboardContent = () => {
                         </form>
                     </div>
                 </div>
-            )} */}
+            )}
 
             {mobileMenuOpen && (
                 <div 
