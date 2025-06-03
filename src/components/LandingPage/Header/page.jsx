@@ -16,7 +16,7 @@ import {
   Heart,
   Instagram
 } from 'lucide-react';
-
+import AnnouncementBanner from '../../AnnouncementBanner/AnnouncementBanner'
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isServicesMenuOpen, setIsServicesMenuOpen] = useState(false);
@@ -325,6 +325,7 @@ const Header = () => {
           </div>
         </div>
       </div>
+      <AnnouncementBanner/>
     </>
   );
 };

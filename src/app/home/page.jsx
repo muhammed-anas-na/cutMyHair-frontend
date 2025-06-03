@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation'; // Use directly since it's a client component
+import { useSearchParams } from 'next/navigation';
 import BookingModal from '@/components/BookingModal/page';
 import SalonCard from '@/components/SalonCard/page';
 import Navigation from '@/components/Navigation/page';
@@ -101,7 +101,11 @@ const HomeContent = () => {
               loading={loading}
               error={error}
               onRetry={handleRetry}
-              onOpenLocationModal={() => setIsLocationModalOpen(true)}
+              onOpenLocationModal={
+               
+                () => {
+                  setIsLocationModalOpen(true)}
+              }
             />
           )}
         </div>

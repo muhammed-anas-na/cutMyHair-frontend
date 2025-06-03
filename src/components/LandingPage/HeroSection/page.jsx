@@ -108,13 +108,17 @@ const HeroSection = () => {
               >
                 Register Salon
               </button>
-             <button
-                onClick={() => router.push('/home')}
-                className="w-full mt-4 py-3 px-4 text-center rounded-md text-white font-medium transition-colors"
-                style={{ backgroundColor: primaryColor }}
-              >
-                See All Services
-              </button>
+              <button
+  onClick={() => router.push('/home')}
+  className="w-full mt-4 py-3 px-4 text-center rounded-md text-white font-medium transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
+  style={{ 
+    backgroundColor: primaryColor,
+    boxShadow: `0 0 30px ${primaryColor}60, 0 0 60px ${primaryColor}30, 0 0 10px rgba(255, 255, 255, 0.2)`,
+    filter: 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.4))'
+  }}
+>
+  See All Services
+</button>
 
              </div>
             </div>

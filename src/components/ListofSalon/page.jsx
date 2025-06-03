@@ -125,7 +125,7 @@ export default function ListOfSalon({favorites, salons, loading, error, onRetry,
         <p className="text-gray-600 mb-5">
           Please set your location to find salons near you
         </p>
-        <div className="space-y-3">
+        {/* <div className="space-y-3">
           <motion.button 
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -135,7 +135,7 @@ export default function ListOfSalon({favorites, salons, loading, error, onRetry,
             <MapPin size={16} />
             Set your location
           </motion.button>
-        </div>
+        </div> */}
       </motion.div>
     );
   }

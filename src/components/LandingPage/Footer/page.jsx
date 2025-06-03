@@ -23,8 +23,8 @@ const Footer = () => {
 
   // Partners links
   const partnerLinks = [
-    { label: 'Register Your Salon', href: 'owner/login' },
-    { label: 'Salon Dashboard', href: '/salon/dashboard' },
+    { label: 'Register Your Salon', href: 'owner/register' },
+    { label: 'Salon Dashboard', href: '/owner/login' },
   ];
 
   // Social media links

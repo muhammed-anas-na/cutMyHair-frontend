@@ -1,5 +1,13 @@
+import { useLocation } from "@/context/LocationContext";
+
 const ToggleSwitch = ({ isOn, setIsOn }) => {
-  const toggleSwitch = () => setIsOn(prev => !prev);
+  const {isLocationSet,setShowLocationModal} = useLocation();
+  const toggleSwitch = () => {
+    if(isLocationSet) setIsOn(prev => !prev)
+    else setShowLocationModal(true);
+    
+  }
+  
 
   return (
     <div

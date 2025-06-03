@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from '@/context/LocationContext';
 import { GET_LOCATION_FROM_TEXT_FN, GET_LOCATION_NAME_BY_COORDINATES_FN } from '@/services/userService';
 
-export default function LocationModal() {
+export default function LocationModal({isLocationModalOpen}) {
   const { showLocationModal, setShowLocationModal, setLocation } = useLocation();
   const [locationInput, setLocationInput] = useState('');
   const [suggestedLocations, setSuggestedLocations] = useState([]);
@@ -65,6 +65,7 @@ export default function LocationModal() {
   };
 
   if (!showLocationModal) return null;
+  // if(!isLocationModalOpen) return null;
   
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={(e) => e.target === e.currentTarget && setShowLocationModal(false)}>
